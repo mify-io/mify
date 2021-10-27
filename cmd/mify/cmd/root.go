@@ -9,7 +9,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
+var (
+	cfgFile       string
+	workspacePath string
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -34,6 +37,8 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+
+	rootCmd.PersistentFlags().StringVarP(&workspacePath, "path", "p", ".", "Path to workspace")
 
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(addCmd)

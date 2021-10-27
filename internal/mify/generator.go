@@ -5,10 +5,15 @@ import (
 	"github.com/chebykinn/mify/internal/mify/workspace"
 )
 
-func CreateWorkspace(name string) error {
-	return workspace.CreateWorkspace(name)
+func CreateWorkspace(basePath string, name string) error {
+	return workspace.CreateWorkspace(basePath, name)
 }
 
-func CreateService(name string) error {
-	return service.CreateService(name)
+func CreateService(workspacePath string, name string) error {
+	workspaceContext, err := workspace.InitContext(workspacePath)
+	if err != nil {
+		return err
+	}
+
+	return service.CreateService(workspaceContext, name)
 }

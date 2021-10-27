@@ -20,16 +20,6 @@ type ServiceConfig struct {
 }
 
 var (
-	mainGoTemplate = `
-	package main
-
-	func main() {
-		fmt.Println("starting service %s")
-	}
-	`
-)
-
-var (
 	apiTemplate = `
 	openapi: "3.0.0"
 	info:
@@ -57,25 +47,26 @@ var (
 	`
 )
 
-func CreateService(name string) error {
+func CreateService(wspConext workspace.Context, name string) error {
 	fmt.Printf("creating service %s\n", name)
 
-	_, err := workspace.ReadWorkspaceConfig()
-	if err != nil {
+	context := Context{
+		ServiceName: name,
+		Workspace:   wspConext,
+	}
+
+	if err := RenderTemplateTree(context); err != nil {
 		return err
 	}
 
-	if err := createServiceHier(name); err != nil {
-		return err
-	}
+	// _, err := workspace.ReadWorkspaceConfig()
+	// if err != nil {
+	// 	return err
+	// }
 
-	if err := createServiceFiles(name); err != nil {
-		return err
-	}
-
-	if err := createServiceYaml(name); err != nil {
-		return err
-	}
+	// if err := createServiceYaml(name); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -101,23 +92,6 @@ func createServiceHier(dir string) error {
 		if err != nil {
 			return fmt.Errorf("failed to create %s/%s directory: %w", prefix, dir, err)
 		}
-	}
-
-	return nil
-}
-
-func createServiceFiles(dir string) error {
-	fmt.Printf("creating files in %s\n", dir)
-
-	mainGoRendered := fmt.Sprintf(mainGoTemplate, dir)
-	err := ioutil.WriteFile(fmt.Sprintf("backend/cmd/%s/main.go", dir), []byte(mainGoRendered), 0644)
-	if err != nil {
-		return fmt.Errorf("failed to create main.go: %w", err)
-	}
-	apiRendered := fmt.Sprintf(apiTemplate, dir, "http://"+dir+".company.com")
-	err = ioutil.WriteFile(fmt.Sprintf("schemas/%s/api.yaml", dir), []byte(apiRendered), 0644)
-	if err != nil {
-		return fmt.Errorf("failed to create main.go: %w", err)
 	}
 
 	return nil
