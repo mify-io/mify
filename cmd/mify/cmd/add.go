@@ -10,8 +10,8 @@ import (
 
 var addServiceCmd = &cobra.Command{
 	Use:   "service",
-	Short: "Add serivice",
-	Long:  `Add serivice`,
+	Short: "Add service",
+	Long:  `Add service`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {

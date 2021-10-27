@@ -1,0 +1,4 @@
+/Dockerfile
+/README.md
+/api/openapi.yaml
+/go.mod

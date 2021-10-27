@@ -1,13 +1,10 @@
 package workspace
 
 import (
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
 
-	"gopkg.in/yaml.v2"
+	"github.com/chebykinn/mify/internal/mify/config"
 )
 
 const (
@@ -19,6 +16,11 @@ type WorkspaceConfig struct {
 }
 
 func CreateWorkspace(dir string, name string) error {
+// var (
+	// goModTemplate = "module %s%s"
+// )
+
+// func CreateWorkspace(name string) error {
 	fmt.Printf("creating workspace %s\n", name)
 
 	context := Context{
@@ -37,43 +39,13 @@ func CreateWorkspace(dir string, name string) error {
 	return nil
 }
 
-func ReadWorkspaceConfig() (WorkspaceConfig, error) {
-	workspaceConfFile, err := ioutil.ReadFile(workspaceConfigName)
-	if errors.Is(err, os.ErrNotExist) {
-		return WorkspaceConfig{}, fmt.Errorf("workspace config not found, probably current directory is not a workspace")
-	}
-	if err != nil {
-		return WorkspaceConfig{}, err
-	}
-
-	var data WorkspaceConfig
-
-	err = yaml.Unmarshal(workspaceConfFile, &data)
-	if err != nil {
-		return WorkspaceConfig{}, fmt.Errorf("failed to read workspace config: %w", err)
-	}
-
-	return data, nil
-}
-
 // private
 
 func createYaml(dir string) error {
 	fmt.Printf("creating yaml in %s\n", dir)
 
-	conf := WorkspaceConfig{
+	conf := config.WorkspaceConfig{
 		WorkspaceName: dir,
 	}
-
-	data, err := yaml.Marshal(&conf)
-	if err != nil {
-		return fmt.Errorf("failed to create workspace config: %w", err)
-	}
-
-	err = ioutil.WriteFile(fmt.Sprintf("%s/%s", dir, workspaceConfigName), data, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to create workspace config: %w", err)
-	}
-
-	return nil
+	return config.SaveWorkspaceConfig(dir, conf)
 }

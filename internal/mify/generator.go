@@ -17,3 +17,7 @@ func CreateService(workspacePath string, name string) error {
 
 	return service.CreateService(workspaceContext, name)
 }
+
+func ServiceGenerate(name string) error {
+	return service.Generate(name)
+}

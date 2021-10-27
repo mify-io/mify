@@ -1,0 +1,58 @@
+generatorName: go-server
+templateDir: /repo/.mify/assets/openapi/server-template
+enableMinimalUpdate: true
+globalProperties: {}
+additionalProperties:
+  router: chi
+  addResponseHeaders: true
+  enumClassPrefix: true
+  featureCORS: true
+  hideGenerationTimestamp: true
+  packageName: openapi
+  packageVersion: 1.0.0
+  serverPort: 8080
+  sourceFolder: api
+files:
+  ignore-list.txt:
+    destinationFilename: .openapi-generator-ignore
+  main.mustache:
+    destinationFilename: routes.go
+    folder: api/init
+
+gitHost: github.com
+gitUserId: chebykinn
+gitRepoId: mify-sample
+releaseNote: Release note
+httpUserAgent: User Agent
+groupId: svc
+artifactId: svc
+
+apiPackage: handlers
+modelPackage: models
+
+invokerPackage: unused
+# packageName: api
+apiNameSuffix: Api
+modelNamePrefix: ""
+modelNameSuffix: ""
+artifactVersion: ARTIFACT_VERSION
+library: ""
+
+instantiationTypes: {}
+typeMappings: {}
+importMappings: {}
+languageSpecificPrimitives: []
+reservedWordMappings: {}
+serverVariables: {}
+
+verbose: true
+skipOverwrite: false
+removeOperationIdPrefix: false
+skipOperationExample: false
+logToStderr: false
+validateSpec: true
+enablePostProcessFile: false
+strictSpecBehavior: true
+generateAliasAsModel: false
+templatingEngineName: mustache
+# ignoreFileOverride: ""

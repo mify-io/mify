@@ -1,0 +1,38 @@
+package {{classFilename}}
+
+import (
+	"context"
+	"net/http"
+	"errors"{{#imports}}
+	"{{import}}"{{/imports}}
+	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/api"
+)
+
+type {{classname}}Service struct {}
+
+// New{{classname}}Service creates a default api service
+func New{{classname}}Service() openapi.{{classname}}Servicer {
+	return &{{classname}}Service{}
+}{{#operations}}{{#operation}}
+
+// {{nickname}} - {{summary}}
+{{#isDeprecated}}
+// Deprecated
+{{/isDeprecated}}
+func (s *{{classname}}Service) {{nickname}}(ctx context.Context, deps Dependencies{{#allParams}}, {{paramName}} {{dataType}}{{/allParams}}) (ImplResponse, error) {
+	// TODO: add handler logic
+
+{{#responses}}
+{{#dataType}}
+	//TODO: Uncomment the next line to return response Response({{code}}, {{dataType}}{}) or use other options such as http.Ok
+	//return Response({{code}}, {{dataType}}{}), nil
+
+{{/dataType}}
+{{^dataType}}
+	//TODO: Uncomment the next line to return response Response({{code}}, {{dataType}}{}) or use other options such as http.Ok
+	//return Response({{code}}, nil), nil
+
+{{/dataType}}
+{{/responses}}
+	return Response(http.StatusNotImplemented, nil), errors.New("{{nickname}} method not implemented")
+}{{/operation}}{{/operations}}

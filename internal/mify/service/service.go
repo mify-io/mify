@@ -6,18 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/chebykinn/mify/internal/mify/workspace"
-	"gopkg.in/yaml.v2"
+	"github.com/chebykinn/mify/internal/mify/config"
 )
-
-const (
-	serviceConfigName = "service.mify.yaml"
-)
-
-type ServiceConfig struct {
-	ServiceName string   `yaml:"service_name"`
-	Maintainers []string `yaml:"maintainers"`
-}
 
 var (
 	apiTemplate = `
@@ -53,6 +43,11 @@ func CreateService(wspConext workspace.Context, name string) error {
 	context := Context{
 		ServiceName: name,
 		Workspace:   wspConext,
+
+	}
+	_, err := config.ReadWorkspaceConfig()
+	if err != nil {
+		return err
 	}
 
 	if err := RenderTemplateTree(context); err != nil {
@@ -97,26 +92,38 @@ func createServiceHier(dir string) error {
 	return nil
 }
 
+func createServiceFiles(dir string) error {
+	fmt.Printf("creating files in %s\n", dir)
+
+	mainGoRendered := fmt.Sprintf(mainGoTemplate, dir)
+	err := ioutil.WriteFile(fmt.Sprintf("backend/cmd/%s/main.go", dir), []byte(mainGoRendered), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to create main.go: %w", err)
+	}
+	err = os.MkdirAll(fmt.Sprintf("schemas/%s/api", dir), 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create schemas dir: %w", err)
+	}
+
+	apiRendered := fmt.Sprintf(apiTemplate, dir, "http://"+dir+".company.com")
+	err = ioutil.WriteFile(fmt.Sprintf("schemas/%s/api/api.yaml", dir), []byte(apiRendered), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to create sample api.yaml: %w", err)
+	}
+
+	return nil
+}
+
 func createServiceYaml(dir string) error {
 	fmt.Printf("creating yaml in %s\n", dir)
 
-	conf := ServiceConfig{
+	conf := config.ServiceConfig{
 		ServiceName: dir,
 		Maintainers: []string{
 			"First maintainer name",
 			"Second maintainer name",
 		},
 	}
-
-	data, err := yaml.Marshal(&conf)
-	if err != nil {
-		return fmt.Errorf("failed to create service config: %w", err)
-	}
-
-	err = ioutil.WriteFile(fmt.Sprintf("backend/cmd/%s/%s", dir, serviceConfigName), data, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to create service config: %w", err)
-	}
-
-	return nil
+	path := fmt.Sprintf("backend/cmd/%s", dir)
+	return config.SaveServiceConfig(path, conf)
 }
