@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	serviceNamePlaceholder = "_svc_"
+	serviceNamePlaceholder = "#svc#"
 )
 
 func transformPath(context interface{}, path string) (string, error) {
@@ -20,8 +20,8 @@ func transformPath(context interface{}, path string) (string, error) {
 
 func RenderTemplateTree(context Context) error {
 	params := core.RenderParams{
-		TemplatesPath:   "assets/tpl/go_service",
-		TargetPath:      context.Workspace.GoRoot,
+		TemplatesPath:   "tpl/go_service",
+		TargetPath:      context.Workspace.BasePath,
 		PathTransformer: transformPath,
 	}
 	return core.RenderTemplateTree(context, params)

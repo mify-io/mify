@@ -11,7 +11,7 @@ import (
 
 const (
 	apiSchemaPath = "schemas/%s/api"
-	apiServicePath = "backend/internal/%s"
+	apiServicePath = "go_services/internal/%s"
 	svcLanguage generate.GeneratorLanguage = generate.GENERATOR_LANGUAGE_GO
 )
 

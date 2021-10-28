@@ -7,20 +7,7 @@ import (
 	"github.com/chebykinn/mify/internal/mify/config"
 )
 
-const (
-	workspaceConfigName = "workspace.mify.yaml"
-)
-
-type WorkspaceConfig struct {
-	WorkspaceName string `yaml:"workspace_name"`
-}
-
 func CreateWorkspace(dir string, name string) error {
-// var (
-	// goModTemplate = "module %s%s"
-// )
-
-// func CreateWorkspace(name string) error {
 	fmt.Printf("creating workspace %s\n", name)
 
 	context := Context{

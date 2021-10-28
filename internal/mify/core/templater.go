@@ -1,6 +1,7 @@
 package core
 
 import (
+	"embed"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -8,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/chebykinn/mify/internal/mify/config"
 )
 
 type PathTransformerFunc func(context interface{}, path string) (string, error)
@@ -27,8 +30,8 @@ type RenderParams struct {
 	PathTransformer PathTransformerFunc
 }
 
-func renderTemplate(context interface{}, tplPath string, targetPath string) error {
-	tmpl, err := template.ParseFiles(tplPath)
+func renderTemplate(context interface{}, fs embed.FS, tplPath string, targetPath string) error {
+	tmpl, err := template.ParseFS(fs, tplPath)
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %w", err)
 	}
@@ -50,14 +53,14 @@ func renderTemplate(context interface{}, tplPath string, targetPath string) erro
 	return nil
 }
 
-func copyFile(path string, targetPath string) error {
-	bytesRead, err := ioutil.ReadFile(path)
-
+func copyFile(fs embed.FS, path string, targetPath string) error {
+	// bytesRead, err := ioutil.ReadFile(path)
+	data, err := fs.ReadFile(path)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(targetPath, bytesRead, 0644)
+	err = ioutil.WriteFile(targetPath, data, 0644)
 
 	if err != nil {
 		return err
@@ -69,7 +72,8 @@ func copyFile(path string, targetPath string) error {
 func RenderTemplateTree(context interface{}, params RenderParams) error {
 	fmt.Printf("Template render: starting... TemplatesPath: %s. TargetPath: %s.\n", params.TemplatesPath, params.TargetPath)
 
-	return filepath.WalkDir(params.TemplatesPath, func(path string, d fs.DirEntry, err error) error {
+	assetsFs := config.GetAssets()
+	return fs.WalkDir(assetsFs, params.TemplatesPath, func(path string, d fs.DirEntry, err error) error {
 		fmt.Printf("Template render: visiting %s\n", path)
 		if err != nil {
 			return err
@@ -92,11 +96,11 @@ func RenderTemplateTree(context interface{}, params RenderParams) error {
 		if filepath.Ext(path) == templateExtension {
 			filePath := strings.ReplaceAll(destPath, templateExtension, "")
 			fmt.Printf("Template render: found tpl %s. Creating: %s\n", path, filePath)
-			return renderTemplate(context, path, filePath)
+			return renderTemplate(context, assetsFs, path, filePath)
 		}
 
 		fmt.Printf("Template render: found file %s. Creating: %s\n", path, destPath)
-		copyFile(path, destPath)
+		copyFile(assetsFs, path, destPath)
 
 		return nil
 	})

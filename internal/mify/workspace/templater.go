@@ -10,7 +10,7 @@ func transformPath(context interface{}, path string) (string, error) {
 
 func RenderTemplateTree(context Context) error {
 	params := core.RenderParams{
-		TemplatesPath:   "assets/tpl/workspace",
+		TemplatesPath:   "tpl/workspace",
 		TargetPath:      context.BasePath,
 		PathTransformer: transformPath,
 	}

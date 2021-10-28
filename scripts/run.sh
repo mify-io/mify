@@ -1,5 +1,8 @@
 #!/bin/bash
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-(cd $SCRIPT_DIR || exit 1 && go build ./cmd/mify)
-$SCRIPT_DIR/mify "$@"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
+
+rm -f "$REPO_ROOT/mify"
+(cd "$REPO_ROOT" || exit 1 && go build ./cmd/mify)
+"$REPO_ROOT"/mify "$@"
