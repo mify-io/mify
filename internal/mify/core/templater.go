@@ -54,7 +54,6 @@ func renderTemplate(context interface{}, fs embed.FS, tplPath string, targetPath
 }
 
 func copyFile(fs embed.FS, path string, targetPath string) error {
-	// bytesRead, err := ioutil.ReadFile(path)
 	data, err := fs.ReadFile(path)
 	if err != nil {
 		return err

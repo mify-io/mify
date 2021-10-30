@@ -1,10 +1,12 @@
 package config
 
+import "path/filepath"
+
 // import (
-	// "github.com/adrg/xdg"
+// "github.com/adrg/xdg"
 // )
 
-func GetCacheDirectory() string {
+func GetCacheDirectory(basePath string) string {
 	// return xdg.CacheHome+"/mify"
-	return ".mify"
+	return filepath.Join(basePath, ".mify")
 }

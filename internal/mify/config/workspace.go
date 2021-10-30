@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
@@ -15,13 +16,16 @@ const (
 
 type WorkspaceConfig struct {
 	WorkspaceName string `yaml:"workspace_name"`
+	GitHost       string `yaml:"git_host"`
+	GitNamespace  string `yaml:"git_namespace"`
+	GitRepository string `yaml:"git_repository"`
 }
 
-func ReadWorkspaceConfig() (WorkspaceConfig, error) {
-	workspaceConfFile, err := ioutil.ReadFile(workspaceConfigName)
+func ReadWorkspaceConfig(path string) (WorkspaceConfig, error) {
+	workspaceConfFile, err := ioutil.ReadFile(filepath.Join(path, workspaceConfigName))
 
 	if errors.Is(err, os.ErrNotExist) {
-		return WorkspaceConfig{}, fmt.Errorf("workspace config not found, probably current directory is not a workspace")
+		return WorkspaceConfig{}, fmt.Errorf("workspace config not found at path: %s", path)
 	}
 	if err != nil {
 		return WorkspaceConfig{}, err
@@ -48,4 +52,18 @@ func SaveWorkspaceConfig(path string, conf WorkspaceConfig) error {
 		return fmt.Errorf("failed to create workspace config: %w", err)
 	}
 	return nil
+}
+
+func FindWorkspaceConfigPath() (string, error) {
+	curDir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	for curDir != "/" {
+		if _, err := os.Stat(filepath.Join(curDir, workspaceConfigName)); err == nil {
+			return curDir, nil
+		}
+		curDir = filepath.Dir(curDir)
+	}
+	return "", fmt.Errorf("unable to find workspace.mify.yaml, current or any parent directory is not a workspace")
 }

@@ -2,36 +2,37 @@ package service
 
 import (
 	"fmt"
+	"path/filepath"
 
-	// "github.com/chebykinn/mify/internal/mify/config"
+	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/workspace"
 )
 
-func CreateService(wspConext workspace.Context, name string) error {
+func CreateService(wspContext workspace.Context, name string) error {
 	fmt.Printf("creating service %s\n", name)
 
+	repo := fmt.Sprintf("%s/%s/%s",
+		wspContext.Config.GitHost,
+		wspContext.Config.GitNamespace,
+		wspContext.Config.GitRepository)
 	context := Context{
 		ServiceName: name,
-		Workspace:   wspConext,
-
+		Repository:  repo,
+		Workspace:   wspContext,
 	}
-	// _, err := config.ReadWorkspaceConfig()
-	// if err != nil {
-		// return err
-	// }
 
 	if err := RenderTemplateTree(context); err != nil {
 		return err
 	}
 
-	// _, err := workspace.ReadWorkspaceConfig()
-	// if err != nil {
-	// 	return err
-	// }
+	conf := config.ServiceConfig{
+		ServiceName: name,
+	}
 
-	// if err := createServiceYaml(name); err != nil {
-	// 	return err
-	// }
+	confPath := filepath.Join(wspContext.BasePath, "go_services/cmd", name)
+	if err := config.SaveServiceConfig(confPath, conf); err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -2,7 +2,12 @@
 package {{packageName}}
 
 import (
+	"encoding/json"
+	"net/http"
 	"reflect"
+	"io"
+
+	"github.com/go-chi/chi/v5"
 )
 
 // Response return a ImplResponse struct filled
@@ -58,3 +63,14 @@ func AssertRecurseValueRequired(value reflect.Value, callback func(interface{}) 
 	}
 	return nil
 }
+
+// wrapper to prevent generating controllers with unused imports
+func getBodyDecoder(r io.Reader) *json.Decoder {
+	return json.NewDecoder(r)
+}
+
+// wrapper to prevent generating controllers with unused imports
+func getURLParam(r *http.Request, param string) string {
+	return chi.URLParam(r, param)
+}
+

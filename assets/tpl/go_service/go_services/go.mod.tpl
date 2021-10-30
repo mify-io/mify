@@ -1,1 +1,1 @@
-module repo.com/namespace/{{.Workspace.BasePath}}
+module {{.Repository}}/go_services

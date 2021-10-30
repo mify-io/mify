@@ -33,6 +33,10 @@ func createYaml(dir string) error {
 
 	conf := config.WorkspaceConfig{
 		WorkspaceName: dir,
+		GitHost: "repo.com",
+		GitNamespace: "namespace",
+		GitRepository: "somerepo",
 	}
 	return config.SaveWorkspaceConfig(dir, conf)
 }
+

@@ -1,8 +1,9 @@
-package	config
+package config
 
 import (
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
@@ -28,7 +29,7 @@ func SaveServiceConfig(path string, conf ServiceConfig) error {
 		return fmt.Errorf("failed to create service config: %w", err)
 	}
 
-	err = ioutil.WriteFile(fmt.Sprintf("%s/%s", path, serviceConfigName), data, 0644)
+	err = ioutil.WriteFile(filepath.Join(path, serviceConfigName), data, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to create service config: %w", err)
 	}

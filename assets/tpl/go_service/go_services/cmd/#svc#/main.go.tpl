@@ -1,13 +1,13 @@
 package main
 
 import (
-	"internal/{{.ServiceName}}/misc"
+	"{{.Repository}}/go_services/internal/{{.ServiceName}}/misc"
 
 	"go.uber.org/zap"
 )
 
 func main() {
-	context := misc.InitContext("{{.ServiceName}}")
+	context, _ := misc.InitContext("{{.ServiceName}}")
 
 	context.Logger.Info("Starting...", zap.String("service_name", context.ServiceName))
 }

@@ -10,7 +10,7 @@ type MifyContext struct {
 	SugaredLogger *zap.SugaredLogger
 }
 
-func initContext(serviceName string) (MifyContext, error) {
+func InitContext(serviceName string) (MifyContext, error) {
 	logger, err := zap.NewProduction()
 	if err != nil {
 		return MifyContext{}, err

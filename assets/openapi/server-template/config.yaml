@@ -19,13 +19,8 @@ files:
     destinationFilename: routes.go
     folder: api/init
 
-gitHost: github.com
-gitUserId: chebykinn
-gitRepoId: mify-sample
 releaseNote: Release note
 httpUserAgent: User Agent
-groupId: svc
-artifactId: svc
 
 apiPackage: handlers
 modelPackage: models
@@ -45,7 +40,7 @@ languageSpecificPrimitives: []
 reservedWordMappings: {}
 serverVariables: {}
 
-verbose: true
+verbose: false
 skipOverwrite: false
 removeOperationIdPrefix: false
 skipOperationExample: false

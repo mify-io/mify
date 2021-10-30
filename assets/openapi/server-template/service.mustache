@@ -11,7 +11,7 @@ import (
 type {{classname}}Service struct {}
 
 // New{{classname}}Service creates a default api service
-func New{{classname}}Service() openapi.{{classname}}Servicer {
+func New{{classname}}Service() {{packageName}}.{{classname}}Servicer {
 	return &{{classname}}Service{}
 }{{#operations}}{{#operation}}
 
@@ -19,20 +19,20 @@ func New{{classname}}Service() openapi.{{classname}}Servicer {
 {{#isDeprecated}}
 // Deprecated
 {{/isDeprecated}}
-func (s *{{classname}}Service) {{nickname}}(ctx context.Context, deps Dependencies{{#allParams}}, {{paramName}} {{dataType}}{{/allParams}}) (ImplResponse, error) {
+func (s *{{classname}}Service) {{nickname}}(ctx context.Context, deps {{packageName}}.Dependencies{{#allParams}}, {{paramName}} {{#isArray}}{{#items.isPrimitiveType}}{{dataType}}{{/items.isPrimitiveType}}{{^items.isPrimitiveType}}[]{{packageName}}.{{baseType}}{{/items.isPrimitiveType}}{{/isArray}}{{^isArray}}{{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{^isMap}}{{packageName}}.{{baseType}}{{/isMap}}{{#isMap}}{{dataType}}{{/isMap}}{{/isPrimitiveType}}{{/isArray}}{{/allParams}}) ({{packageName}}.ImplResponse, error) {
 	// TODO: add handler logic
 
 {{#responses}}
 {{#dataType}}
 	//TODO: Uncomment the next line to return response Response({{code}}, {{dataType}}{}) or use other options such as http.Ok
-	//return Response({{code}}, {{dataType}}{}), nil
+	//return {{packageName}}.Response({{code}}, {{dataType}}{}), nil
 
 {{/dataType}}
 {{^dataType}}
 	//TODO: Uncomment the next line to return response Response({{code}}, {{dataType}}{}) or use other options such as http.Ok
-	//return Response({{code}}, nil), nil
+	//return {{packageName}}.Response({{code}}, nil), nil
 
 {{/dataType}}
 {{/responses}}
-	return Response(http.StatusNotImplemented, nil), errors.New("{{nickname}} method not implemented")
+	return {{packageName}}.Response(http.StatusNotImplemented, nil), errors.New("{{nickname}} method not implemented")
 }{{/operation}}{{/operations}}

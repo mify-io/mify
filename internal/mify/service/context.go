@@ -6,5 +6,6 @@ import (
 
 type Context struct {
 	ServiceName string
+	Repository  string
 	Workspace   workspace.Context
 }

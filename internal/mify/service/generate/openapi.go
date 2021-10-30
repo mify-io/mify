@@ -1,14 +1,18 @@
 package generate
 
 import (
+	"bufio"
 	"context"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
+	"strings"
 
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -22,78 +26,33 @@ const (
 	GENERATOR_LANGUAGE_GO GeneratorLanguage = "go"
 )
 
-type OpenAPIGenerator struct {
-	schemaDir string
-	language GeneratorLanguage
+type OpenAPIGeneratorInfo struct {
+	GitHost       string
+	GitNamespace  string
+	GitRepository string
+	ServiceName   string
 }
 
-func NewOpenAPIGenerator(schemaDir string, language GeneratorLanguage) OpenAPIGenerator {
+type OpenAPIGenerator struct {
+	basePath  string
+	schemaDir string
+	language  GeneratorLanguage
+	info      OpenAPIGeneratorInfo
+}
+
+func NewOpenAPIGenerator(basePath string, schemaDir string, language GeneratorLanguage, info OpenAPIGeneratorInfo) OpenAPIGenerator {
 	return OpenAPIGenerator{
+		basePath:  basePath,
 		schemaDir: schemaDir,
-		language: language,
+		language:  language,
+		info:      info,
 	}
 }
 
 func (g *OpenAPIGenerator) GenerateServer(outputDir string) error {
 	// TODO: maybe pass context from caller
-	// ctx := context.Background()
-	// loader := &openapi3.Loader{
-		// Context: ctx,
-		// IsExternalRefsAllowed: true,
-	// }
-	// doc, err := loader.LoadFromFile(g.schemaPath)
-	// if err != nil {
-		// return err
-	// }
-	// docCopy := doc
-	// enrichedPaths := doc.Paths
-	// for pathName, path := range doc.Paths {
-		// fmt.Printf("path: %s %+v\n", pathName, path)
-		// ops := path.Operations()
-		// for method, op := range ops {
-			// if op == nil {
-				// continue
-			// }
-			// newOp := *op
-			// newOp.Tags = []string {pathName}
-			// enrichedPaths[pathName].SetOperation(method, &newOp)
-		// }
-		// // doc.Paths[k].Set
-	// }
-	// docCopy.Paths = enrichedPaths
-
-
-	// // https://github.com/getkin/kin-openapi/issues/241
-	// jsonData, err := docCopy.MarshalJSON()
-	// if err != nil {
-		// return fmt.Errorf("failed to create api yaml: %w", err)
-	// }
-	// tmp := map[string]interface{}{}
-	// err = json.Unmarshal(jsonData, &tmp)
-	// if err != nil {
-		// return fmt.Errorf("failed to create api yaml: %w", err)
-	// }
-
-	// f, err := os.Create(fmt.Sprintf("/tmp/api.yaml"))
-	// if err != nil {
-		// return fmt.Errorf("failed to create api yaml: %w", err)
-	// }
-
-	// err = yaml.NewEncoder(f).Encode(tmp)
-	// if err != nil {
-		// return fmt.Errorf("failed to create api yaml: %w", err)
-	// }
-
-	// yaml.NewEncoder
-
-	// data, err := yaml.Marshal(&docCopy)
-
-	// err = ioutil.WriteFile(, data, 0644)
-	// if err != nil {
-		// return fmt.Errorf("failed to create api yaml: %w", err)
-	// }
-
-	schemaPath, err := g.makeEnrichedSchema()
+	ctx := context.Background()
+	schemaPath, err := g.makeEnrichedSchema(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to generate: %w", err)
 	}
@@ -103,28 +62,22 @@ func (g *OpenAPIGenerator) GenerateServer(outputDir string) error {
 		return fmt.Errorf("failed to generate: %w", err)
 	}
 
-	// read generator config and templates
-	// run subprocess with docker
-	// perform language-specific post generation
 	return nil
 
 }
 
 // private
 
-
-func (g *OpenAPIGenerator) makeEnrichedSchema() (string, error) {
-	schemaPath := g.schemaDir+"/api.yaml"
-
+func (g *OpenAPIGenerator) makeEnrichedSchema(ctx context.Context) (string, error) {
+	schemaPath := filepath.Join(g.basePath, g.schemaDir, "/api.yaml")
 
 	data, err := ioutil.ReadFile(schemaPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
 	}
 	// TODO: maybe pass context from caller
-	ctx := context.Background()
 	loader := &openapi3.Loader{
-		Context: ctx,
+		Context:               ctx,
 		IsExternalRefsAllowed: true,
 	}
 	url, err := url.Parse(schemaPath)
@@ -166,11 +119,11 @@ func (g *OpenAPIGenerator) makeEnrichedSchema() (string, error) {
 		}
 	}
 
-	cacheDir := config.GetCacheDirectory()
+	cacheDir := config.GetCacheDirectory(g.basePath)
 	fmt.Printf("debug: cache dir: %s\n", cacheDir)
-	targetDir := cacheDir+"/"+g.schemaDir
+	targetDir := cacheDir + "/" + g.schemaDir
 
-	err = copy.Copy(g.schemaDir, targetDir, copy.Options{
+	err = copy.Copy(filepath.Join(g.basePath, g.schemaDir), targetDir, copy.Options{
 		OnDirExists: func(src, dest string) copy.DirExistsAction {
 			return copy.Replace
 		},
@@ -179,8 +132,7 @@ func (g *OpenAPIGenerator) makeEnrichedSchema() (string, error) {
 		return "", fmt.Errorf("failed to prepare temp api schema: %w", err)
 	}
 
-
-	targetPath := targetDir+"/api.yaml"
+	targetPath := targetDir + "/api.yaml"
 	f, err := os.Create(targetPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to create api yaml: %w", err)
@@ -195,37 +147,137 @@ func (g *OpenAPIGenerator) makeEnrichedSchema() (string, error) {
 }
 
 func (g *OpenAPIGenerator) doGenerate(schemaPath string, targetPath string) error {
-	path, err := config.DumpAssets("openapi/server-template", "openapi")
+	path, err := config.DumpAssets(g.basePath, "openapi/server-template", "openapi")
 	if err != nil {
 		return err
 	}
 	fmt.Printf("debug: dumped path: %s\n", path)
 
+	generatedPath := filepath.Join(g.basePath, targetPath, "generated")
 
-	// TODO: maybe use provided path?
-	curDir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	generatedPath := filepath.Join(targetPath, "generated")
-
-	err = runOpenapiGenerator(curDir, schemaPath, filepath.Join(path, "server-template"), generatedPath)
+	err = runOpenapiGenerator(g.basePath, schemaPath, filepath.Join(path, "server-template"), generatedPath, g.info)
 	if err != nil {
 		return err
 	}
 
-//docker run --rm \
-//  --user $(id -u ${USER}):$(id -g ${GROUP}) \
-//  -v ${PWD}:/local openapitools/openapi-generator-cli "$@"
+	apiPath := filepath.Join(generatedPath, "api")
+	err = sanitizeHandlersImports(apiPath)
+	if err != nil {
+		return err
+	}
 
+	handlersPath := filepath.Join(g.basePath, targetPath, "handlers")
+	err = moveHandlers(apiPath, handlersPath)
+	if err != nil {
+		return err
+	}
 
-//mkdir -p out/go
-//cp tpl/ignore-list.txt out/go/.openapi-generator-ignore
-//./tool.sh generate -c /local/config.yaml -o /local/out/go
 	return nil
 }
 
-func runOpenapiGenerator(basePath string, schemaPath string, templatePath string, targetDir string) error {
+// FIXME: go-specific
+func moveHandlers(apiPath string, handlersPath string) error {
+	services, err := filepath.Glob(filepath.Join(apiPath, "api_*_service.go"))
+	if err != nil {
+		return err
+	}
+	fmt.Printf("services: %v\n", services)
+	if len(services) == 0 {
+		fmt.Printf("debug: no handlers to move\n")
+		return nil
+	}
+	for _, service := range services {
+		baseName := filepath.Base(service)
+		baseName = strings.ReplaceAll(baseName, "api_", "")
+		baseName = strings.ReplaceAll(baseName, "_service.go", "")
+		baseName = strings.ReplaceAll(baseName, "_", "/")
+
+		fmt.Printf("debug: processing handler for: %v\n", baseName)
+		targetFile := filepath.Join(handlersPath, baseName, "service.go")
+		defer func(svc string) {
+			if err := os.Remove(svc); err != nil {
+				fmt.Printf("failed to remove service file: %s: %s\n", svc, err)
+				return
+			}
+			fmt.Printf("debug: removed service file: %s\n", svc)
+		}(service)
+
+		if _, err := os.Stat(targetFile); err == nil {
+			fmt.Printf("debug: skipping existing handler for: %v\n", baseName)
+			continue
+		}
+		if err := os.MkdirAll(filepath.Join(handlersPath, baseName), 0755); err != nil {
+			return err
+		}
+		if err := copyFile(service, targetFile); err != nil {
+			return err
+		}
+		fmt.Printf("debug: created handler for: %v\n", baseName)
+	}
+	return nil
+}
+
+// FIXME: go-specific
+func sanitizeHandlersImports(apiPath string) error {
+	routesFilePath := filepath.Join(apiPath, "init/routes.go")
+	if _, err := os.Stat(routesFilePath); errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("routes file doesn't exists: %s: %w", routesFilePath, err)
+	}
+
+	f, err := os.OpenFile(routesFilePath, os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	lines := make([]string, 0)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	isImportStart := false
+	for i, line := range lines {
+		if strings.HasPrefix(line, "import") {
+			isImportStart = true
+			continue
+		}
+		if isImportStart && strings.HasPrefix(line, ")") {
+			break
+		}
+		if !isImportStart {
+			continue
+		}
+		lines[i] = strings.ReplaceAll(lines[i], "{", "")
+		lines[i] = strings.ReplaceAll(lines[i], "}", "")
+	}
+
+	err = f.Truncate(0)
+	if err != nil {
+		return err
+	}
+	_, err = f.Seek(0, io.SeekStart)
+	if err != nil {
+		return err
+	}
+
+	w := bufio.NewWriter(f)
+	for _, line := range lines {
+		w.WriteString(line)
+		w.WriteByte('\n')
+	}
+
+	err = w.Flush()
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("debug: sanitized routes imports\n")
+	return nil
+}
+
+func runOpenapiGenerator(basePath string, schemaPath string, templatePath string, targetDir string,
+	info OpenAPIGeneratorInfo) error {
 	curUser, err := user.Current()
 	if err != nil {
 		return err
@@ -244,16 +296,24 @@ func runOpenapiGenerator(basePath string, schemaPath string, templatePath string
 		return err
 	}
 
-	args := [] string{
+	templatePathRel := strings.Replace(templatePath, basePath, "", 1)
+	schemaPathRel := strings.Replace(schemaPath, basePath, "", 1)
+	targetDirRel := strings.Replace(targetDir, basePath, "", 1)
+	args := []string{
 		"run",
 		"--rm",
-		"--user", curUser.Uid+":"+curUser.Gid,
-		"-v", basePath+":/repo",
+		"--user", curUser.Uid + ":" + curUser.Gid,
+		"-v", basePath + ":/repo",
 		"openapitools/openapi-generator-cli",
 		"generate",
-		"-c", filepath.Join("/repo", templatePath, "config.yaml"),
-		"-i", filepath.Join("/repo", schemaPath),
-		"-o", filepath.Join("/repo", targetDir),
+		"-c", filepath.Join("/repo", templatePathRel, "config.yaml"),
+		"-i", filepath.Join("/repo", schemaPathRel),
+		"-o", filepath.Join("/repo", targetDirRel),
+		"--git-host", info.GitHost,
+		"--git-user-id", info.GitNamespace,
+		"--git-repo-id", info.GitRepository,
+		"--group-id", info.ServiceName,
+		"--artifact-id", info.ServiceName,
 	}
 	fmt.Printf("debug: running docker %s\n", args)
 
@@ -264,7 +324,7 @@ func runOpenapiGenerator(basePath string, schemaPath string, templatePath string
 	if err != nil {
 		return err
 	}
-	fmt.Printf("debug: successfully generated openapi\n")
+	fmt.Printf("debug: generated openapi\n")
 
 	return nil
 }

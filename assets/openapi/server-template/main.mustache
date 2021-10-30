@@ -8,7 +8,6 @@ import (
 	{{/mux}}
 	{{#chi}}
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	{{/chi}}
 {{/routers}}
     "{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/api"
@@ -23,7 +22,7 @@ import (
 func Routes() {{#routers}}{{#mux}}*mux.Router{{/mux}}{{#chi}}chi.Router{{/chi}}{{/routers}} {
 {{#apiInfo}}{{#apis}}
 	{{classname}}Service := {{classFilename}}.New{{classname}}Service()
-	{{classname}}Controller := New{{classname}}Controller({{classname}}Service)
+	{{classname}}Controller := {{packageName}}.New{{classname}}Controller({{classname}}Service)
 {{/apis}}{{/apiInfo}}
 	router := {{packageName}}.NewRouter({{#apiInfo}}{{#apis}}{{classname}}Controller{{^-last}}, {{/-last}}{{/apis}}{{/apiInfo}})
 	return router
