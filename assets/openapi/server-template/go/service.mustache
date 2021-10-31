@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"errors"{{#imports}}
 	"{{import}}"{{/imports}}
+	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/core"
 	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/api"
 )
 
@@ -19,7 +20,13 @@ func New{{classname}}Service() {{packageName}}.{{classname}}Servicer {
 {{#isDeprecated}}
 // Deprecated
 {{/isDeprecated}}
-func (s *{{classname}}Service) {{nickname}}(ctx context.Context, deps {{packageName}}.Dependencies{{#allParams}}, {{paramName}} {{#isArray}}{{#items.isPrimitiveType}}{{dataType}}{{/items.isPrimitiveType}}{{^items.isPrimitiveType}}[]{{packageName}}.{{baseType}}{{/items.isPrimitiveType}}{{/isArray}}{{^isArray}}{{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{^isMap}}{{packageName}}.{{baseType}}{{/isMap}}{{#isMap}}{{dataType}}{{/isMap}}{{/isPrimitiveType}}{{/isArray}}{{/allParams}}) ({{packageName}}.ServiceResponse, error) {
+func (s *{{classname}}Service) {{nickname}}(ctx context.Context, mifyCtx core.MifyServiceContext
+// service_params_start
+{{#allParams}}
+{"name":"{{paramName}}", "type":"{{dataType}}"}
+{{/allParams}}
+// service_params_end
+) ({{packageName}}.ServiceResponse, error) {
 	// TODO: add handler logic
 
 {{#responses}}

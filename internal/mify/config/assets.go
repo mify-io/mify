@@ -27,7 +27,7 @@ func DumpAssets(basePath string, assetPath string, targetDir string) (string, er
 		return "", err
 	}
 
-	return targetDir, nil
+	return filepath.Join(targetDir, filepath.Base(assetPath)), nil
 }
 
 func copyImpl(fs embed.FS, curPath string, targetDir string) error {

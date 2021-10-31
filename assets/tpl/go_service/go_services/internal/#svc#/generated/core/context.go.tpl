@@ -22,7 +22,7 @@ func NewMifyServiceContext(serviceName string) (MifyServiceContext, error) {
 
 	svcCtx, err := app.NewServiceContext()
 	if err != nil {
-		return err
+		return MifyServiceContext{}, err
 	}
 
 	context := MifyServiceContext{

@@ -2,19 +2,24 @@ package generate
 
 import (
 	"bufio"
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"go/format"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"net/url"
 	"os"
-	"os/exec"
+
 	"os/user"
 	"path/filepath"
 	"strings"
 
 	"github.com/chebykinn/mify/internal/mify/config"
+	"github.com/chebykinn/mify/internal/mify/util/docker"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/otiai10/copy"
 	"gopkg.in/yaml.v2"
@@ -57,7 +62,7 @@ func (g *OpenAPIGenerator) GenerateServer(outputDir string) error {
 		return fmt.Errorf("failed to generate: %w", err)
 	}
 
-	err = g.doGenerate(schemaPath, outputDir)
+	err = g.doGenerate(ctx, schemaPath, outputDir)
 	if err != nil {
 		return fmt.Errorf("failed to generate: %w", err)
 	}
@@ -145,18 +150,19 @@ func (g *OpenAPIGenerator) makeEnrichedSchema(ctx context.Context) (string, erro
 	return targetPath, nil
 }
 
-func (g *OpenAPIGenerator) doGenerate(schemaPath string, targetPath string) error {
-	path, err := config.DumpAssets(g.basePath, "openapi/server-template", "openapi")
+func (g *OpenAPIGenerator) doGenerate(ctx context.Context, schemaPath string, targetPath string) error {
+	langStr := string(GENERATOR_LANGUAGE_GO)
+	path, err := config.DumpAssets(g.basePath, "openapi/server-template/"+langStr, "openapi/server-template")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to dump assets: %w", err)
 	}
 	fmt.Printf("debug: dumped path: %s\n", path)
 
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated")
 
-	err = runOpenapiGenerator(g.basePath, schemaPath, filepath.Join(path, "server-template"), generatedPath, g.info)
+	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, path, generatedPath, g.info)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to run openapi-generator: %w", err)
 	}
 
 	apiPath := filepath.Join(generatedPath, "api")
@@ -171,7 +177,58 @@ func (g *OpenAPIGenerator) doGenerate(schemaPath string, targetPath string) erro
 		return err
 	}
 
+	err = formatGenerated(apiPath)
+	if err != nil {
+		return err
+	}
+
 	return nil
+}
+
+// FIXME: go-specific
+func formatGenerated(apiPath string) error {
+	return filepath.WalkDir(apiPath, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+		f, err := os.OpenFile(path, os.O_RDWR, 0666)
+		if err != nil {
+			return err
+		}
+
+		data, err := ioutil.ReadAll(f)
+		if err != nil {
+			return err
+		}
+
+		fmtData, err := format.Source(data)
+		if err != nil {
+			return err
+		}
+
+		err = f.Truncate(0)
+		if err != nil {
+			return err
+		}
+
+		_, err = f.Seek(0, io.SeekStart)
+		if err != nil {
+			return err
+		}
+
+		w := bufio.NewWriter(f)
+		_, err = w.Write(fmtData)
+		if err != nil {
+			return err
+		}
+
+		err = w.Flush()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 // FIXME: go-specific
@@ -187,8 +244,8 @@ func moveHandlers(apiPath string, handlersPath string) error {
 	}
 	for _, service := range services {
 		baseName := filepath.Base(service)
-		baseName = strings.ReplaceAll(baseName, "api_", "")
-		baseName = strings.ReplaceAll(baseName, "_service.go", "")
+		baseName = strings.TrimPrefix(baseName, "api_")
+		baseName = strings.TrimSuffix(baseName, "_service.go")
 		baseName = strings.ReplaceAll(baseName, "_", "/")
 
 		fmt.Printf("debug: processing handler for: %v\n", baseName)
@@ -198,7 +255,7 @@ func moveHandlers(apiPath string, handlersPath string) error {
 				fmt.Printf("failed to remove service file: %s: %s\n", svc, err)
 				return
 			}
-			fmt.Printf("debug: removed service file: %s\n", svc)
+			fmt.Printf("debug: cleaned generated service file: %s\n", svc)
 		}(service)
 
 		if _, err := os.Stat(targetFile); err == nil {
@@ -208,11 +265,104 @@ func moveHandlers(apiPath string, handlersPath string) error {
 		if err := os.MkdirAll(filepath.Join(handlersPath, baseName), 0755); err != nil {
 			return err
 		}
-		if err := copyFile(service, targetFile); err != nil {
+		if err := createHandlersFile(service, targetFile); err != nil {
 			return err
 		}
 		fmt.Printf("debug: created handler for: %v\n", baseName)
 	}
+	return nil
+}
+
+// FIXME: go-specific
+func createHandlersFile(serviceFile string, targetFile string) error {
+	const (
+		sectionStart = "// service_params_start"
+		sectionEnd   = "// service_params_end"
+	)
+	var (
+		primitivesList = map[string]struct{}{
+			"string":      {},
+			"bool":        {},
+			"uint":        {},
+			"uint32":      {},
+			"uint64":      {},
+			"int":         {},
+			"int32":       {},
+			"int64":       {},
+			"float32":     {},
+			"float64":     {},
+			"complex64":   {},
+			"complex128":  {},
+			"rune":        {},
+			"byte":        {},
+			"interface{}": {},
+		}
+	)
+
+	data, err := ioutil.ReadFile(serviceFile)
+	if err != nil {
+		return err
+	}
+	scanner := bufio.NewScanner(bytes.NewReader(data))
+	lines := make([]string, 0)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	var decl struct {
+		Name string `json:"name"`
+		Type string `json:"type"`
+	}
+
+	buf := bytes.NewBufferString("")
+	w := bufio.NewWriter(buf)
+
+	isSectionStart := false
+	for i, line := range lines {
+		if line == sectionStart {
+			isSectionStart = true
+			continue
+		}
+		if line == sectionEnd {
+			isSectionStart = false
+			continue
+		}
+		if !isSectionStart {
+			w.WriteString(line)
+			if i+1 < len(lines) && lines[i+1] != sectionStart {
+				w.WriteByte('\n')
+			}
+			continue
+		}
+		err := json.Unmarshal([]byte(line), &decl)
+		if err != nil {
+			return err
+		}
+		innermostType := decl.Type
+		innermostType = strings.ReplaceAll(innermostType, "map[string]", "")
+		innermostType = strings.ReplaceAll(innermostType, "[]", "")
+		if _, ok := primitivesList[innermostType]; !ok {
+			decl.Type = strings.ReplaceAll(decl.Type, innermostType, "openapi."+innermostType)
+		}
+		fmt.Printf("debug: writing param %s %s\n", decl.Name, decl.Type)
+		fmt.Fprintf(w, ", %s %s", decl.Name, decl.Type)
+	}
+
+	err = w.Flush()
+	if err != nil {
+		return err
+	}
+
+	out, err := format.Source(buf.Bytes())
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(targetFile, out, 0666)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -275,8 +425,11 @@ func sanitizeHandlersImports(apiPath string) error {
 	return nil
 }
 
-func runOpenapiGenerator(basePath string, schemaPath string, templatePath string, targetDir string,
+func runOpenapiGenerator(ctx context.Context, basePath string, schemaPath string, templatePath string, targetDir string,
 	info OpenAPIGeneratorInfo) error {
+	const (
+		image = "openapitools/openapi-generator-cli:v5.3.0"
+	)
 	curUser, err := user.Current()
 	if err != nil {
 		return err
@@ -299,11 +452,6 @@ func runOpenapiGenerator(basePath string, schemaPath string, templatePath string
 	schemaPathRel := strings.Replace(schemaPath, basePath, "", 1)
 	targetDirRel := strings.Replace(targetDir, basePath, "", 1)
 	args := []string{
-		"run",
-		"--rm",
-		"--user", curUser.Uid + ":" + curUser.Gid,
-		"-v", basePath + ":/repo",
-		"openapitools/openapi-generator-cli",
 		"generate",
 		"-c", filepath.Join("/repo", templatePathRel, "config.yaml"),
 		"-i", filepath.Join("/repo", schemaPathRel),
@@ -316,10 +464,13 @@ func runOpenapiGenerator(basePath string, schemaPath string, templatePath string
 	}
 	fmt.Printf("debug: running docker %s\n", args)
 
-	cmd := exec.Command("docker", args...)
-	output, err := cmd.CombinedOutput()
-	// TODO only if verbose
-	fmt.Printf("%s", output)
+	fmt.Printf("running openapi-generator\n")
+	params := docker.DockerRunParams{
+		User:   curUser,
+		Mounts: map[string]string{"/repo": basePath},
+		Cmd:    args,
+	}
+	err = docker.Run(ctx, image, params)
 	if err != nil {
 		return err
 	}

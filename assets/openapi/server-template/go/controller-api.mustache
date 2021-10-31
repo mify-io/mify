@@ -5,10 +5,8 @@ import (
 	"net/http"
 	"strings"
 
+	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/core"
 {{#routers}}
-	{{#mux}}
-	"github.com/gorilla/mux"
-	{{/mux}}
 {{/routers}}
 )
 
@@ -73,27 +71,20 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	}
 	{{/isMultipart}}
 	{{/hasFormParams}}
-	{{#routers}}
-		{{#mux}}
-			{{#hasPathParams}}
-	params := mux.Vars(r)
-			{{/hasPathParams}}
-		{{/mux}}
-	{{/routers}}
 	{{#hasQueryParams}}
 	query := r.URL.Query()
 	{{/hasQueryParams}}
 	{{#allParams}}
 	{{#isPathParam}}
 	{{#isLong}}
-	{{paramName}}ParamRaw, err := parseInt64Parameter({{#routers}}{{#mux}}params["{{baseName}}"]{{/mux}}{{#chi}}getURLParam(r, "{{baseName}}"){{/chi}}{{/routers}}, {{required}})
+	{{paramName}}ParamRaw, err := parseInt64Parameter({{#routers}}getURLParam(r, "{{baseName}}"){{/routers}}, {{required}})
 	if err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
 	{{/isLong}}
 	{{#isInteger}}
-	{{paramName}}ParamRaw, err := parseInt32Parameter({{#routers}}{{#mux}}params["{{baseName}}"]{{/mux}}{{#chi}}getURLParam(r, "{{baseName}}"){{/chi}}{{/routers}}, {{required}})
+	{{paramName}}ParamRaw, err := parseInt32Parameter({{#routers}}getURLParam(r, "{{baseName}}"){{/routers}}, {{required}})
 	if err != nil {
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
@@ -101,7 +92,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isInteger}}
 	{{^isLong}}
 	{{^isInteger}}
-	{{paramName}}ParamRaw := {{#routers}}{{#mux}}params["{{baseName}}"]{{/mux}}{{#chi}}getURLParam(r, "{{baseName}}"){{/chi}}{{/routers}}
+	{{paramName}}ParamRaw := {{#routers}}getURLParam(r, "{{baseName}}"){{/routers}}
 	{{/isInteger}}{{/isLong}}
 	{{/isPathParam}}
 	{{#isQueryParam}}
@@ -200,6 +191,10 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isBodyParam}}
 
 	{{#isArray}}
+	{{#isBodyParam}}
+	{{paramName}}Param := {{paramName}}ParamRaw
+	{{/isBodyParam}}
+	{{^isBodyParam}}
 	{{#items.isPrimitiveType}}
 	{{paramName}}Param := {{paramName}}ParamRaw
 	{{/items.isPrimitiveType}}
@@ -209,6 +204,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 		{{paramName}}Param[i] = {{baseType}}(v)
 	}
 	{{/items.isPrimitiveType}}
+	{{/isBodyParam}}
 	{{/isArray}}
 	{{^isArray}}
 	{{#isPrimitiveType}}
@@ -225,7 +221,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isArray}}
 
 	{{/allParams}}
-	result, err := c.service.{{nickname}}(r.Context(), Dependencies{}{{#allParams}}, {{paramName}}Param{{/allParams}})
+	result, err := c.service.{{nickname}}(r.Context(), core.MifyServiceContext{}{{#allParams}}, {{paramName}}Param{{/allParams}})
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

@@ -12,7 +12,6 @@ paths:
   /path/to/api:
     get:
       summary: sample handler
-      operationId: theOperationId
       responses:
         '200':
           description: OK

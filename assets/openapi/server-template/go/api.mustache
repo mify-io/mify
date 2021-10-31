@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"{{#apiInfo}}{{#apis}}{{#imports}}
 	"{{import}}"{{/imports}}{{/apis}}{{/apiInfo}}
+	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/core"
 )
 
 
@@ -29,5 +30,5 @@ type {{classname}}Servicer interface { {{#operations}}{{#operation}}
 	{{#isDeprecated}}
 	// Deprecated
 	{{/isDeprecated}}
-	{{operationId}}(context.Context, Dependencies{{#allParams}}, {{dataType}}{{/allParams}}) (ServiceResponse, error){{/operation}}{{/operations}}
+	{{operationId}}(context.Context, core.MifyServiceContext{{#allParams}}, {{dataType}}{{/allParams}}) (ServiceResponse, error){{/operation}}{{/operations}}
 }{{/apis}}{{/apiInfo}}

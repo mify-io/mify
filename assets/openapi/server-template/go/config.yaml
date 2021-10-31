@@ -1,5 +1,5 @@
 generatorName: go-server
-templateDir: /repo/.mify/assets/openapi/server-template
+templateDir: /repo/.mify/assets/openapi/server-template/go
 enableMinimalUpdate: true
 globalProperties: {}
 additionalProperties:
@@ -35,6 +35,7 @@ library: ""
 
 instantiationTypes: {}
 typeMappings: {}
+# importMappings: {}
 importMappings: {}
 languageSpecificPrimitives: []
 reservedWordMappings: {}

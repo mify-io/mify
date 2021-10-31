@@ -3,12 +3,7 @@ package {{packageName}}_init
 
 import (
 {{#routers}}
-	{{#mux}}
-	"github.com/gorilla/mux"
-	{{/mux}}
-	{{#chi}}
 	"github.com/go-chi/chi/v5"
-	{{/chi}}
 {{/routers}}
     "{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/api"
 
@@ -19,7 +14,7 @@ import (
 {{/paths}}{{/openAPI}}
 )
 
-func Routes() {{#routers}}{{#mux}}*mux.Router{{/mux}}{{#chi}}chi.Router{{/chi}}{{/routers}} {
+func Routes() {{#routers}}chi.Router{{/routers}} {
 {{#apiInfo}}{{#apis}}
 	{{classname}}Service := {{classFilename}}.New{{classname}}Service()
 	{{classname}}Controller := {{packageName}}.New{{classname}}Controller({{classname}}Service)

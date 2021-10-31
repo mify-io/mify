@@ -5,19 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 {{#routers}}
-	{{#mux}}
-	"github.com/gorilla/mux"
-	{{#featureCORS}}
-	"github.com/gorilla/handlers"
-	{{/featureCORS}}
-	{{/mux}}
-	{{#chi}}
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	{{#featureCORS}}
 	"github.com/go-chi/cors"
 	{{/featureCORS}}
-	{{/chi}}
 {{/routers}}
 	"io/ioutil"
 	"mime/multipart"
@@ -46,39 +38,20 @@ type Router interface {
 const errMsgRequiredMissing = "required parameter is missing"
 
 // NewRouter creates a new router for any number of api routers
-func NewRouter(routers ...Router) {{#routers}}{{#mux}}*mux.Router{{/mux}}{{#chi}}chi.Router{{/chi}}{{/routers}} {
+func NewRouter(routers ...Router) {{#routers}}chi.Router{{/routers}} {
 {{#routers}}
-	{{#mux}}
-	router := mux.NewRouter().StrictSlash(true)
-	{{/mux}}
-	{{#chi}}
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	{{#featureCORS}}
 	router.Use(cors.Handler(cors.Options{}))
 	{{/featureCORS}}
-	{{/chi}}
 {{/routers}}
 	for _, api := range routers {
 		for _, route := range api.Routes() {
 			var handler http.Handler
 			handler = route.HandlerFunc
 {{#routers}}
-	{{#mux}}
-			handler = Logger(handler, route.Name)
-			{{#featureCORS}}
-			handler = handlers.CORS()(handler)
-			{{/featureCORS}}
-
-			router.
-				Methods(route.Method).
-				Path(route.Pattern).
-				Name(route.Name).
-				Handler(handler)
-	{{/mux}}
-	{{#chi}}
 			router.Method(route.Method, route.Pattern, handler)
-	{{/chi}}
 {{/routers}}
 		}
 	}
