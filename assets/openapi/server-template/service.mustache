@@ -19,7 +19,7 @@ func New{{classname}}Service() {{packageName}}.{{classname}}Servicer {
 {{#isDeprecated}}
 // Deprecated
 {{/isDeprecated}}
-func (s *{{classname}}Service) {{nickname}}(ctx context.Context, deps {{packageName}}.Dependencies{{#allParams}}, {{paramName}} {{#isArray}}{{#items.isPrimitiveType}}{{dataType}}{{/items.isPrimitiveType}}{{^items.isPrimitiveType}}[]{{packageName}}.{{baseType}}{{/items.isPrimitiveType}}{{/isArray}}{{^isArray}}{{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{^isMap}}{{packageName}}.{{baseType}}{{/isMap}}{{#isMap}}{{dataType}}{{/isMap}}{{/isPrimitiveType}}{{/isArray}}{{/allParams}}) ({{packageName}}.ImplResponse, error) {
+func (s *{{classname}}Service) {{nickname}}(ctx context.Context, deps {{packageName}}.Dependencies{{#allParams}}, {{paramName}} {{#isArray}}{{#items.isPrimitiveType}}{{dataType}}{{/items.isPrimitiveType}}{{^items.isPrimitiveType}}[]{{packageName}}.{{baseType}}{{/items.isPrimitiveType}}{{/isArray}}{{^isArray}}{{#isPrimitiveType}}{{dataType}}{{/isPrimitiveType}}{{^isPrimitiveType}}{{^isMap}}{{packageName}}.{{baseType}}{{/isMap}}{{#isMap}}{{dataType}}{{/isMap}}{{/isPrimitiveType}}{{/isArray}}{{/allParams}}) ({{packageName}}.ServiceResponse, error) {
 	// TODO: add handler logic
 
 {{#responses}}

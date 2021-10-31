@@ -10,9 +10,9 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Response return a ImplResponse struct filled
-func Response(code int, body interface{}) ImplResponse {
-	return ImplResponse {
+// Response return a ServiceResponse struct filled
+func Response(code int, body interface{}) ServiceResponse {
+	return ServiceResponse {
 		Code: code,
 		{{#addResponseHeaders}}
 		Headers: nil,
@@ -22,9 +22,9 @@ func Response(code int, body interface{}) ImplResponse {
 }
 {{#addResponseHeaders}}
 
-// ResponseWithHeaders return a ImplResponse struct filled, including headers
-func ResponseWithHeaders(code int, headers map[string][]string, body interface{}) ImplResponse {
-	return ImplResponse {
+// ResponseWithHeaders return a ServiceResponse struct filled, including headers
+func ResponseWithHeaders(code int, headers map[string][]string, body interface{}) ServiceResponse {
+	return ServiceResponse {
 		Code: code,
 		Headers: headers,
 		Body: body,

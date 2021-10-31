@@ -75,7 +75,6 @@ func (g *OpenAPIGenerator) makeEnrichedSchema(ctx context.Context) (string, erro
 	if err != nil {
 		return "", fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
 	}
-	// TODO: maybe pass context from caller
 	loader := &openapi3.Loader{
 		Context:               ctx,
 		IsExternalRefsAllowed: true,

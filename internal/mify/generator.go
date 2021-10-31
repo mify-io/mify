@@ -18,8 +18,8 @@ func CreateService(workspacePath string, name string) error {
 	return service.CreateService(workspaceContext, name)
 }
 
-func ServiceGenerate(name string) error {
-	workspaceContext, err := workspace.InitContext("")
+func ServiceGenerate(workspacePath string, name string) error {
+	workspaceContext, err := workspace.InitContext(workspacePath)
 	if err != nil {
 		return err
 	}

@@ -16,7 +16,7 @@ var genCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {
-			if err := mify.ServiceGenerate(ival); err != nil {
+			if err := mify.ServiceGenerate(workspacePath, ival); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to generate in service: %s\n", err)
 				os.Exit(2)
 			}

@@ -38,7 +38,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVarP(&workspacePath, "path", "p", ".", "Path to workspace")
+	rootCmd.PersistentFlags().StringVarP(&workspacePath, "path", "p", "", "Path to workspace")
 
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(addCmd)
