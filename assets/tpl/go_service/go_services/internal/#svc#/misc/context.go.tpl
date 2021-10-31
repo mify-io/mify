@@ -4,21 +4,21 @@ import (
 	"go.uber.org/zap"
 )
 
-type MifyContext struct {
+type MifyServiceContext struct {
 	ServiceName   string
 	Logger        *zap.Logger
 	SugaredLogger *zap.SugaredLogger
 }
 
-func InitContext(serviceName string) (MifyContext, error) {
+func NewMifyServiceContext(serviceName string) (MifyServiceContext, error) {
 	logger, err := zap.NewProduction()
 	if err != nil {
-		return MifyContext{}, err
+		return MifyServiceContext{}, err
 	}
 
 	defer logger.Sync()
 
-	context := MifyContext{
+	context := MifyServiceContext{
 		ServiceName:   serviceName,
 		Logger:        logger,
 		SugaredLogger: logger.Sugar(),

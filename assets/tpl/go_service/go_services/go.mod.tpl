@@ -1,1 +1,1 @@
-module {{.Repository}}/go_services
+module {{.GoModule}}

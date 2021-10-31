@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	context, _ := misc.InitContext("{{.ServiceName}}")
+	context, _ := misc.NewMifyServiceContext("{{.ServiceName}}")
 
 	context.Logger.Info("Starting...", zap.String("service_name", context.ServiceName))
 }

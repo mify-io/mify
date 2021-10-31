@@ -18,6 +18,7 @@ func CreateService(wspContext workspace.Context, name string) error {
 	context := Context{
 		ServiceName: name,
 		Repository:  repo,
+		GoModule:    repo + "/go_services",
 		Workspace:   wspContext,
 	}
 

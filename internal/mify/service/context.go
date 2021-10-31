@@ -7,5 +7,6 @@ import (
 type Context struct {
 	ServiceName string
 	Repository  string
+	GoModule    string
 	Workspace   workspace.Context
 }

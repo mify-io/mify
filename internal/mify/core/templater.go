@@ -3,12 +3,12 @@ package core
 import (
 	"embed"
 	"fmt"
-	"html/template"
 	"io/fs"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+	"text/template"
 
 	"github.com/chebykinn/mify/internal/mify/config"
 )
@@ -28,10 +28,15 @@ type RenderParams struct {
 
 	// Allows to overwrite the path of file or directory before moving result to target directory
 	PathTransformer PathTransformerFunc
+
+	FuncMap template.FuncMap
 }
 
-func renderTemplate(context interface{}, fs embed.FS, tplPath string, targetPath string) error {
-	tmpl, err := template.ParseFS(fs, tplPath)
+func renderTemplate(context interface{}, fs embed.FS, tplPath string, targetPath string, funcMap template.FuncMap) error {
+	tmpl, err := template.
+		New(filepath.Base(tplPath)).
+		Funcs(funcMap).
+		ParseFS(fs, tplPath)
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %w", err)
 	}
@@ -95,7 +100,7 @@ func RenderTemplateTree(context interface{}, params RenderParams) error {
 		if filepath.Ext(path) == templateExtension {
 			filePath := strings.ReplaceAll(destPath, templateExtension, "")
 			fmt.Printf("Template render: found tpl %s. Creating: %s\n", path, filePath)
-			return renderTemplate(context, assetsFs, path, filePath)
+			return renderTemplate(context, assetsFs, path, filePath, params.FuncMap)
 		}
 
 		fmt.Printf("Template render: found file %s. Creating: %s\n", path, destPath)
