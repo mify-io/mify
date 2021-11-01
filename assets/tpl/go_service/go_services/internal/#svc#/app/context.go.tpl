@@ -1,3 +1,5 @@
+{{- .Workspace.TplHeader}}
+
 package app
 
 type ServiceContext struct {
