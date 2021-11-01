@@ -3,6 +3,8 @@ package docker
 import (
 	"context"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
 	"os/user"
 
@@ -29,12 +31,12 @@ func Run(ctx context.Context, image string, params DockerRunParams) error {
 
 	spinner.Suffix = " docker: pulling "+image
 	spinner.Start()
-	_, err = cli.ImagePull(ctx, image, types.ImagePullOptions{})
+	reader, err := cli.ImagePull(ctx, image, types.ImagePullOptions{})
 	if err != nil {
 		return err
 	}
 	spinner.Stop()
-	// io.Copy(os.Stdout, reader)
+	io.Copy(ioutil.Discard, reader)
 
 	m := make([]mount.Mount, 0, len(params.Mounts))
 	for target, src := range params.Mounts {
