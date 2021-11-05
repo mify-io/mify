@@ -3,29 +3,54 @@
 package core
 
 import (
-	"github.com/google/uuid"
 	"go.uber.org/zap"
+
+	"context"
 )
 
-type MifyRequestContext struct {
-	RequestId      uuid.UUID
-	ServiceContext MifyServiceContext
-
-	Logger        *zap.Logger
-	SugaredLogger *zap.SugaredLogger
+type MifyRequestContextBuilder struct {
+	requestId string
+	logger    *zap.Logger
 }
 
-func NewMifyRequestContext(mifyServiceContext MifyServiceContext) (MifyRequestContext, error) {
-	requestId := uuid.New()
-	logger := mifyServiceContext.Logger.With(
-		zap.String("request_id", requestId.String()),
-	)
+func NewMifyRequestContextBuilder(logger *zap.Logger) *MifyRequestContextBuilder {
+	return &MifyRequestContextBuilder{logger: logger}
+}
 
-	context := MifyRequestContext{
-		RequestId:      requestId,
-		ServiceContext: mifyServiceContext,
-		Logger:         logger,
-		SugaredLogger:  logger.Sugar(),
-	}
-	return context, nil
+func (b *MifyRequestContextBuilder) SetRequestID(requestId string) *MifyRequestContextBuilder {
+	b.requestId = requestId
+	return b
+}
+
+func (b *MifyRequestContextBuilder) Logger() *zap.Logger {
+	return b.logger
+}
+
+func (b *MifyRequestContextBuilder) Build(ctx context.Context, mifyServiceContext *MifyServiceContext) (*MifyRequestContext, error) {
+	return &MifyRequestContext{
+		requestId: b.requestId,
+		serviceContext: mifyServiceContext,
+		logger: b.logger,
+		requestCtx: ctx,
+	}, nil
+}
+
+type MifyRequestContext struct {
+	requestId      string
+	serviceContext *MifyServiceContext
+
+	logger *zap.Logger
+	requestCtx    context.Context
+}
+
+func (c *MifyRequestContext) Logger() *zap.Logger {
+	return c.logger
+}
+
+func (c *MifyRequestContext) ServiceContext() *MifyServiceContext {
+	return c.serviceContext
+}
+
+func (c *MifyRequestContext) RequestContext() context.Context {
+	return c.requestCtx
 }

@@ -2,6 +2,7 @@
 package {{packageName}}
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -12,6 +13,7 @@ import (
 
 // {{classname}}Controller binds http requests to an api service and writes the service results to the http response
 type {{classname}}Controller struct {
+	ctx *core.MifyServiceContext
 	service {{classname}}Servicer
 	errorHandler ErrorHandler
 }
@@ -27,8 +29,9 @@ func With{{classname}}ErrorHandler(h ErrorHandler) {{classname}}Option {
 }
 
 // New{{classname}}Controller creates a default api controller
-func New{{classname}}Controller(s {{classname}}Servicer, opts ...{{classname}}Option) Router {
+func New{{classname}}Controller(ctx *core.MifyServiceContext, s {{classname}}Servicer, opts ...{{classname}}Option) Router {
 	controller := &{{classname}}Controller{
+		ctx:          ctx,
 		service:      s,
 		errorHandler: DefaultErrorHandler,
 	}
@@ -221,7 +224,21 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isArray}}
 
 	{{/allParams}}
-	result, err := c.service.{{nickname}}(r.Context(), core.MifyServiceContext{}{{#allParams}}, {{paramName}}Param{{/allParams}})
+	builder, ok := r.Context().Value(MifyContextField).(core.MifyRequestContextBuilder)
+	if !ok {
+		resp := Response(http.StatusInternalServerError, nil)
+		c.errorHandler(w, r, fmt.Errorf("no builder in context"), &resp)
+		return
+	}
+
+	reqCtx, err := builder.Build(r.Context(), c.ctx)
+	if err != nil {
+		resp := Response(http.StatusInternalServerError, nil)
+		c.errorHandler(w, r, err, &resp)
+		return
+	}
+
+	result, err := c.service.{{nickname}}(reqCtx, {{#allParams}}, {{paramName}}Param{{/allParams}})
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

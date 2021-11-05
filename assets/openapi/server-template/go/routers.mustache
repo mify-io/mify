@@ -17,6 +17,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/core"
 )
 
 // A Route defines the parameters for an api endpoint
@@ -38,10 +40,11 @@ type Router interface {
 const errMsgRequiredMissing = "required parameter is missing"
 
 // NewRouter creates a new router for any number of api routers
-func NewRouter(routers ...Router) {{#routers}}chi.Router{{/routers}} {
+func NewRouter(mifyCtx *core.MifyServiceContext, routers ...Router) {{#routers}}chi.Router{{/routers}} {
 {{#routers}}
 	router := chi.NewRouter()
-	router.Use(middleware.Logger)
+	router.Use(middleware.RequestID)
+	router.Use(Logger(mifyCtx.Logger))
 	{{#featureCORS}}
 	router.Use(cors.Handler(cors.Options{}))
 	{{/featureCORS}}

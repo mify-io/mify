@@ -5,20 +5,21 @@ import (
 {{#routers}}
 	"github.com/go-chi/chi/v5"
 {{/routers}}
-    "{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/api"
+	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/api"
+	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/core"
 
 {{#openAPI}}{{#paths}}
 {{#entrySet}}
-    "{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/handlers{{key}}"
+	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/handlers{{key}}"
 {{/entrySet}}
 {{/paths}}{{/openAPI}}
 )
 
-func Routes() {{#routers}}chi.Router{{/routers}} {
+func Routes(ctx *core.MifyServiceContext) {{#routers}}chi.Router{{/routers}} {
 {{#apiInfo}}{{#apis}}
 	{{classname}}Service := {{classFilename}}.New{{classname}}Service()
-	{{classname}}Controller := {{packageName}}.New{{classname}}Controller({{classname}}Service)
+	{{classname}}Controller := {{packageName}}.New{{classname}}Controller(ctx, {{classname}}Service)
 {{/apis}}{{/apiInfo}}
-	router := {{packageName}}.NewRouter({{#apiInfo}}{{#apis}}{{classname}}Controller{{^-last}}, {{/-last}}{{/apis}}{{/apiInfo}})
+	router := {{packageName}}.NewRouter(ctx, {{#apiInfo}}{{#apis}}{{classname}}Controller{{^-last}}, {{/-last}}{{/apis}}{{/apiInfo}})
 	return router
 }

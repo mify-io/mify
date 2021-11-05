@@ -1,7 +1,6 @@
 package {{classFilename}}
 
 import (
-	"context"
 	"net/http"
 	"errors"{{#imports}}
 	"{{import}}"{{/imports}}
@@ -20,7 +19,7 @@ func New{{classname}}Service() {{packageName}}.{{classname}}Servicer {
 {{#isDeprecated}}
 // Deprecated
 {{/isDeprecated}}
-func (s *{{classname}}Service) {{nickname}}(ctx context.Context, mifyCtx core.MifyServiceContext
+func (s *{{classname}}Service) {{nickname}}(ctx *core.MifyRequestContext
 // service_params_start
 {{#allParams}}
 {"name":"{{paramName}}", "type":"{{dataType}}"}

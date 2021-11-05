@@ -14,7 +14,6 @@ type MifyServiceContext struct {
 	Hostname    string
 
 	Logger        *zap.Logger
-	SugaredLogger *zap.SugaredLogger
 
 	ServiceContext app.ServiceContext
 }
@@ -46,7 +45,6 @@ func NewMifyServiceContext(serviceName string) (MifyServiceContext, error) {
 		ServiceName:    serviceName,
 		Hostname:       hostname,
 		Logger:         logger,
-		SugaredLogger:  logger.Sugar(),
 		ServiceContext: svcCtx,
 	}
 
