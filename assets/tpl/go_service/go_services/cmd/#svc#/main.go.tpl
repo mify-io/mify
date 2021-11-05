@@ -12,12 +12,12 @@ import (
 
 func main() {
 	serviceContext, _ := core.NewMifyServiceContext("service1")
-	serviceContext.Logger.Info("Starting...")
+	serviceContext.Logger().Info("Starting...")
 
 	// tmp
-	router := openapi_init.Routes(&serviceContext)
+	router := openapi_init.Routes(serviceContext)
 	err := http.ListenAndServe(":8080", router)
 	if err != nil {
-		serviceContext.Logger.Panic("failed to listen", zap.Error(err))
+		serviceContext.Logger().Panic("failed to listen", zap.Error(err))
 	}
 }
