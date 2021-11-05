@@ -224,7 +224,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isArray}}
 
 	{{/allParams}}
-	builder, ok := r.Context().Value(MifyContextField).(core.MifyRequestContextBuilder)
+	builder, ok := r.Context().Value(MifyContextField).(*core.MifyRequestContextBuilder)
 	if !ok {
 		resp := Response(http.StatusInternalServerError, nil)
 		c.errorHandler(w, r, fmt.Errorf("no builder in context"), &resp)
