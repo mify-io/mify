@@ -1,3 +1,5 @@
+{{- .Workspace.TplHeader}}
+
 package core
 
 import (
