@@ -8,6 +8,7 @@ import (
 
 	"github.com/bketelsen/crypt/backend/consul"
 	"github.com/bketelsen/crypt/config"
+	"go.uber.org/zap"
 )
 
 const (
@@ -15,16 +16,17 @@ const (
 	refreshPeriod = 60 * time.Second
 )
 
-type MifyConfigWrapper struct {
+type MifyDynamicConfig struct {
 	rwMutex sync.RWMutex
 	data    map[string][]byte
 
 	manager            config.ConfigManager
 	stopChannels       map[string]chan bool
 	mifyServiceContext *MifyServiceContext
+	logger             *zap.Logger
 }
 
-func NewMifyConfigWrapper(mifyServiceContext *MifyServiceContext) (*MifyConfigWrapper, error) {
+func NewMifyDynamicConfig(mifyServiceContext *MifyServiceContext) (*MifyDynamicConfig, error) {
 	cl, err := consul.New([]string{"127.0.0.1:8500"}) // TODO: to config
 	if err != nil {
 		return nil, err
@@ -35,11 +37,12 @@ func NewMifyConfigWrapper(mifyServiceContext *MifyServiceContext) (*MifyConfigWr
 		return nil, err
 	}
 
-	ctxWrapper := &MifyConfigWrapper{
+	ctxWrapper := &MifyDynamicConfig{
 		data:               make(map[string][]byte),
 		manager:            cm,
 		stopChannels:       make(map[string]chan bool),
 		mifyServiceContext: mifyServiceContext,
+		logger:             mifyServiceContext.LoggerFor("dynamic_config"),
 	}
 
 	ctxWrapper.fullRefresh()
@@ -61,15 +64,15 @@ func NewMifyConfigWrapper(mifyServiceContext *MifyServiceContext) (*MifyConfigWr
 	return ctxWrapper, nil
 }
 
-func (cw *MifyConfigWrapper) fullRefresh() error {
-	cw.mifyServiceContext.Logger.Info("Start updating configs...")
+func (cw *MifyDynamicConfig) fullRefresh() error {
+	cw.logger.Info("Start updating configs...")
 
 	configs, err := cw.manager.List(configsPath)
 	if err != nil {
 		return err
 	}
 
-	cw.mifyServiceContext.Logger.Sugar().Infof("Loaded %s configs", len(configs))
+	cw.logger.Sugar().Infof("Loaded %s configs", len(configs))
 
 	knownKeys := make(map[string]struct{})
 
@@ -99,8 +102,8 @@ func (cw *MifyConfigWrapper) fullRefresh() error {
 }
 
 // Should be called under write lock
-func (cw *MifyConfigWrapper) registerConfig(cfgName string, data []byte) {
-	cw.mifyServiceContext.Logger.Sugar().Infof("Registering new config %s ...", cfgName)
+func (cw *MifyDynamicConfig) registerConfig(cfgName string, data []byte) {
+	cw.logger.Sugar().Infof("Registering new config %s ...", cfgName)
 
 	cw.data[cfgName] = data
 
@@ -113,11 +116,11 @@ func (cw *MifyConfigWrapper) registerConfig(cfgName string, data []byte) {
 		for {
 			r := <-resp
 			if r.Error != nil {
-				cw.mifyServiceContext.Logger.Sugar().Error(r.Error)
+				cw.logger.Sugar().Error(r.Error)
 				continue
 			}
 
-			cw.mifyServiceContext.Logger.Sugar().Infof("Config %s is changed", cfgName)
+			cw.logger.Sugar().Infof("Config %s is changed", cfgName)
 
 			cw.rwMutex.Lock()
 
@@ -134,8 +137,8 @@ func (cw *MifyConfigWrapper) registerConfig(cfgName string, data []byte) {
 }
 
 // Should be called under write lock
-func (cw *MifyConfigWrapper) unregisterConfig(cfgName string) {
-	cw.mifyServiceContext.Logger.Sugar().Infof("Unregistering config %s ...", cfgName)
+func (cw *MifyDynamicConfig) unregisterConfig(cfgName string) {
+	cw.logger.Sugar().Infof("Unregistering config %s ...", cfgName)
 
 	delete(cw.data, cfgName)
 	delete(cw.stopChannels, cfgName)
@@ -148,7 +151,7 @@ func getConfigPath(cfgName string) string {
 	return configsPath + "/" + cfgName
 }
 
-func (cw *MifyConfigWrapper) GetConfig(cfgName string) ([]byte, error) {
+func (cw *MifyDynamicConfig) GetConfig(cfgName string) ([]byte, error) {
 	cw.rwMutex.RLock()
 	defer func() { cw.rwMutex.RUnlock() }()
 
