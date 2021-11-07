@@ -29,7 +29,22 @@ type MifyDynamicConfig struct {
 }
 
 func NewMifyDynamicConfig(mifyServiceContext *MifyServiceContext) (*MifyDynamicConfig, error) {
-	cl, err := consul.New([]string{"127.0.0.1:8500"}) // TODO: to config
+	consulEndpoint := mifyServiceContext.StaticConfig().Get(consulEndpointEnvKey)
+	if consulEndpoint == nil {
+		consulEndpoint = consulEndpointDefault // TODO: remove
+	}
+
+	machines := make([]string, 0)
+	switch consulEndpoint.(type) {
+	case string:
+		machines = append(machines, consulEndpoint.(string))
+	case []string:
+		for _, endpoint := range consulEndpoint.([]string) {
+			machines = append(machines, endpoint)
+		}
+	}
+
+	cl, err := consul.New(machines)
 	if err != nil {
 		return nil, err
 	}

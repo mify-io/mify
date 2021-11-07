@@ -14,6 +14,7 @@ type MifyServiceContext struct {
 	hostname    string
 
 	loggerWrapper *MifyLoggerWrapper
+	staticConfig  *MifyStaticConfig
 	dynamicConfig *MifyDynamicConfig
 
 	serviceContext *app.ServiceContext
@@ -30,9 +31,15 @@ func NewMifyServiceContext(serviceName string) (*MifyServiceContext, error) {
 		hostname:    hostname,
 	}
 
+	staticConfig, err := NewMifyStaticConfig()
+	if err != nil {
+		return nil, err
+	}
+	context.staticConfig = staticConfig
+
 	logger, err := NewMifyLoggerWrapper(context)
 	if err != nil {
-		return &MifyServiceContext{}, nil
+		return nil, err
 	}
 	context.loggerWrapper = logger
 
@@ -44,7 +51,7 @@ func NewMifyServiceContext(serviceName string) (*MifyServiceContext, error) {
 
 	svcCtx, err := app.NewServiceContext()
 	if err != nil {
-		return &MifyServiceContext{}, err
+		return nil, err
 	}
 	context.serviceContext = svcCtx
 
@@ -65,6 +72,14 @@ func (c *MifyServiceContext) Logger() *zap.Logger {
 
 func (c *MifyServiceContext) LoggerFor(component string) *zap.Logger {
 	return c.loggerWrapper.LoggerFor(component)
+}
+
+func (c *MifyServiceContext) StaticConfig() *MifyStaticConfig {
+	return c.staticConfig
+}
+
+func (c *MifyServiceContext) DynamicConfig() *MifyDynamicConfig {
+	return c.dynamicConfig
 }
 
 func (c *MifyServiceContext) ServiceContext() *app.ServiceContext {
