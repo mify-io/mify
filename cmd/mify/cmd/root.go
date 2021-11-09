@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/signal"
 
+	"github.com/chebykinn/mify/internal/mify"
 	"github.com/spf13/cobra"
 
 	"github.com/spf13/viper"
@@ -32,7 +34,22 @@ to quickly create a Cobra application.`,
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, os.Interrupt)
+
+	go func() {
+		<-sig
+		cleanup()
+	}()
+
 	cobra.CheckErr(rootCmd.Execute())
+}
+
+func cleanup() {
+	if err := mify.Cleanup(); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to cleanup: %s", err)
+		os.Exit(2)
+	}
 }
 
 func init() {

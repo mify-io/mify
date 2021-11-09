@@ -1,23 +1,19 @@
-generatorName: go-server
-templateDir: /repo/.mify/assets/openapi/server-template/go
+generatorName: go
+templateDir: /repo/.mify/assets/openapi/client-template/go
 enableMinimalUpdate: true
-globalProperties: {}
+globalProperties:
+  apiDocs: false
+  modelDocs: false
 additionalProperties:
-  router: chi
   addResponseHeaders: true
   enumClassPrefix: true
-  featureCORS: true
-  hideGenerationTimestamp: true
+  # featureCORS: true
+  hideGenerationTimestamp: false
   packageName: openapi
   packageVersion: 1.0.0
-  serverPort: 8080
-  sourceFolder: api
 files:
   ignore-list.txt:
     destinationFilename: .openapi-generator-ignore
-  init/routes.mustache:
-    destinationFilename: routes.go
-    folder: api/init
 
 releaseNote: Release note
 httpUserAgent: User Agent
@@ -26,10 +22,11 @@ apiPackage: handlers
 modelPackage: models
 
 invokerPackage: unused
-# packageName: api
-apiNameSuffix: Api
+apiNameSuffix: "_"
 modelNamePrefix: ""
 modelNameSuffix: ""
+groupId: GROUP_ID
+artifactId: ARTIFACT_ID
 artifactVersion: ARTIFACT_VERSION
 library: ""
 

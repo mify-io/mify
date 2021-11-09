@@ -1,7 +1,10 @@
 package mify
 
 import (
+	"context"
+
 	"github.com/chebykinn/mify/internal/mify/service"
+	"github.com/chebykinn/mify/internal/mify/util/docker"
 	"github.com/chebykinn/mify/internal/mify/workspace"
 )
 
@@ -25,4 +28,13 @@ func ServiceGenerate(workspacePath string, name string) error {
 	}
 
 	return service.Generate(workspaceContext, name)
+}
+
+func Cleanup() error {
+	err := docker.Cleanup(context.Background())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
