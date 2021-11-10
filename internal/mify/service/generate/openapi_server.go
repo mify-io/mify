@@ -14,10 +14,10 @@ import (
 	"strings"
 
 	"github.com/chebykinn/mify/internal/mify/config"
-	"github.com/chebykinn/mify/internal/mify/util"
+	"github.com/chebykinn/mify/internal/mify/core"
 )
 
-func (g *OpenAPIGenerator) doGenerateServer(ctx *util.JobPoolContext, schemaPath string, targetPath string) error {
+func (g *OpenAPIGenerator) doGenerateServer(ctx *core.Context, schemaPath string, targetPath string) error {
 	langStr := string(GENERATOR_LANGUAGE_GO)
 	path, err := config.DumpAssets(g.basePath, "openapi/server-template/"+langStr, "openapi/server-template")
 	if err != nil {
@@ -53,7 +53,7 @@ func (g *OpenAPIGenerator) doGenerateServer(ctx *util.JobPoolContext, schemaPath
 }
 
 // FIXME: go-specific
-func moveServerHandlers(ctx *util.JobPoolContext, apiPath string, handlersPath string) error {
+func moveServerHandlers(ctx *core.Context, apiPath string, handlersPath string) error {
 	services, err := filepath.Glob(filepath.Join(apiPath, "api_*_service.go"))
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func moveServerHandlers(ctx *util.JobPoolContext, apiPath string, handlersPath s
 	return nil
 }
 
-func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *util.JobPoolContext, schemaPath string) (string, error) {
+func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *core.Context, schemaPath string) (string, error) {
 	doc, err := g.readSchema(ctx, schemaPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
@@ -124,7 +124,7 @@ func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *util.JobPoolContext, sc
 }
 
 // FIXME: go-specific
-func createServerHandlersFile(ctx *util.JobPoolContext, serviceFile string, targetFile string) error {
+func createServerHandlersFile(ctx *core.Context, serviceFile string, targetFile string) error {
 	const (
 		sectionStart = "// service_params_start"
 		sectionEnd   = "// service_params_end"
@@ -220,7 +220,7 @@ func createServerHandlersFile(ctx *util.JobPoolContext, serviceFile string, targ
 }
 
 // FIXME: go-specific
-func sanitizeServerHandlersImports(ctx *util.JobPoolContext, apiPath string) error {
+func sanitizeServerHandlersImports(ctx *core.Context, apiPath string) error {
 	routesFilePath := filepath.Join(apiPath, "init/routes.go")
 	if _, err := os.Stat(routesFilePath); errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("routes file doesn't exists: %s: %w", routesFilePath, err)

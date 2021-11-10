@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"sync"
 
 	"github.com/chebykinn/mify/internal/mify"
+	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/spf13/cobra"
 
 	"github.com/spf13/viper"
@@ -14,6 +16,7 @@ import (
 var (
 	cfgFile       string
 	workspacePath string
+	appContext    *core.Context
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -34,18 +37,24 @@ to quickly create a Cobra application.`,
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	var endWaiter sync.WaitGroup
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
 
 	go func() {
 		<-sig
+		endWaiter.Add(1)
 		cleanup()
+		endWaiter.Done()
 	}()
 
 	cobra.CheckErr(rootCmd.Execute())
+	endWaiter.Wait()
 }
 
 func cleanup() {
+	appContext.Cancel()
+
 	if err := mify.Cleanup(); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to cleanup: %s", err)
 		os.Exit(2)
@@ -53,6 +62,7 @@ func cleanup() {
 }
 
 func init() {
+	appContext = core.NewContext()
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVarP(&workspacePath, "path", "p", "", "Path to workspace")

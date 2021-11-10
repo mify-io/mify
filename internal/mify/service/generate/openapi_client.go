@@ -8,10 +8,10 @@ import (
 	"unicode"
 
 	"github.com/chebykinn/mify/internal/mify/config"
-	"github.com/chebykinn/mify/internal/mify/util"
+	"github.com/chebykinn/mify/internal/mify/core"
 )
 
-func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *util.JobPoolContext, schemaPath string) (string, error) {
+func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *core.Context, schemaPath string) (string, error) {
 	doc, err := g.readSchema(ctx, schemaPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
@@ -40,7 +40,7 @@ func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *util.JobPoolContext, sc
 	return g.saveEnrichedSchema(ctx, doc, schemaPath, CACHE_CLIENT_SUBDIR)
 }
 
-func (g *OpenAPIGenerator) doGenerateClient(ctx *util.JobPoolContext, clientName string, schemaPath string, targetPath string) error {
+func (g *OpenAPIGenerator) doGenerateClient(ctx *core.Context, clientName string, schemaPath string, targetPath string) error {
 	langStr := string(GENERATOR_LANGUAGE_GO)
 	path, err := config.DumpAssets(g.basePath, "openapi/client-template/"+langStr, "openapi/client-template")
 	if err != nil {

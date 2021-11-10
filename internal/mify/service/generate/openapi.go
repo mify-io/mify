@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/chebykinn/mify/internal/mify/config"
+	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/util/docker"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -52,7 +53,7 @@ func NewOpenAPIGenerator(pool *util.JobPool, basePath string, language Generator
 
 	pool.AddJob(util.Job{
 		Name:"generate:prepare",
-		Func: func(ctx *util.JobPoolContext) error {
+		Func: func(ctx *core.Context) error {
 			if err := docker.Cleanup(ctx.Ctx); err != nil {
 				return err
 			}
@@ -75,7 +76,7 @@ func NewOpenAPIGenerator(pool *util.JobPool, basePath string, language Generator
 	}, nil
 }
 
-func (g *OpenAPIGenerator) GenerateServer(ctx *util.JobPoolContext, schemaDir string, outputDir string) error {
+func (g *OpenAPIGenerator) GenerateServer(ctx *core.Context, schemaDir string, outputDir string) error {
 	inputSchemaPath := filepath.Join(g.basePath, schemaDir, "/api.yaml")
 	schemaPath, err := g.makeServerEnrichedSchema(ctx, inputSchemaPath)
 	if err != nil {
@@ -91,7 +92,7 @@ func (g *OpenAPIGenerator) GenerateServer(ctx *util.JobPoolContext, schemaDir st
 
 }
 
-func (g *OpenAPIGenerator) GenerateClient(ctx *util.JobPoolContext, clientName string, schemaDir string, outputDir string) error {
+func (g *OpenAPIGenerator) GenerateClient(ctx *core.Context, clientName string, schemaDir string, outputDir string) error {
 	inputSchemaPath := filepath.Join(g.basePath, schemaDir, "/api.yaml")
 	schemaPath, err := g.makeClientEnrichedSchema(ctx, inputSchemaPath)
 	if err != nil {
@@ -110,7 +111,7 @@ func (g *OpenAPIGenerator) GenerateClient(ctx *util.JobPoolContext, clientName s
 
 // private
 
-func (g *OpenAPIGenerator) readSchema(ctx *util.JobPoolContext, schemaPath string) (map[string]interface{}, error) {
+func (g *OpenAPIGenerator) readSchema(ctx *core.Context, schemaPath string) (map[string]interface{}, error) {
 	data, err := ioutil.ReadFile(schemaPath)
 	if err != nil {
 		return nil, err
@@ -141,7 +142,7 @@ func (g *OpenAPIGenerator) readSchema(ctx *util.JobPoolContext, schemaPath strin
 }
 
 func (g *OpenAPIGenerator) saveEnrichedSchema(
-		ctx *util.JobPoolContext, doc map[string]interface{}, schemaPath string, cacheSubdir string) (string, error) {
+		ctx *core.Context, doc map[string]interface{}, schemaPath string, cacheSubdir string) (string, error) {
 	schemaDir := filepath.Dir(strings.Replace(schemaPath, g.basePath, "", 1))
 	cacheDir := config.GetCacheDirectory(g.basePath)
 	targetDir := filepath.Join(cacheDir, schemaDir, cacheSubdir)
@@ -223,7 +224,7 @@ func formatGenerated(apiPath string) error {
 }
 
 func runOpenapiGenerator(
-	ctx *util.JobPoolContext, basePath string, schemaPath string, templatePath string, targetDir string,
+	ctx *core.Context, basePath string, schemaPath string, templatePath string, targetDir string,
 	packageName string,
 	info OpenAPIGeneratorInfo) error {
 	const (

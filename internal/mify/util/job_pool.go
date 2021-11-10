@@ -1,7 +1,6 @@
 package util
 
 import (
-	"context"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,10 +8,11 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/vbauerster/mpb/v7/decor"
 )
 
-type JobFunc func(*JobPoolContext) error
+type JobFunc func(*core.Context) error
 
 type Job struct {
 	Name string
@@ -21,27 +21,23 @@ type Job struct {
 
 type JobError struct {
 	Name string
-	Err error
-}
-
-type JobPoolContext struct {
-	Logger *log.Logger
-	Ctx context.Context
+	Err  error
 }
 
 type JobPool struct {
-	waitGroup *sync.WaitGroup
-	jobChan chan Job
-	stopChan chan struct{}
-	errChan chan JobError
-	jobsQueue []Job
+	waitGroup   *sync.WaitGroup
+	jobChan     chan Job
+	stopChan    chan struct{}
+	errChan     chan JobError
+	jobsQueue   []Job
 	runningJobs sync.Map
 
 	progressBar *ProgressBar
 
 	isError AtomicBool
-	logDir string
+	logDir  string
 
+	ctx *core.Context
 }
 
 func (p *JobPool) addJob(j Job) {
@@ -71,8 +67,8 @@ func (p *JobPool) worker(n int) {
 		if !p.isError.Load() {
 			logFile, err = os.OpenFile(p.GetJobLogPath(job.Name), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 			logger := log.New(logFile, "", 0)
-			pCtx := &JobPoolContext{
-				Ctx: context.Background(),
+			pCtx := &core.Context{
+				Ctx:    p.ctx.Ctx,
 				Logger: logger,
 			}
 			if err == nil {
@@ -88,10 +84,13 @@ func (p *JobPool) worker(n int) {
 			p.progressBar.Abort()
 			jobErr := JobError{
 				Name: job.Name,
-				Err: err,
+				Err:  err,
 			}
 			p.isError.Store(true)
-			p.errChan <- jobErr
+			select {
+				case p.errChan <- jobErr:
+				default:
+			}
 		}
 	}
 }
@@ -112,15 +111,16 @@ func (p *JobPool) updateStatus(s decor.Statistics) string {
 	return p.progressBar.Spinner() + " running: [" + strings.Join(jobs, ", ") + "] "
 }
 
-func NewJobPool(cacheDir string, numWorkers int) (*JobPool, error) {
+func NewJobPool(ctx *core.Context, cacheDir string, numWorkers int) (*JobPool, error) {
 	job_ch := make(chan Job, numWorkers)
 
 	var wg sync.WaitGroup
-	p := &JobPool {
+	p := &JobPool{
 		waitGroup: &wg,
-		jobChan: job_ch,
-		stopChan: make(chan struct{}),
-		errChan: make(chan JobError),
+		jobChan:   job_ch,
+		stopChan:  make(chan struct{}),
+		errChan:   make(chan JobError),
+		ctx:       ctx,
 	}
 
 	p.progressBar = NewProgressBar(p.updateStatus)
@@ -146,10 +146,6 @@ func (p *JobPool) AddJob(j Job) {
 }
 
 func (p *JobPool) Run() *JobError {
-	// go func () {
-		// time.Sleep(2 * time.Second)
-	// }()
-
 	for len(p.jobsQueue) > 0 {
 		j := p.jobsQueue[0]
 		p.jobsQueue = p.jobsQueue[1:]
