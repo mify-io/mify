@@ -2,37 +2,26 @@
 package {{packageName}}
 
 import (
-	"context"
-	"net/http"
-	"time"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
-
-	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/core"
+	"net/http"
+	"time"
 )
 
-type ctxKeyMifyContext int
-
-const MifyContextField ctxKeyMifyContext = 0
-
-func Logger(l *zap.Logger) func(next http.Handler) http.Handler {
+func Logger() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 
-			mifyCtxBuilder := core.NewMifyRequestContextBuilder(l)
-			mifyCtxBuilder.SetRequestID(middleware.GetReqID(r.Context()))
-			mifyCtxBuilder.SetProtocol(r.Proto)
-			mifyCtxBuilder.SetURLPath(r.URL.Path)
-			ctx := context.WithValue(r.Context(), MifyContextField, mifyCtxBuilder)
+			ctxBuilder := mustGetContextBuilder(r)
 
-			mifyCtxBuilder.Logger().Info("started processing request")
+			ctxBuilder.Logger().Info("started processing request")
 
 			t1 := time.Now()
 
-			next.ServeHTTP(ww, r.WithContext(ctx))
+			next.ServeHTTP(ww, r)
 
-			mifyCtxBuilder.Logger().Info("finished processing request",
+			ctxBuilder.Logger().Info("finished processing request",
 				zap.Duration("elapsed_sec", time.Since(t1)),
 				zap.Int("status", ww.Status()),
 				zap.Int("size", ww.BytesWritten()),

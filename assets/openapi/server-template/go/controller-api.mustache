@@ -231,7 +231,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	reqCtx, err := builder.Build(r.Context(), c.ctx)
+	reqCtx, err := builder.Build(r.Context())
 	if err != nil {
 		resp := Response(http.StatusInternalServerError, nil)
 		c.errorHandler(w, r, err, &resp)

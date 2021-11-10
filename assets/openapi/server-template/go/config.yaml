@@ -18,6 +18,12 @@ files:
   init/routes.mustache:
     destinationFilename: routes.go
     folder: api/init
+  metrics.mustache:
+    destinationFilename: metrics.go
+    folder: api
+  request_context.mustache:
+    destinationFilename: request_context.go
+    folder: api
 
 releaseNote: Release note
 httpUserAgent: User Agent

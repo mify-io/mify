@@ -8,6 +8,7 @@ import (
 	"io"
 
 	"github.com/go-chi/chi/v5"
+	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/core"
 )
 
 // Response return a ServiceResponse struct filled
@@ -74,3 +75,11 @@ func getURLParam(r *http.Request, param string) string {
 	return chi.URLParam(r, param)
 }
 
+// extract mify request context builder from http context
+func mustGetContextBuilder(r *http.Request) *core.MifyRequestContextBuilder {
+	ctxBuilder := r.Context().Value(MifyContextField).(*core.MifyRequestContextBuilder)
+	if ctxBuilder == nil {
+		panic("Context builder wasn't found")
+	}
+	return ctxBuilder
+}

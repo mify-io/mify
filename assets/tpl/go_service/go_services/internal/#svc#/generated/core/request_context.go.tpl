@@ -10,13 +10,20 @@ import (
 
 type MifyRequestContextBuilder struct {
 	requestId string
-	protocol string
-	urlPath string
+	protocol  string
+	urlPath   string
 	logger    *zap.Logger
+	metrics   *RequestMetrics
+
+	serviceContext *MifyServiceContext
 }
 
-func NewMifyRequestContextBuilder(logger *zap.Logger) *MifyRequestContextBuilder {
-	return &MifyRequestContextBuilder{logger: logger}
+func NewMifyRequestContextBuilder(serviceContext *MifyServiceContext) *MifyRequestContextBuilder {
+	return &MifyRequestContextBuilder{
+		logger:         serviceContext.Logger(),
+		serviceContext: serviceContext,
+		metrics:        NewRequestMetrics(),
+	}
 }
 
 func (b *MifyRequestContextBuilder) SetRequestID(requestId string) *MifyRequestContextBuilder {
@@ -34,6 +41,14 @@ func (b *MifyRequestContextBuilder) SetURLPath(path string) *MifyRequestContextB
 	return b
 }
 
+func (b *MifyRequestContextBuilder) GetURLPath() string {
+	return b.urlPath
+}
+
+func (b *MifyRequestContextBuilder) GetMetrics() *RequestMetrics {
+	return b.metrics
+}
+
 func (b *MifyRequestContextBuilder) Logger() *zap.Logger {
 	return b.logger.With(
 		zap.String("request_id", b.requestId),
@@ -42,12 +57,16 @@ func (b *MifyRequestContextBuilder) Logger() *zap.Logger {
 	)
 }
 
-func (b *MifyRequestContextBuilder) Build(ctx context.Context, mifyServiceContext *MifyServiceContext) (*MifyRequestContext, error) {
+func (b *MifyRequestContextBuilder) ServiceContext() *MifyServiceContext {
+	return b.serviceContext
+}
+
+func (b *MifyRequestContextBuilder) Build(ctx context.Context) (*MifyRequestContext, error) {
 	return &MifyRequestContext{
-		requestId: b.requestId,
-		serviceContext: mifyServiceContext,
-		logger: b.Logger(),
-		requestCtx: ctx,
+		requestId:      b.requestId,
+		serviceContext: b.serviceContext,
+		logger:         b.Logger(),
+		requestCtx:     ctx,
 	}, nil
 }
 
@@ -55,8 +74,8 @@ type MifyRequestContext struct {
 	requestId      string
 	serviceContext *MifyServiceContext
 
-	logger *zap.Logger
-	requestCtx    context.Context
+	logger     *zap.Logger
+	requestCtx context.Context
 }
 
 func (c *MifyRequestContext) Logger() *zap.Logger {

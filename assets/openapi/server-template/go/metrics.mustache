@@ -1,0 +1,25 @@
+{{>partial_header}}
+package {{packageName}}
+
+import (
+	"net/http"
+	"time"
+
+	"github.com/go-chi/chi/v5/middleware"
+)
+
+func Metrics() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+
+			ctxBuilder := mustGetContextBuilder(r)
+			start := time.Now().UTC()
+
+			next.ServeHTTP(ww, r)
+
+			ctxBuilder.GetMetrics().ReportRequestEnd(ctxBuilder, time.Since(start))
+		}
+		return http.HandlerFunc(fn)
+	}
+}
