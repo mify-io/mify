@@ -7,7 +7,6 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
 )
 
@@ -40,33 +39,16 @@ func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *core.Context, schemaPat
 	return g.saveEnrichedSchema(ctx, doc, schemaPath, CACHE_CLIENT_SUBDIR)
 }
 
-func (g *OpenAPIGenerator) doGenerateClient(ctx *core.Context, clientName string, schemaPath string, targetPath string) error {
-	langStr := string(GENERATOR_LANGUAGE_GO)
-	path, err := config.DumpAssets(g.basePath, "openapi/client-template/"+langStr, "openapi/client-template")
-	if err != nil {
-		return fmt.Errorf("failed to dump assets: %w", err)
-	}
-	ctx.Logger.Printf("dumped path: %s\n", path)
-
+func (g *OpenAPIGenerator) doGenerateClient(ctx *core.Context, assetsPath string, clientName string, schemaPath string, targetPath string) error {
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated", "api", "clients", clientName)
 
 	packageName := makePackageName(clientName)
 
-	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, path, generatedPath, packageName, g.info)
+	err := runOpenapiGenerator(ctx, g.basePath, schemaPath, assetsPath, generatedPath, packageName, g.info)
 	if err != nil {
 		return fmt.Errorf("failed to run openapi-generator: %w", err)
 	}
 
-	// err = sanitizeServerHandlersImports(apiPath)
-	// if err != nil {
-		// return err
-	// }
-
-	// handlersPath := filepath.Join(g.basePath, targetPath, "handlers")
-	// err = moveServerHandlers(apiPath, handlersPath)
-	// if err != nil {
-		// return err
-	// }
 	err = os.Remove(filepath.Join(generatedPath, "api"))
 	if err != nil {
 		return err

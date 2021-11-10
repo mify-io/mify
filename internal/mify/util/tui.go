@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -22,6 +23,7 @@ type ProgressBar struct {
 
 	spinCycle int
 	spinnerChars []string
+	mtx sync.Mutex
 
 }
 
@@ -33,7 +35,9 @@ func NewProgressBar(statusFunc decor.DecorFunc) *ProgressBar {
 }
 
 func (pb *ProgressBar) Create(total int64) {
-	pb.total = total
+	if total >= 0 {
+		pb.total = total
+	}
 	pb.progress = mpb.New(mpb.WithWidth(64))
 	pb.bar = pb.progress.Add(pb.total,
 		mpb.NewBarFiller(mpb.BarStyle().Lbound("[").Filler("=").Tip(">").Padding("-").Rbound("]")),
@@ -59,14 +63,22 @@ func (pb *ProgressBar) Abort() {
 }
 
 func (pb *ProgressBar) IncTotal() {
+	pb.total += 1
 	if pb.bar == nil {
 		return
 	}
-	pb.total += 1
 	if pb.bar.Completed() {
 		pb.Create(0)
 	}
 	pb.bar.SetTotal(pb.total, false)
+}
+
+func (pb *ProgressBar) ResetTotal() {
+	if pb.bar == nil {
+		return
+	}
+	pb.total = 0
+	pb.bar.SetTotal(0, false)
 }
 
 func (pb *ProgressBar) Increment() {
@@ -85,6 +97,8 @@ func (pb *ProgressBar) Wait() {
 }
 
 func (pb *ProgressBar) Spinner() string {
+	pb.mtx.Lock()
+	defer pb.mtx.Unlock()
 	char := pb.spinnerChars[pb.spinCycle]
 	pb.spinCycle += 1
 	if pb.spinCycle == len(pb.spinnerChars) {

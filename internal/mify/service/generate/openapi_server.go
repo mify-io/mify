@@ -13,21 +13,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
 )
 
-func (g *OpenAPIGenerator) doGenerateServer(ctx *core.Context, schemaPath string, targetPath string) error {
-	langStr := string(GENERATOR_LANGUAGE_GO)
-	path, err := config.DumpAssets(g.basePath, "openapi/server-template/"+langStr, "openapi/server-template")
-	if err != nil {
-		return fmt.Errorf("failed to dump assets: %w", err)
-	}
-	ctx.Logger.Printf("dumped path: %s\n", path)
-
+func (g *OpenAPIGenerator) doGenerateServer(ctx *core.Context, assetsPath string, schemaPath string, targetPath string) error {
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated")
 
-	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, path, generatedPath, SERVER_PACKAGE_NAME, g.info)
+	err := runOpenapiGenerator(ctx, g.basePath, schemaPath, assetsPath, generatedPath, SERVER_PACKAGE_NAME, g.info)
 	if err != nil {
 		return fmt.Errorf("failed to run openapi-generator: %w", err)
 	}

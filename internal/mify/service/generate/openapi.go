@@ -44,6 +44,8 @@ type OpenAPIGenerator struct {
 	basePath  string
 	language  GeneratorLanguage
 	info      OpenAPIGeneratorInfo
+	serverAssetsPath string
+	clientAssetsPath string
 }
 
 func NewOpenAPIGenerator(pool *util.JobPool, basePath string, language GeneratorLanguage, info OpenAPIGeneratorInfo) (OpenAPIGenerator, error) {
@@ -51,6 +53,9 @@ func NewOpenAPIGenerator(pool *util.JobPool, basePath string, language Generator
 		image = "openapitools/openapi-generator-cli:v5.3.0"
 	)
 
+	langStr := string(GENERATOR_LANGUAGE_GO)
+	var serverAssetsPath string
+	var clientAssetsPath string
 	pool.AddJob(util.Job{
 		Name:"generate:prepare",
 		Func: func(ctx *core.Context) error {
@@ -60,6 +65,18 @@ func NewOpenAPIGenerator(pool *util.JobPool, basePath string, language Generator
 			if err := docker.PullImage(ctx.Ctx, ctx.Logger, image); err != nil {
 				return err
 			}
+			var err error
+			serverAssetsPath, err = config.DumpAssets(basePath, "openapi/server-template/"+langStr, "openapi/server-template")
+			if err != nil {
+				return fmt.Errorf("failed to dump assets: %w", err)
+			}
+			ctx.Logger.Printf("dumped server path: %s\n", serverAssetsPath)
+
+			clientAssetsPath, err = config.DumpAssets(basePath, "openapi/client-template/"+langStr, "openapi/client-template")
+			if err != nil {
+				return fmt.Errorf("failed to dump assets: %w", err)
+			}
+			ctx.Logger.Printf("dumped client path: %s\n", clientAssetsPath)
 			return nil
 		},
 	})
@@ -73,6 +90,8 @@ func NewOpenAPIGenerator(pool *util.JobPool, basePath string, language Generator
 		basePath:  basePath,
 		language:  language,
 		info:      info,
+		serverAssetsPath: serverAssetsPath,
+		clientAssetsPath: clientAssetsPath,
 	}, nil
 }
 
@@ -83,7 +102,7 @@ func (g *OpenAPIGenerator) GenerateServer(ctx *core.Context, schemaDir string, o
 		return fmt.Errorf("failed to generate server: %w", err)
 	}
 
-	err = g.doGenerateServer(ctx, schemaPath, outputDir)
+	err = g.doGenerateServer(ctx, g.serverAssetsPath, schemaPath, outputDir)
 	if err != nil {
 		return fmt.Errorf("failed to generate server: %w", err)
 	}
@@ -99,7 +118,7 @@ func (g *OpenAPIGenerator) GenerateClient(ctx *core.Context, clientName string, 
 		return fmt.Errorf("failed to generate client: %w", err)
 	}
 
-	err = g.doGenerateClient(ctx, clientName, schemaPath, outputDir)
+	err = g.doGenerateClient(ctx, g.clientAssetsPath, clientName, schemaPath, outputDir)
 	if err != nil {
 		return fmt.Errorf("failed to generate client: %w", err)
 	}
