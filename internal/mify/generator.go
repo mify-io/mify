@@ -19,7 +19,11 @@ func CreateService(ctx *core.Context, workspacePath string, name string) error {
 		return err
 	}
 
-	return service.CreateService(ctx, workspaceContext, name)
+	err = service.CreateService(ctx, workspaceContext, name)
+	if err != nil {
+		return err
+	}
+	return ServiceGenerate(ctx, workspacePath, name)
 }
 
 func ServiceGenerate(ctx *core.Context, workspacePath string, name string) error {
