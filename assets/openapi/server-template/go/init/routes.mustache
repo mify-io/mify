@@ -5,12 +5,12 @@ import (
 {{#routers}}
 	"github.com/go-chi/chi/v5"
 {{/routers}}
-	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/api"
-	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/core"
+	"{{groupId}}/internal/{{artifactId}}/generated/api"
+	"{{groupId}}/internal/{{artifactId}}/generated/core"
 
 {{#openAPI}}{{#paths}}
 {{#entrySet}}
-	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/handlers{{key}}"
+	"{{groupId}}/internal/{{artifactId}}/handlers{{key}}"
 {{/entrySet}}
 {{/paths}}{{/openAPI}}
 )

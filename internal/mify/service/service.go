@@ -5,10 +5,11 @@ import (
 	"path/filepath"
 
 	"github.com/chebykinn/mify/internal/mify/config"
+	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/chebykinn/mify/internal/mify/workspace"
 )
 
-func CreateService(wspContext workspace.Context, name string) error {
+func CreateService(ctx *core.Context, wspContext workspace.Context, name string) error {
 	fmt.Printf("creating service %s\n", name)
 
 	repo := fmt.Sprintf("%s/%s/%s",
@@ -22,7 +23,7 @@ func CreateService(wspContext workspace.Context, name string) error {
 		Workspace:   wspContext,
 	}
 
-	if err := RenderTemplateTree(context); err != nil {
+	if err := RenderTemplateTree(ctx, context); err != nil {
 		return err
 	}
 

@@ -9,17 +9,17 @@ import (
 	"github.com/chebykinn/mify/internal/mify/workspace"
 )
 
-func CreateWorkspace(basePath string, name string) error {
-	return workspace.CreateWorkspace(basePath, name)
+func CreateWorkspace(ctx *core.Context, basePath string, name string) error {
+	return workspace.CreateWorkspace(ctx, basePath, name)
 }
 
-func CreateService(workspacePath string, name string) error {
+func CreateService(ctx *core.Context, workspacePath string, name string) error {
 	workspaceContext, err := workspace.InitContext(workspacePath)
 	if err != nil {
 		return err
 	}
 
-	return service.CreateService(workspaceContext, name)
+	return service.CreateService(ctx, workspaceContext, name)
 }
 
 func ServiceGenerate(ctx *core.Context, workspacePath string, name string) error {

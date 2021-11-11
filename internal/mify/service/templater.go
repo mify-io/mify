@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 	"text/template"
 
@@ -20,7 +21,7 @@ func transformPath(context interface{}, path string) (string, error) {
 	return path, nil
 }
 
-func RenderTemplateTree(context Context) error {
+func RenderTemplateTree(ctx *core.Context, context Context) error {
 	funcMap := template.FuncMap{
 		"svcUserCtxName": func(context Context) string {
 			return fmt.Sprintf("%s%s", strings.Title(context.ServiceName), "Context")
@@ -32,5 +33,24 @@ func RenderTemplateTree(context Context) error {
 		PathTransformer: transformPath,
 		FuncMap:         funcMap,
 	}
-	return core.RenderTemplateTree(context, params)
+	return core.RenderTemplateTree(ctx, context, params)
+}
+
+func RenderTemplateTreeSubPath(ctx *core.Context, context Context, templateSubPath string) error {
+	funcMap := template.FuncMap{
+		"svcUserCtxName": func(context Context) string {
+			return fmt.Sprintf("%s%s", strings.Title(context.ServiceName), "Context")
+		},
+	}
+	targetSubPath, err := transformPath(context, templateSubPath)
+	if err != nil {
+		return err
+	}
+	params := core.RenderParams{
+		TemplatesPath:   filepath.Join("tpl/go_service", templateSubPath),
+		TargetPath:      filepath.Join(context.Workspace.BasePath, targetSubPath),
+		PathTransformer: transformPath,
+		FuncMap:         funcMap,
+	}
+	return core.RenderTemplateTree(ctx, context, params)
 }

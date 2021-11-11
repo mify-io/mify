@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
@@ -26,55 +27,117 @@ func Generate(ctx *core.Context, workspaceContext workspace.Context, name string
 	if err != nil {
 		return err
 	}
+	repo := fmt.Sprintf("%s/%s/%s",
+		workspaceContext.Config.GitHost,
+		workspaceContext.Config.GitNamespace,
+		workspaceContext.Config.GitRepository)
+	context := Context{
+		ServiceName: name,
+		Repository:  repo,
+		GoModule:    repo + "/go_services",
+		Workspace:   workspaceContext,
+	}
 
-	if err := generateServiceOpenAPI(ctx, workspaceContext.Config, serviceConf, workspaceContext.BasePath, name); err != nil {
+	if err := generateServiceOpenAPI(ctx, context, serviceConf, name); err != nil {
 		return err
 	}
 	return nil
 }
 
-func generateServiceOpenAPI(ctx *core.Context, conf config.WorkspaceConfig, serviceConf config.ServiceConfig, basePath string, name string) error {
+func generateServiceOpenAPI(ctx *core.Context, serviceCtx Context, serviceConf config.ServiceConfig, name string) error {
 	schemaPath := fmt.Sprintf(apiSchemaPath, name)
-	if _, err := os.Stat(filepath.Join(basePath, schemaPath)); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(filepath.Join(serviceCtx.Workspace.BasePath, schemaPath)); errors.Is(err, os.ErrNotExist) {
 		fmt.Printf("debug: skipping openapi generating, schema not found for service: %s\n", name)
 		return nil
 	}
-	fmt.Printf("running generate for %s\n", name)
+	fmt.Printf("Running code generation for %s\n", name)
 
 	info := generate.OpenAPIGeneratorInfo{
-		GitHost: conf.GitHost,
-		GitNamespace: conf.GitNamespace,
-		GitRepository: filepath.Join(conf.GitRepository, "go_services"),
+		GitHost: serviceCtx.Workspace.Config.GitHost,
+		GitNamespace: serviceCtx.Workspace.Config.GitNamespace,
+		GitRepository: serviceCtx.Repository,
+		GoModule: serviceCtx.GoModule,
 		ServiceName: name,
 	}
 
-	pool, err := util.NewJobPool(ctx, config.GetCacheDirectory(basePath), 4)
+	pool, err := util.NewJobPool(ctx, config.GetCacheDirectory(serviceCtx.Workspace.BasePath), runtime.NumCPU())
 	if err != nil {
 		return err
 	}
 
-	openapigen, err := generate.NewOpenAPIGenerator(pool, basePath, svcLanguage, info)
+
+	openapigen := generate.NewOpenAPIGenerator(serviceCtx.Workspace.BasePath, svcLanguage, info)
+
+	isAnyClientGenerating := false
+	clientCheckMap := map[string]bool{}
+	clientsList := make([]string, 0, len(serviceConf.OpenAPI.Clients))
+	clientsCtxList := make([]OpenAPIClientContext, 0, len(serviceConf.OpenAPI.Clients))
+	for clientName := range serviceConf.OpenAPI.Clients {
+		clientSchemaPath := fmt.Sprintf(apiSchemaPath, clientName)
+		if _, err := os.Stat(filepath.Join(serviceCtx.Workspace.BasePath, clientSchemaPath)); errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("schema not found while generating client for: %s", clientName)
+		}
+
+		needGenerateClient, err := openapigen.NeedGenerateClient(ctx, clientSchemaPath)
+		if err != nil {
+			return err
+		}
+		clientCheckMap[clientName] = needGenerateClient
+		if needGenerateClient {
+			isAnyClientGenerating = true
+		}
+		packageName := generate.MakePackageName(clientName)
+		fieldName := generate.SnakeCaseToCamelCase(generate.SanitizeClientName(clientName), false)
+		methodName := generate.SnakeCaseToCamelCase(generate.SanitizeClientName(clientName), true)
+		clientsList = append(clientsList, clientName)
+		clientsCtxList = append(clientsCtxList, OpenAPIClientContext{
+			ClientName: clientName,
+			PackageName: packageName,
+			PrivateFieldName: fieldName,
+			PublicMethodName: methodName,
+		})
+
+	}
+	serviceCtx.OpenAPI.Clients = clientsCtxList
+
+	needGenerateServer, err := openapigen.NeedGenerateServer(ctx, schemaPath, clientsList)
 	if err != nil {
 		return err
 	}
 
-	pool.AddJob(util.Job{
-		Name: "generate:server",
-		Func: func(ctx *core.Context) error {
-			if err := openapigen.GenerateServer(ctx, schemaPath, fmt.Sprintf(apiServicePath, name)); err != nil {
-				return err
-			}
+	hasGenerateTasks := needGenerateServer || isAnyClientGenerating
 
-			return nil
-		},
-	})
+	if hasGenerateTasks {
+		err = openapigen.Prepare(pool)
+		if err != nil {
+			return err
+		}
+	}
+
+	if needGenerateServer {
+		pool.AddJob(util.Job{
+			Name: "generate:server",
+			Func: func(ctx *core.Context) error {
+				if err := openapigen.GenerateServer(ctx, schemaPath, fmt.Sprintf(apiServicePath, name), clientsList); err != nil {
+					return err
+				}
+				// FIXME: go specific
+				// FIXME: regenerate only clients file
+				subPath := "go_services/internal/#svc#/generated/core"
+				if err := RenderTemplateTreeSubPath(ctx, serviceCtx, subPath); err != nil {
+					return err
+				}
+				return nil
+			},
+		})
+	}
 
 
 	for clientName := range serviceConf.OpenAPI.Clients {
-		clientSchemaPath := fmt.Sprintf(apiSchemaPath, clientName)
-		if _, err := os.Stat(filepath.Join(basePath, clientSchemaPath)); errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("schema not found while generating client for: %s", clientName)
+		if !clientCheckMap[clientName] {
+			continue
 		}
+		clientSchemaPath := fmt.Sprintf(apiSchemaPath, clientName)
 
 		client := clientName
 		pool.AddJob(util.Job{
@@ -88,8 +151,11 @@ func generateServiceOpenAPI(ctx *core.Context, conf config.WorkspaceConfig, serv
 		})
 	}
 
-	jerr := pool.Run()
-	defer pool.ClosePool()
+	var jerr *util.JobError
+	if hasGenerateTasks {
+		jerr = pool.Run()
+		defer pool.ClosePool()
+	}
 
 	if jerr != nil && errors.Is(jerr.Err, context.Canceled) {
 		return nil
@@ -106,6 +172,10 @@ func generateServiceOpenAPI(ctx *core.Context, conf config.WorkspaceConfig, serv
 		logFile.Close()
 
 		return jerr.Err
+	}
+
+	if !hasGenerateTasks {
+		fmt.Println("Nothing to do")
 	}
 
 	return nil

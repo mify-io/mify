@@ -15,7 +15,7 @@ var addServiceCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {
-			if err := mify.CreateService(workspacePath, ival); err != nil {
+			if err := mify.CreateService(appContext, workspacePath, ival); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to create service: %s\n", err)
 				os.Exit(2)
 			}

@@ -73,12 +73,12 @@ func copyFile(fs embed.FS, path string, targetPath string) error {
 	return nil
 }
 
-func RenderTemplateTree(context interface{}, params RenderParams) error {
-	fmt.Printf("Template render: starting... TemplatesPath: %s. TargetPath: %s.\n", params.TemplatesPath, params.TargetPath)
+func RenderTemplateTree(ctx *Context, context interface{}, params RenderParams) error {
+	ctx.Logger.Printf("Template render: starting... TemplatesPath: %s. TargetPath: %s.\n", params.TemplatesPath, params.TargetPath)
 
 	assetsFs := config.GetAssets()
 	return fs.WalkDir(assetsFs, params.TemplatesPath, func(path string, d fs.DirEntry, err error) error {
-		fmt.Printf("Template render: visiting %s\n", path)
+		ctx.Logger.Printf("Template render: visiting %s\n", path)
 		if err != nil {
 			return err
 		}
@@ -93,17 +93,17 @@ func RenderTemplateTree(context interface{}, params RenderParams) error {
 		destPath = filepath.Join(params.TargetPath, destPath)
 
 		if d.IsDir() {
-			fmt.Printf("Template render: found dir %s. Creating: %s\n", path, destPath)
+			ctx.Logger.Printf("Template render: found dir %s. Creating: %s\n", path, destPath)
 			return os.MkdirAll(destPath, 0755)
 		}
 
 		if filepath.Ext(path) == templateExtension {
 			filePath := strings.ReplaceAll(destPath, templateExtension, "")
-			fmt.Printf("Template render: found tpl %s. Creating: %s\n", path, filePath)
+			ctx.Logger.Printf("Template render: found tpl %s. Creating: %s\n", path, filePath)
 			return renderTemplate(context, assetsFs, path, filePath, params.FuncMap)
 		}
 
-		fmt.Printf("Template render: found file %s. Creating: %s\n", path, destPath)
+		ctx.Logger.Printf("Template render: found file %s. Creating: %s\n", path, destPath)
 		copyFile(assetsFs, path, destPath)
 
 		return nil

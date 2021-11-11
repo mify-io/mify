@@ -5,9 +5,10 @@ import (
 	"path/filepath"
 
 	"github.com/chebykinn/mify/internal/mify/config"
+	"github.com/chebykinn/mify/internal/mify/core"
 )
 
-func CreateWorkspace(dir string, name string) error {
+func CreateWorkspace(ctx *core.Context, dir string, name string) error {
 	fmt.Printf("creating workspace %s\n", name)
 
 	context := Context{
@@ -16,7 +17,7 @@ func CreateWorkspace(dir string, name string) error {
 		GoRoot:   filepath.Join(dir, "go_services"),
 	}
 
-	if err := RenderTemplateTree(context); err != nil {
+	if err := RenderTemplateTree(ctx, context); err != nil {
 		return err
 	}
 

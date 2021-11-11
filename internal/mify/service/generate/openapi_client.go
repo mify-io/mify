@@ -42,7 +42,7 @@ func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *core.Context, schemaPat
 func (g *OpenAPIGenerator) doGenerateClient(ctx *core.Context, assetsPath string, clientName string, schemaPath string, targetPath string) error {
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated", "api", "clients", clientName)
 
-	packageName := makePackageName(clientName)
+	packageName := MakePackageName(clientName)
 
 	err := runOpenapiGenerator(ctx, g.basePath, schemaPath, assetsPath, generatedPath, packageName, g.info)
 	if err != nil {
@@ -62,13 +62,43 @@ func (g *OpenAPIGenerator) doGenerateClient(ctx *core.Context, assetsPath string
 	return nil
 }
 
-func makePackageName(clientName string) string {
-	packageName := clientName
+func SanitizeClientName(clientName string) string {
 	if unicode.IsDigit(rune(clientName[0])) {
-		packageName = "service_" + packageName
+		clientName = "service_" + clientName
 	}
-	packageName = strings.ReplaceAll(packageName, "-", "_")
+	clientName = strings.ReplaceAll(clientName, "-", "_")
 
-	packageName = packageName + "_client"
-	return packageName
+	return clientName
+}
+
+func MakePackageName(clientName string) string {
+	packageName := SanitizeClientName(clientName)
+	return packageName + "_client"
+}
+
+func SnakeCaseToCamelCase(inputUnderScoreStr string, capitalize bool) (camelCase string) {
+	isToUpper := false
+	for k, v := range inputUnderScoreStr {
+		if k == 0 && capitalize {
+			camelCase = strings.ToUpper(string(inputUnderScoreStr[0]))
+		} else {
+			if isToUpper {
+				camelCase += strings.ToUpper(string(v))
+				isToUpper = false
+			} else {
+				if v == '_' {
+					isToUpper = true
+				} else {
+					camelCase += string(v)
+				}
+			}
+		}
+	}
+	return
+}
+
+func CapitalizeFirst(camelCase string) string {
+	out := []rune(camelCase)
+	out[0] = unicode.ToUpper(rune(camelCase[0]))
+	return string(out)
 }

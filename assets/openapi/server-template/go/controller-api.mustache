@@ -2,11 +2,10 @@
 package {{packageName}}
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
-	"{{gitHost}}/{{gitUserId}}/{{gitRepoId}}/internal/{{artifactId}}/generated/core"
+	"{{groupId}}/internal/{{artifactId}}/generated/core"
 {{#routers}}
 {{/routers}}
 )
@@ -224,12 +223,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isArray}}
 
 	{{/allParams}}
-	builder, ok := r.Context().Value(MifyContextField).(*core.MifyRequestContextBuilder)
-	if !ok {
-		resp := Response(http.StatusInternalServerError, nil)
-		c.errorHandler(w, r, fmt.Errorf("no builder in context"), &resp)
-		return
-	}
+	builder := r.Context().Value(MifyContextField).(*core.MifyRequestContextBuilder)
 
 	reqCtx, err := builder.Build(r.Context())
 	if err != nil {

@@ -15,7 +15,7 @@ var initCmd = &cobra.Command{
 	Long:  `Initialize new workspace`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := mify.CreateWorkspace(workspacePath, args[0]); err != nil {
+		if err := mify.CreateWorkspace(appContext, workspacePath, args[0]); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to create workspace: %s\n", err)
 			os.Exit(2)
 		}

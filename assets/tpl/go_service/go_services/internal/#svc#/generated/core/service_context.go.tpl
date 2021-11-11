@@ -16,6 +16,7 @@ type MifyServiceContext struct {
 	loggerWrapper *MifyLoggerWrapper
 	staticConfig  *MifyStaticConfig
 	dynamicConfig *MifyDynamicConfig
+	clients       *MifyServiceClients
 
 	serviceContext *app.ServiceContext
 }
@@ -49,6 +50,12 @@ func NewMifyServiceContext(serviceName string) (*MifyServiceContext, error) {
 	}
 	context.dynamicConfig = dynamicConfig
 
+	clients, err := NewMifyServiceClients(context)
+	if err != nil {
+		return nil, err
+	}
+	context.clients = clients
+
 	svcCtx, err := app.NewServiceContext()
 	if err != nil {
 		return nil, err
@@ -80,6 +87,10 @@ func (c *MifyServiceContext) StaticConfig() *MifyStaticConfig {
 
 func (c *MifyServiceContext) DynamicConfig() *MifyDynamicConfig {
 	return c.dynamicConfig
+}
+
+func (c *MifyServiceContext) Clients() *MifyServiceClients {
+	return c.clients
 }
 
 func (c *MifyServiceContext) ServiceContext() *app.ServiceContext {
