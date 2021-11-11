@@ -18,7 +18,12 @@ func Metrics() func(next http.Handler) http.Handler {
 
 			next.ServeHTTP(ww, r)
 
-			ctxBuilder.GetMetrics().ReportRequestEnd(ctxBuilder, time.Since(start))
+			ctxBuilder.GetMetrics().ReportRequestEnd(
+				ctxBuilder,
+				ww.Status(),
+				time.Since(start),
+				int(r.ContentLength),
+				ww.BytesWritten())
 		}
 		return http.HandlerFunc(fn)
 	}
