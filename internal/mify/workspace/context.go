@@ -1,7 +1,6 @@
 package workspace
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/chebykinn/mify/internal/mify/config"
@@ -25,8 +24,6 @@ func InitContext(workspacePath string) (Context, error) {
 			return Context{}, err
 		}
 	}
-	fmt.Printf("workspacePath %s\n", workspacePath)
-	fmt.Printf("go root %s\n", filepath.Join(workspacePath, goServices))
 	conf, err := config.ReadWorkspaceConfig(workspacePath)
 	if err != nil {
 		return Context{}, err
