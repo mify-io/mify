@@ -62,6 +62,16 @@ func (g *OpenAPIGenerator) doGenerateClient(ctx *core.Context, assetsPath string
 	return nil
 }
 
+func (g *OpenAPIGenerator) doRemoveClient(ctx *core.Context, clientName string, targetPath string) error {
+	generatedPath := filepath.Join(g.basePath, targetPath, "generated", "api", "clients", clientName)
+
+	if err := os.RemoveAll(generatedPath); err != nil {
+		return fmt.Errorf("failed to remove client: %w", err)
+	}
+
+	return nil
+}
+
 func SanitizeClientName(clientName string) string {
 	if unicode.IsDigit(rune(clientName[0])) {
 		clientName = "service_" + clientName

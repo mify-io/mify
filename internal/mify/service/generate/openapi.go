@@ -34,7 +34,6 @@ const (
 	SERVER_PACKAGE_NAME = "openapi"
 
 	FILE_TIME_FILENAME  = ".timestamps.yaml"
-	CLIENTS_FILENAME    = ".clients.yaml"
 )
 
 type fileTimeMap map[string]int64
@@ -102,20 +101,11 @@ func (g *OpenAPIGenerator) Prepare(pool *util.JobPool) error {
 	return nil
 }
 
-func (g *OpenAPIGenerator) NeedGenerateServer(ctx *core.Context, schemaDir string, clientsList []string) (bool, error) {
+func (g *OpenAPIGenerator) NeedGenerateServer(ctx *core.Context, schemaDir string) (bool, error) {
 	inputSchemaPath := filepath.Join(g.basePath, schemaDir, "/api.yaml")
 	schemaPath := g.getTempSchemaPath(inputSchemaPath, CACHE_SERVER_SUBDIR)
 
 	changed, err := isSchemasChanged(ctx, g.basePath, schemaDir, schemaPath)
-	if err != nil {
-		return false, err
-	}
-
-	if changed {
-		return true, err
-	}
-
-	changed, err = isClientsChanged(ctx, g.basePath, schemaPath, clientsList)
 	if err != nil {
 		return false, err
 	}
@@ -133,7 +123,7 @@ func (g *OpenAPIGenerator) NeedGenerateClient(ctx *core.Context, schemaDir strin
 	return changed, nil
 }
 
-func (g *OpenAPIGenerator) GenerateServer(ctx *core.Context, schemaDir string, outputDir string, clientsList []string) error {
+func (g *OpenAPIGenerator) GenerateServer(ctx *core.Context, schemaDir string, outputDir string) error {
 	inputSchemaPath := filepath.Join(g.basePath, schemaDir, "/api.yaml")
 	schemaPath, err := g.makeServerEnrichedSchema(ctx, inputSchemaPath)
 	if err != nil {
@@ -143,11 +133,6 @@ func (g *OpenAPIGenerator) GenerateServer(ctx *core.Context, schemaDir string, o
 	err = g.doGenerateServer(ctx, g.serverAssetsPath, schemaPath, outputDir)
 	if err != nil {
 		return fmt.Errorf("failed to generate server: %w", err)
-	}
-
-	err = updateClientsList(ctx, g.basePath, filepath.Dir(schemaPath), clientsList)
-	if err != nil {
-		return err
 	}
 
 	err = updateGenerationTime(ctx, g.basePath, schemaDir, filepath.Dir(schemaPath))
@@ -180,6 +165,9 @@ func (g *OpenAPIGenerator) GenerateClient(ctx *core.Context, clientName string, 
 
 }
 
+func (g *OpenAPIGenerator) RemoveClient(ctx *core.Context, clientName string, outputDir string) error {
+	return g.doRemoveClient(ctx, clientName, outputDir)
+}
 
 // private
 
@@ -347,55 +335,6 @@ func updateGenerationTime(ctx *core.Context, basePath string, schemaDir string, 
 	return nil
 }
 
-func updateClientsList(ctx *core.Context, basePath string, tmpSchemaDir string, list []string) error {
-	ctx.Logger.Printf("updating clients list in: %s", tmpSchemaDir)
-
-	f, err := os.OpenFile(filepath.Join(tmpSchemaDir, CLIENTS_FILENAME), os.O_CREATE | os.O_TRUNC | os.O_WRONLY, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to write clients list file: %w", err)
-	}
-
-	err = yaml.NewEncoder(f).Encode(list)
-	if err != nil {
-		return fmt.Errorf("failed to write clients list file: %w", err)
-	}
-
-	return nil
-}
-
-func isClientsChanged(ctx *core.Context, basePath string, tmpSchemaDir string, newList []string) (bool, error) {
-	f, err := os.Open(filepath.Join(tmpSchemaDir, CLIENTS_FILENAME))
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return true, nil
-		}
-		return false, fmt.Errorf("failed to compare clients: %w", err)
-	}
-
-	var oldList []string
-	err = yaml.NewDecoder(f).Decode(&oldList)
-	if err != nil {
-		return false, fmt.Errorf("failed to compare clients: %w", err)
-	}
-
-	if len(oldList) != len(newList) {
-		return true, nil
-	}
-
-	oldSet := map[string]struct{}{}
-	for _, cl := range oldList {
-		oldSet[cl] = struct{}{}
-	}
-
-	for _, cl := range newList {
-		if _, ok := oldSet[cl]; !ok {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
 func isSchemasChanged(ctx *core.Context, basePath string, schemaDir string, tmpSchemaDir string) (bool, error) {
 	f, err := os.Open(filepath.Join(tmpSchemaDir, FILE_TIME_FILENAME))
 	if err != nil {
@@ -495,3 +434,5 @@ func copyFile(from string, to string) error {
 
 	return ioutil.WriteFile(to, data, 0644)
 }
+
+

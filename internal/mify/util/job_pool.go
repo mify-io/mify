@@ -124,7 +124,6 @@ func NewJobPool(ctx *core.Context, cacheDir string, numWorkers int) (*JobPool, e
 	}
 
 	p.progressBar = NewProgressBar(p.updateStatus)
-	p.progressBar.Create(0)
 
 	p.logDir = filepath.Join(cacheDir, "logs")
 	err := os.MkdirAll(p.logDir, 0755)
@@ -146,6 +145,7 @@ func (p *JobPool) AddJob(j Job) {
 }
 
 func (p *JobPool) Run() *JobError {
+	p.progressBar.Create(-1)
 	for len(p.jobsQueue) > 0 {
 		j := p.jobsQueue[0]
 		p.jobsQueue = p.jobsQueue[1:]

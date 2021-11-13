@@ -1,0 +1,207 @@
+package service
+
+import (
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
+
+	"github.com/chebykinn/mify/internal/mify/config"
+	"github.com/chebykinn/mify/internal/mify/core"
+	"github.com/chebykinn/mify/internal/mify/service/generate"
+	"github.com/chebykinn/mify/internal/mify/util"
+	"gopkg.in/yaml.v2"
+)
+
+const (
+	CLIENTS_FILENAME    = ".clients.yaml"
+	TMP_SUBDIR          = "services"
+)
+
+type clientsDiff struct {
+	added map[string]struct{}
+	removed map[string]struct{}
+}
+
+func makeClientsContext(conf config.ServiceConfig, basePath string) ([]OpenAPIClientContext, error) {
+	clientsCtxList := make([]OpenAPIClientContext, 0, len(conf.OpenAPI.Clients))
+	for clientName := range conf.OpenAPI.Clients {
+		clientSchemaPath := fmt.Sprintf(apiSchemaPath, clientName)
+		if _, err := os.Stat(filepath.Join(basePath, clientSchemaPath)); errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("schema not found while generating client for: %s", clientName)
+		}
+
+		packageName := generate.MakePackageName(clientName)
+		fieldName := generate.SnakeCaseToCamelCase(generate.SanitizeClientName(clientName), false)
+		methodName := generate.SnakeCaseToCamelCase(generate.SanitizeClientName(clientName), true)
+		clientsCtxList = append(clientsCtxList, OpenAPIClientContext{
+			ClientName: clientName,
+			PackageName: packageName,
+			PrivateFieldName: fieldName,
+			PublicMethodName: methodName,
+		})
+
+	}
+	sort.Slice(clientsCtxList, func(i, j int) bool {
+		return clientsCtxList[i].ClientName < clientsCtxList[j].ClientName
+	})
+	return clientsCtxList, nil
+}
+
+func generateClientsContextStep(ctx *core.Context, pool *util.JobPool, serviceCtx Context, conf config.ServiceConfig) (clientsDiff, error) {
+	clientsCtx, err := makeClientsContext(conf, serviceCtx.Workspace.BasePath)
+	if err != nil {
+		return clientsDiff{}, err
+	}
+	serviceCtx.OpenAPI.Clients = clientsCtx
+
+	list := make([]string, 0, len(clientsCtx))
+	for _, c := range clientsCtx {
+		list = append(list, c.ClientName)
+	}
+
+	tmpDir := filepath.Join(config.GetCacheDirectory(serviceCtx.Workspace.BasePath), TMP_SUBDIR, conf.ServiceName)
+	diff, err := getClientsDiff(ctx, serviceCtx.Workspace.BasePath, tmpDir, list)
+	if err != nil {
+		return clientsDiff{}, err
+	}
+	if len(diff.added) == 0 && len(diff.removed) == 0 {
+		return clientsDiff{}, ErrSkip
+	}
+	pool.AddJob(util.Job{
+		Name: "generate:clients-context",
+		Func: func(ctx *core.Context) error {
+			err := generateClientsContext(ctx, serviceCtx, conf, list)
+			if err != nil {
+				return err
+			}
+			return nil
+		},
+	})
+	jerr := pool.Run()
+	if jerr != nil {
+		util.ShowJobError(pool, jerr)
+		return clientsDiff{}, jerr.Err
+	}
+	return diff, nil
+}
+
+func generateClientsContext(ctx *core.Context, serviceCtx Context, conf config.ServiceConfig, list []string) error {
+	tmpDir := filepath.Join(config.GetCacheDirectory(serviceCtx.Workspace.BasePath), TMP_SUBDIR, conf.ServiceName)
+	// FIXME: go specific
+	// FIXME: regenerate only clients file
+	subPath := "go_services/internal/#svc#/generated/core"
+	if err := RenderTemplateTreeSubPath(ctx, serviceCtx, subPath); err != nil {
+		return err
+	}
+
+	err := updateClientsList(ctx, serviceCtx.Workspace.BasePath, tmpDir, list)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func updateClientsList(ctx *core.Context, basePath string, tmpDir string, list []string) error {
+	ctx.Logger.Printf("updating clients list in: %s", tmpDir)
+
+	err := os.MkdirAll(tmpDir, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to write clients list file: %w", err)
+	}
+
+	f, err := os.OpenFile(filepath.Join(tmpDir, CLIENTS_FILENAME), os.O_CREATE | os.O_TRUNC | os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write clients list file: %w", err)
+	}
+
+	err = yaml.NewEncoder(f).Encode(list)
+	if err != nil {
+		return fmt.Errorf("failed to write clients list file: %w", err)
+	}
+
+	return nil
+}
+
+func isClientsChanged(ctx *core.Context, basePath string, tmpDir string, newList []string) (bool, error) {
+	f, err := os.Open(filepath.Join(tmpDir, CLIENTS_FILENAME))
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return true, nil
+		}
+		return false, fmt.Errorf("failed to compare clients: %w", err)
+	}
+
+	var oldList []string
+	err = yaml.NewDecoder(f).Decode(&oldList)
+	if err != nil {
+		return false, fmt.Errorf("failed to compare clients: %w", err)
+	}
+
+	if len(oldList) != len(newList) {
+		return true, nil
+	}
+
+	oldSet := map[string]struct{}{}
+	for _, cl := range oldList {
+		oldSet[cl] = struct{}{}
+	}
+
+	for _, cl := range newList {
+		if _, ok := oldSet[cl]; !ok {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func getClientsDiff(ctx *core.Context, basePath string, tmpDir string, newList []string) (clientsDiff, error) {
+	f, err := os.Open(filepath.Join(tmpDir, CLIENTS_FILENAME))
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			mp := map[string]struct{}{}
+			for _, cl := range newList {
+				mp[cl] = struct{}{}
+			}
+			return clientsDiff{added: mp}, nil
+		}
+		return clientsDiff{}, fmt.Errorf("failed to compare clients: %w", err)
+	}
+
+	var oldList []string
+	err = yaml.NewDecoder(f).Decode(&oldList)
+	if err != nil {
+		return clientsDiff{}, fmt.Errorf("failed to compare clients: %w", err)
+	}
+
+	oldSet := map[string]struct{}{}
+	for _, cl := range oldList {
+		oldSet[cl] = struct{}{}
+	}
+
+	newClients := map[string]struct{}{}
+	for _, cl := range newList {
+		if _, ok := oldSet[cl]; ok {
+			continue
+		}
+		newClients[cl] = struct{}{}
+	}
+
+	newSet := map[string]struct{}{}
+	for _, cl := range newList {
+		newSet[cl] = struct{}{}
+	}
+
+	delClients := map[string]struct{}{}
+	for _, cl := range oldList {
+		if _, ok := newSet[cl]; ok {
+			continue
+		}
+		delClients[cl] = struct{}{}
+	}
+
+	return clientsDiff{ added: newClients, removed: delClients}, nil
+}

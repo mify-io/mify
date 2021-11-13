@@ -2,8 +2,12 @@ package util
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"sync"
 	"time"
+	"errors"
+	"context"
 
 	"github.com/briandowns/spinner"
 	"github.com/vbauerster/mpb/v7"
@@ -35,9 +39,19 @@ func NewProgressBar(statusFunc decor.DecorFunc) *ProgressBar {
 }
 
 func (pb *ProgressBar) Create(total int64) {
+	if pb.bar != nil {
+		return
+	}
 	if total >= 0 {
 		pb.total = total
 	}
+	// if pb.total == 0 {
+		// return
+	// }
+	pb.create(total)
+}
+
+func (pb *ProgressBar) create(total int64) {
 	pb.progress = mpb.New(mpb.WithWidth(64))
 	pb.bar = pb.progress.Add(pb.total,
 		mpb.NewBarFiller(mpb.BarStyle().Lbound("[").Filler("=").Tip(">").Padding("-").Rbound("]")),
@@ -53,6 +67,7 @@ func (pb *ProgressBar) Create(total int64) {
 			return fmt.Sprintf("%d/%d", s.Current, s.Total)
 		})),
 	)
+	pb.bar.SetTotal(pb.total, false)
 }
 
 func (pb *ProgressBar) Abort() {
@@ -68,7 +83,7 @@ func (pb *ProgressBar) IncTotal() {
 		return
 	}
 	if pb.bar.Completed() {
-		pb.Create(0)
+		pb.create(0)
 	}
 	pb.bar.SetTotal(pb.total, false)
 }
@@ -105,4 +120,21 @@ func (pb *ProgressBar) Spinner() string {
 		pb.spinCycle = 0
 	}
 	return char
+}
+
+func ShowJobError(pool *JobPool, jerr *JobError) {
+	if jerr == nil {
+		return
+	}
+	if errors.Is(jerr.Err, context.Canceled) {
+		return
+	}
+	fmt.Printf("task %s error: %s\n", jerr.Name, jerr.Err)
+	logFile, err := os.Open(pool.GetJobLogPath(jerr.Name))
+	if err != nil {
+		fmt.Printf("failed to read job %s log: %s", jerr.Name, err)
+	}
+	fmt.Printf("\nfull log:\n")
+	io.Copy(os.Stderr, logFile)
+	logFile.Close()
 }
