@@ -13,10 +13,11 @@ type MifyServiceContext struct {
 	serviceName string
 	hostname    string
 
-	loggerWrapper *MifyLoggerWrapper
-	staticConfig  *MifyStaticConfig
-	dynamicConfig *MifyDynamicConfig
-	clients       *MifyServiceClients
+	loggerWrapper  *MifyLoggerWrapper
+	metricsWrapper *MifyMetricsWrapper
+	staticConfig   *MifyStaticConfig
+	dynamicConfig  *MifyDynamicConfig
+	clients        *MifyServiceClients
 
 	serviceContext *app.ServiceContext
 }
