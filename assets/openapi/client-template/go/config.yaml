@@ -25,9 +25,6 @@ invokerPackage: unused
 apiNameSuffix: "_"
 modelNamePrefix: ""
 modelNameSuffix: ""
-groupId: GROUP_ID
-artifactId: ARTIFACT_ID
-artifactVersion: ARTIFACT_VERSION
 library: ""
 
 instantiationTypes: {}

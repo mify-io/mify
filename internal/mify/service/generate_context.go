@@ -16,7 +16,6 @@ import (
 
 const (
 	CLIENTS_FILENAME    = ".clients.yaml"
-	TMP_SUBDIR          = "services"
 )
 
 type clientsDiff struct {
@@ -61,7 +60,7 @@ func generateClientsContextStep(ctx *core.Context, pool *util.JobPool, serviceCt
 		list = append(list, c.ClientName)
 	}
 
-	tmpDir := filepath.Join(config.GetCacheDirectory(serviceCtx.Workspace.BasePath), TMP_SUBDIR, conf.ServiceName)
+	tmpDir := config.GetServiceCacheDirectory(serviceCtx.Workspace.BasePath, serviceCtx.ServiceName)
 	diff, err := getClientsDiff(ctx, serviceCtx.Workspace.BasePath, tmpDir, list)
 	if err != nil {
 		return clientsDiff{}, err
@@ -88,7 +87,7 @@ func generateClientsContextStep(ctx *core.Context, pool *util.JobPool, serviceCt
 }
 
 func generateClientsContext(ctx *core.Context, serviceCtx Context, conf config.ServiceConfig, list []string) error {
-	tmpDir := filepath.Join(config.GetCacheDirectory(serviceCtx.Workspace.BasePath), TMP_SUBDIR, conf.ServiceName)
+	tmpDir := config.GetServiceCacheDirectory(serviceCtx.Workspace.BasePath, serviceCtx.ServiceName)
 	// FIXME: go specific
 	// FIXME: regenerate only clients file
 	subPath := "go_services/internal/#svc#/generated/core"

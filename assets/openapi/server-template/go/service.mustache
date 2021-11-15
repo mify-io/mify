@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"errors"{{#imports}}
 	"{{import}}"{{/imports}}
-	"{{groupId}}/internal/{{artifactId}}/generated/core"
-	"{{groupId}}/internal/{{artifactId}}/generated/api"
+	"{{goModule}}/internal/{{serviceName}}/generated/core"
+	"{{goModule}}/internal/{{serviceName}}/generated/api"
 )
 
 type {{classname}}Service struct {}

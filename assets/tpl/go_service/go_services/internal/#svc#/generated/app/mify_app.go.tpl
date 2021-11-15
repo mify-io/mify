@@ -3,8 +3,6 @@
 package app
 
 import (
-	"net/http"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
@@ -32,8 +30,8 @@ func NewMifyServiceApp() *MifyServiceApp {
 func (app MifyServiceApp) Run() {
 	app.context.Logger().Info("Starting...")
 
-	err := http.ListenAndServe(":8080", app.router)
+	err := openapi_init.RunServer(app.context, app.router)
 	if err != nil {
-		app.context.Logger().Panic("failed to listen", zap.Error(err))
+		app.context.Logger().Panic("failed to run server", zap.Error(err))
 	}
 }

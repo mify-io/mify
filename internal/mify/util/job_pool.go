@@ -78,7 +78,6 @@ func (p *JobPool) worker(n int) {
 				panic(err)
 			}
 		}
-		p.delJob(job)
 
 		if err != nil {
 			p.progressBar.Abort()
@@ -92,6 +91,7 @@ func (p *JobPool) worker(n int) {
 				default:
 			}
 		}
+		p.delJob(job)
 	}
 }
 

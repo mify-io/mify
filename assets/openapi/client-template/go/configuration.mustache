@@ -12,6 +12,11 @@ import (
 // Since these are string, it is possible to get a short description of the
 // context key for logging and debugging using key.String().
 
+const (
+	clientEndpointEnvKey = "{{clientEndpointEnv}}"
+	clientEndpointEnvDefault = "localhost:{{servicePort}}"
+)
+
 type contextKey string
 
 func (c contextKey) String() string {
@@ -98,6 +103,11 @@ type ServerConfigurations []ServerConfiguration
 type MiddlewareFunction func(*http.Request)
 
 {{/withCustomMiddlewareFunction}}
+
+type StaticConfig interface {
+	Get(key string) interface{}
+}
+
 // Configuration stores the configuration of the API client
 type Configuration struct {
 	Host             string            `json:"host,omitempty"`
@@ -108,13 +118,18 @@ type Configuration struct {
 	Servers          ServerConfigurations
 	OperationServers map[string]ServerConfigurations
 	HTTPClient       *http.Client
-    {{#withCustomMiddlewareFunction}}
+	{{#withCustomMiddlewareFunction}}
 	Middleware       MiddlewareFunction
-    {{/withCustomMiddlewareFunction}}
+	{{/withCustomMiddlewareFunction}}
 }
 
 // NewConfiguration returns a new Configuration object
-func NewConfiguration() *Configuration {
+func NewConfiguration(conf StaticConfig) *Configuration {
+	serviceURL := conf.Get(clientEndpointEnvKey)
+	if serviceURL == nil {
+		serviceURL = clientEndpointEnvDefault
+	}
+
 	cfg := &Configuration{
 		DefaultHeader:    make(map[string]string),
 		UserAgent:        "{{{httpUserAgent}}}{{^httpUserAgent}}OpenAPI-Generator/{{{packageVersion}}}/go{{/httpUserAgent}}",
@@ -124,7 +139,7 @@ func NewConfiguration() *Configuration {
 		Servers:          ServerConfigurations{
 		{{/-first}}
 			{
-				URL: "{{{url}}}",
+				URL: "http://"+serviceURL.(string),
 				Description: "{{{description}}}{{^description}}No description provided{{/description}}",
 				{{#variables}}
 				{{#-first}}

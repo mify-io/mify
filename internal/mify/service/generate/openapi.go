@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"strconv"
 
 	"os/user"
 	"path/filepath"
@@ -239,9 +240,9 @@ func (g *OpenAPIGenerator) saveEnrichedSchema(
 
 // FIXME: go-specific
 func formatGenerated(apiPath string) error {
-	return filepath.WalkDir(apiPath, func(path string, d fs.DirEntry, err error) error {
+	return filepath.WalkDir(apiPath, func(path string, d fs.DirEntry, ferr error) error {
 		if d == nil {
-			return fmt.Errorf("failed to format: %s: %w", apiPath, err)
+			return fmt.Errorf("failed to format: %s: %w", apiPath, ferr)
 		}
 		if d.IsDir() {
 			return nil
@@ -375,6 +376,7 @@ func isSchemasChanged(ctx *core.Context, basePath string, schemaDir string, tmpS
 func runOpenapiGenerator(
 	ctx *core.Context, basePath string, schemaPath string, templatePath string, targetDir string,
 	packageName string,
+	servicePort int,
 	info OpenAPIGeneratorInfo) error {
 	const (
 		image = "openapitools/openapi-generator-cli:v5.3.0"
@@ -405,9 +407,11 @@ func runOpenapiGenerator(
 		"-c", filepath.Join("/repo", templatePathRel, "config.yaml"),
 		"-i", filepath.Join("/repo", schemaPathRel),
 		"-o", filepath.Join("/repo", targetDirRel),
+		"-p", "goModule="+info.GoModule,
+		"-p", "serviceName="+info.ServiceName,
+		"-p", "clientEndpointEnv="+MakeEnvName(packageName),
+		"-p", "servicePort="+strconv.Itoa(servicePort),
 		"--package-name", packageName,
-		"--group-id", info.GoModule,
-		"--artifact-id", info.ServiceName,
 	}
 	ctx.Logger.Printf("running docker %s\n", args)
 

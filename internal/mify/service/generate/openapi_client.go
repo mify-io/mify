@@ -43,8 +43,12 @@ func (g *OpenAPIGenerator) doGenerateClient(ctx *core.Context, assetsPath string
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated", "api", "clients", clientName)
 
 	packageName := MakePackageName(clientName)
+	clientPort, err := getServicePort(g.basePath, clientName)
+	if err != nil {
+		return fmt.Errorf("failed to get client port: %w", err)
+	}
 
-	err := runOpenapiGenerator(ctx, g.basePath, schemaPath, assetsPath, generatedPath, packageName, g.info)
+	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, assetsPath, generatedPath, packageName, clientPort, g.info)
 	if err != nil {
 		return fmt.Errorf("failed to run openapi-generator: %w", err)
 	}
@@ -86,6 +90,10 @@ func MakePackageName(clientName string) string {
 	return packageName + "_client"
 }
 
+func MakeEnvName(packageName string) string {
+	return strings.ToUpper(packageName) + "_ENDPOINT"
+}
+
 func SnakeCaseToCamelCase(inputUnderScoreStr string, capitalize bool) (camelCase string) {
 	isToUpper := false
 	for k, v := range inputUnderScoreStr {
@@ -105,10 +113,4 @@ func SnakeCaseToCamelCase(inputUnderScoreStr string, capitalize bool) (camelCase
 		}
 	}
 	return
-}
-
-func CapitalizeFirst(camelCase string) string {
-	out := []rune(camelCase)
-	out[0] = unicode.ToUpper(rune(camelCase[0]))
-	return string(out)
 }

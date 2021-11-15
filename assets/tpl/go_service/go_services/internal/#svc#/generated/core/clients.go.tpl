@@ -16,7 +16,7 @@ type MifyServiceClients struct {
 
 func NewMifyServiceClients(ctx *MifyServiceContext) (*MifyServiceClients, error) {
 	{{- range .OpenAPI.Clients}}
-	{{.PrivateFieldName}} := {{.PackageName}}.NewAPIClient({{.PackageName}}.NewConfiguration())
+	{{.PrivateFieldName}} := {{.PackageName}}.NewAPIClient({{.PackageName}}.NewConfiguration(ctx.StaticConfig()))
 	{{- end}}
 
 	clients := &MifyServiceClients {

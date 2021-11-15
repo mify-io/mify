@@ -148,7 +148,7 @@ func generateOpenAPIGeneratorStep(ctx *core.Context, pool *util.JobPool, service
 		return err
 	}
 
-	for clientName, _ := range clientsDiff.removed {
+	for clientName := range clientsDiff.removed {
 		err := openapigen.RemoveClient(ctx, clientName, targetDir)
 		if err != nil {
 			return err
