@@ -6,6 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
+	"{{.GoModule}}/internal/{{.ServiceName}}/app"
 	"{{.GoModule}}/internal/{{.ServiceName}}/generated/api/init"
 	"{{.GoModule}}/internal/{{.ServiceName}}/generated/core"
 )
@@ -19,6 +20,9 @@ func NewMifyServiceApp() *MifyServiceApp {
 	serviceContext, _ := core.NewMifyServiceContext("{{.ServiceName}}")
 	router := openapi_init.Routes(serviceContext)
 
+	for _, middleware := range app.MiddlewareList {
+		router.Use(middleware)
+	}
 	router.Handle("/metrics", promhttp.Handler())
 
 	return &MifyServiceApp{
