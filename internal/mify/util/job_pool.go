@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,6 +23,10 @@ type Job struct {
 type JobError struct {
 	Name string
 	Err  error
+}
+
+func (j JobError) Error() string {
+	return fmt.Sprintf("job %s error: %s", j.Name, j.Err)
 }
 
 type JobPool struct {
@@ -144,7 +149,7 @@ func (p *JobPool) AddJob(j Job) {
 	p.jobsQueue = append(p.jobsQueue, j)
 }
 
-func (p *JobPool) Run() *JobError {
+func (p *JobPool) Run() error {
 	p.progressBar.Create(-1)
 	for len(p.jobsQueue) > 0 {
 		j := p.jobsQueue[0]
@@ -161,7 +166,7 @@ func (p *JobPool) Run() *JobError {
 	select {
 	case <-wait:
 	case err := <-p.errChan:
-		return &err
+		return err
 	}
 
 	return nil

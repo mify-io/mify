@@ -47,7 +47,8 @@ func ReadServiceConfig(workspaceDir string, serviceName string) (ServiceConfig, 
 	return data, nil
 }
 
-func SaveServiceConfig(path string, conf ServiceConfig) error {
+func SaveServiceConfig(workspaceDir string, serviceName string, conf ServiceConfig) error {
+	path := filepath.Join(workspaceDir, "go_services/cmd", serviceName)
 	data, err := yaml.Marshal(&conf)
 	if err != nil {
 		return fmt.Errorf("failed to create service config: %w", err)

@@ -1,12 +1,10 @@
 package service
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
@@ -25,7 +23,7 @@ var (
 	ErrSkip = errors.New("skip step")
 )
 
-func Generate(ctx *core.Context, workspaceContext workspace.Context, name string) error {
+func Generate(ctx *core.Context, pool *util.JobPool, workspaceContext workspace.Context, name string) error {
 	serviceConf, err := config.ReadServiceConfig(workspaceContext.BasePath, name)
 	if err != nil {
 		return err
@@ -41,16 +39,13 @@ func Generate(ctx *core.Context, workspaceContext workspace.Context, name string
 		Workspace:   workspaceContext,
 	}
 
-	if err := generateServiceOpenAPI(ctx, tcontext, serviceConf, name); err != nil {
-		if errors.Is(err, context.Canceled) {
-			return nil
-		}
+	if err := generateServiceOpenAPI(ctx, pool, tcontext, serviceConf, name); err != nil {
 		return err
 	}
 	return nil
 }
 
-func generateServiceOpenAPI(ctx *core.Context, serviceCtx Context, serviceConf config.ServiceConfig, name string) error {
+func generateServiceOpenAPI(ctx *core.Context, pool *util.JobPool, serviceCtx Context, serviceConf config.ServiceConfig, name string) error {
 	hasGenerateTasks := false
 	defer func() {
 		if !hasGenerateTasks {
@@ -65,12 +60,6 @@ func generateServiceOpenAPI(ctx *core.Context, serviceCtx Context, serviceConf c
 		}
 		return err
 	}
-
-	pool, err := util.NewJobPool(ctx, config.GetCacheDirectory(serviceCtx.Workspace.BasePath), runtime.NumCPU())
-	if err != nil {
-		return err
-	}
-	defer pool.ClosePool()
 
 	clDiff, err := generateClientsContextStep(ctx, pool, serviceCtx, serviceConf)
 	if err != nil && err != ErrSkip {
@@ -195,10 +184,8 @@ func generateOpenAPIGeneratorStep(ctx *core.Context, pool *util.JobPool, service
 		})
 	}
 
-	jerr := pool.Run()
-	if jerr != nil {
-		util.ShowJobError(pool, jerr)
-		return jerr.Err
+	if err := pool.Run(); err != nil {
+		return err
 	}
 
 	return nil

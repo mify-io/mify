@@ -69,6 +69,7 @@ func init() {
 
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(addCmd)
+	rootCmd.AddCommand(removeCmd)
 	rootCmd.AddCommand(genCmd)
 }
 

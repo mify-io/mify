@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"path/filepath"
 
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
@@ -10,7 +9,7 @@ import (
 )
 
 func CreateService(ctx *core.Context, wspContext workspace.Context, name string) error {
-	fmt.Printf("creating service %s\n", name)
+	fmt.Printf("Creating service: %s\n", name)
 
 	repo := fmt.Sprintf("%s/%s/%s",
 		wspContext.Config.GitHost,
@@ -31,8 +30,7 @@ func CreateService(ctx *core.Context, wspContext workspace.Context, name string)
 		ServiceName: name,
 	}
 
-	confPath := filepath.Join(wspContext.BasePath, "go_services/cmd", name)
-	if err := config.SaveServiceConfig(confPath, conf); err != nil {
+	if err := config.SaveServiceConfig(wspContext.BasePath, name, conf); err != nil {
 		return err
 	}
 

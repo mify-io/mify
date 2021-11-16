@@ -94,9 +94,8 @@ func (g *OpenAPIGenerator) Prepare(pool *util.JobPool) error {
 		},
 	})
 
-	jerr := pool.Run()
-	if jerr != nil {
-		return jerr.Err
+	if err := pool.Run(); err != nil {
+		return err
 	}
 
 	return nil

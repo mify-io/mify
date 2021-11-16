@@ -78,10 +78,8 @@ func generateClientsContextStep(ctx *core.Context, pool *util.JobPool, serviceCt
 			return nil
 		},
 	})
-	jerr := pool.Run()
-	if jerr != nil {
-		util.ShowJobError(pool, jerr)
-		return clientsDiff{}, jerr.Err
+	if err := pool.Run(); err != nil {
+		return clientsDiff{}, err
 	}
 	return diff, nil
 }

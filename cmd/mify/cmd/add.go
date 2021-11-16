@@ -8,6 +8,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	addClientName string
+)
+
 var addServiceCmd = &cobra.Command{
 	Use:   "service",
 	Short: "Add service",
@@ -23,6 +27,21 @@ var addServiceCmd = &cobra.Command{
 	},
 }
 
+var addClientCmd = &cobra.Command{
+	Use:   "client",
+	Short: "Add client",
+	Long:  `Add client`,
+	Args:  cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		for _, ival := range args {
+			if err := mify.AddClient(appContext, workspacePath, ival, addClientName); err != nil {
+				fmt.Fprintf(os.Stderr, "failed to add client to service: %s\n", err)
+				os.Exit(2)
+			}
+		}
+	},
+}
+
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
@@ -31,5 +50,9 @@ var addCmd = &cobra.Command{
 }
 
 func init() {
+	addClientCmd.PersistentFlags().StringVarP(&addClientName, "to", "t", "", "Name of client service")
+	addClientCmd.MarkPersistentFlagRequired("to")
+
 	addCmd.AddCommand(addServiceCmd)
+	addCmd.AddCommand(addClientCmd)
 }

@@ -122,10 +122,7 @@ func (pb *ProgressBar) Spinner() string {
 	return char
 }
 
-func ShowJobError(pool *JobPool, jerr *JobError) {
-	if jerr == nil {
-		return
-	}
+func ShowJobError(pool *JobPool, jerr JobError) {
 	if errors.Is(jerr.Err, context.Canceled) {
 		return
 	}

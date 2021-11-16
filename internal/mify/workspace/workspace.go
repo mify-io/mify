@@ -9,7 +9,7 @@ import (
 )
 
 func CreateWorkspace(ctx *core.Context, dir string, name string) error {
-	fmt.Printf("creating workspace %s\n", name)
+	fmt.Printf("Creating workspace: %s\n", name)
 
 	context := Context{
 		Name:     name,
@@ -30,8 +30,6 @@ func CreateWorkspace(ctx *core.Context, dir string, name string) error {
 // private
 
 func createYaml(dir string) error {
-	fmt.Printf("creating yaml in %s\n", dir)
-
 	conf := config.WorkspaceConfig{
 		WorkspaceName: dir,
 		GitHost: "repo.com",
