@@ -4,6 +4,7 @@ package {{packageName}}
 {{#operations}}
 import (
 	"bytes"
+	"time"
 	_context "context"
 	_ioutil "io/ioutil"
 	_nethttp "net/http"
@@ -122,8 +123,9 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{&class
 		return {{#returnType}}localVarReturnValue, {{/returnType}}nil, GenericOpenAPIError{error: err.Error()}
 	}
 
-	localVarPath := localBasePath + "{{{path}}}"{{#pathParams}}
-	localVarPath = strings.Replace(localVarPath, "{"+"{{baseName}}"+"}", _neturl.PathEscape(parameterToString(r.{{paramName}}, "{{collectionFormat}}")), -1){{/pathParams}}
+	localVarPath := "{{{path}}}"
+	localVarFullPath := localBasePath + localVarPath{{#pathParams}}
+	localVarFullPath = strings.Replace(localVarFullPath, "{"+"{{baseName}}"+"}", _neturl.PathEscape(parameterToString(r.{{paramName}}, "{{collectionFormat}}")), -1){{/pathParams}}
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := _neturl.Values{}
@@ -330,12 +332,26 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{&class
 {{/isKeyInCookie}}
 {{/isApiKey}}
 {{/authMethods}}
-	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
+	req, err := a.client.prepareRequest(r.ctx, localVarFullPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, localVarFormFileName, localVarFileName, localVarFileBytes)
 	if err != nil {
 		return {{#returnType}}localVarReturnValue, {{/returnType}}nil, err
 	}
 
+	start := time.Now().UTC()
+
 	localVarHTTPResponse, err := a.client.callAPI(req)
+
+	localVarStatusCode := 0
+	if err != nil || localVarHTTPResponse == nil {
+		localVarStatusCode = localVarHTTPResponse.StatusCode
+	}
+
+	a.client.metrics.ReportRequestEnd(
+		localVarStatusCode,
+		time.Since(start),
+		"{{packageName}}",
+		localVarPath)
+
 	if err != nil || localVarHTTPResponse == nil {
 		return {{#returnType}}localVarReturnValue, {{/returnType}}localVarHTTPResponse, err
 	}

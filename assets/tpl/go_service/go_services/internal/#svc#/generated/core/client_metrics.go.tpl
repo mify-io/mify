@@ -23,7 +23,7 @@ func NewClientMetrics() *ClientMetrics {
 		Name:      "request_duration_seconds",
 		Help:      "Duration of request in ms",
 		Buckets:   []float64{0.02, 0.05, 0.1, 0.2, 0.5, 1, 5, 30, 60},
-	}, []string{"service", "host_name", "target_service", "path"})
+	}, []string{"target_service", "path"})
 	prometheus.Register(reqDuration)
 
 	reqCount := prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -31,7 +31,7 @@ func NewClientMetrics() *ClientMetrics {
 		Subsystem: "api",
 		Name:      "requests_total",
 		Help:      "Total count of processed requests",
-	}, []string{"service", "host_name", "target_service", "path", "status"})
+	}, []string{"target_service", "path", "status"})
 	prometheus.Register(reqCount)
 
 	return &ClientMetrics{
@@ -41,7 +41,6 @@ func NewClientMetrics() *ClientMetrics {
 }
 
 func (rm *ClientMetrics) ReportRequestEnd(
-	reqCtx *MifyRequestContextBuilder,
 	status int,
 	duration time.Duration,
 	targetService string,
@@ -49,16 +48,12 @@ func (rm *ClientMetrics) ReportRequestEnd(
 
 	rm.requestDuration.
 		WithLabelValues(
-			reqCtx.ServiceContext().ServiceName(),
-			reqCtx.ServiceContext().Hostname(),
 			targetService,
 			targetPath).
 		Observe(duration.Seconds())
 
 	rm.requestCount.
 		WithLabelValues(
-			reqCtx.ServiceContext().ServiceName(),
-			reqCtx.ServiceContext().Hostname(),
 			targetService,
 			targetPath,
 			strconv.Itoa(status)).

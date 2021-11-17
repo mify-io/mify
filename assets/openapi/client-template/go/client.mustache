@@ -36,11 +36,16 @@ var (
 	xmlCheck  = regexp.MustCompile(`(?i:(?:application|text)/xml)`)
 )
 
+type ClientMetrics interface {
+	ReportRequestEnd(status int, duration time.Duration, targetService string, targetPath string)
+}
+
 // APIClient manages communication with the {{appName}} API v{{version}}
 // In most cases there should be only one, shared, APIClient.
 type APIClient struct {
 	cfg    *Configuration
 	common service // Reuse a single struct instead of allocating one for each service on the heap.
+	metrics ClientMetrics
 
 	// API Services
 {{#apiInfo}}
@@ -59,7 +64,7 @@ type service struct {
 
 // NewAPIClient creates a new API client. Requires a userAgent string describing your application.
 // optionally a custom http.Client to allow for advanced features such as caching.
-func NewAPIClient(cfg *Configuration) *APIClient {
+func NewAPIClient(clientMetrics ClientMetrics, cfg *Configuration) *APIClient {
 	if cfg.HTTPClient == nil {
 		cfg.HTTPClient = http.DefaultClient
 	}
@@ -67,6 +72,7 @@ func NewAPIClient(cfg *Configuration) *APIClient {
 	c := &APIClient{}
 	c.cfg = cfg
 	c.common.client = c
+	c.metrics = clientMetrics
 
 {{#apiInfo}}
 	// API Services
