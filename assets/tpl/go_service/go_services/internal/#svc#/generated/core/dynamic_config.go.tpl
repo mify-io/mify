@@ -18,6 +18,14 @@ const (
 	refreshPeriod = 60 * time.Second
 )
 
+type ConsulConfig struct {
+	Endpoints []string `yaml:"endpoint" envconfig:"CONSUL_ENDPOINT" default:"[127.0.0.1:8500]"`
+}
+
+func GetConsulConfig(cfg *MifyStaticConfig) *ConsulConfig {
+	return cfg.MustGet((*ConsulConfig)(nil)).(*ConsulConfig)
+}
+
 type MifyDynamicConfig struct {
 	rwMutex sync.RWMutex
 	data    map[string][]byte
@@ -29,22 +37,9 @@ type MifyDynamicConfig struct {
 }
 
 func NewMifyDynamicConfig(mifyServiceContext *MifyServiceContext) (*MifyDynamicConfig, error) {
-	consulEndpoint := mifyServiceContext.StaticConfig().Get(consulEndpointEnvKey)
-	if consulEndpoint == nil {
-		consulEndpoint = consulEndpointDefault // TODO: remove
-	}
+	cfg := GetConsulConfig(mifyServiceContext.StaticConfig())
 
-	machines := make([]string, 0)
-	switch consulEndpoint.(type) {
-	case string:
-		machines = append(machines, consulEndpoint.(string))
-	case []string:
-		for _, endpoint := range consulEndpoint.([]string) {
-			machines = append(machines, endpoint)
-		}
-	}
-
-	cl, err := consul.New(machines)
+	cl, err := consul.New(cfg.Endpoints)
 	if err != nil {
 		return nil, err
 	}

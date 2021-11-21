@@ -12,10 +12,17 @@ import (
 // Since these are string, it is possible to get a short description of the
 // context key for logging and debugging using key.String().
 
-const (
-	clientEndpointEnvKey = "{{clientEndpointEnv}}"
-	clientEndpointEnvDefault = "localhost:{{servicePort}}"
-)
+type StaticConfig interface {
+	MustGet(cfg interface{}) interface{}
+}
+
+type ClientConf struct {
+	ServiceUrl string `envconfig:"SERVICE2_CLIENT_ENDPOINT" default:"[localhost:33971]"`
+}
+
+func getClientConf(conf StaticConfig) *ClientConf {
+	return conf.MustGet((*ClientConf)(nil)).(*ClientConf)
+}
 
 type contextKey string
 
@@ -104,10 +111,6 @@ type MiddlewareFunction func(*http.Request)
 
 {{/withCustomMiddlewareFunction}}
 
-type StaticConfig interface {
-	Get(key string) interface{}
-}
-
 // Configuration stores the configuration of the API client
 type Configuration struct {
 	Host             string            `json:"host,omitempty"`
@@ -125,12 +128,9 @@ type Configuration struct {
 
 // NewConfiguration returns a new Configuration object
 func NewConfiguration(conf StaticConfig) *Configuration {
-	serviceURL := conf.Get(clientEndpointEnvKey)
-	if serviceURL == nil {
-		serviceURL = clientEndpointEnvDefault
-	}
+	cfg := getClientConf(conf)
 
-	cfg := &Configuration{
+	return &Configuration{
 		DefaultHeader:    make(map[string]string),
 		UserAgent:        "{{{httpUserAgent}}}{{^httpUserAgent}}OpenAPI-Generator/{{{packageVersion}}}/go{{/httpUserAgent}}",
 		Debug:            false,
@@ -139,7 +139,7 @@ func NewConfiguration(conf StaticConfig) *Configuration {
 		Servers:          ServerConfigurations{
 		{{/-first}}
 			{
-				URL: "http://"+serviceURL.(string),
+				URL: "http://"+cfg.ServiceUrl,
 				Description: "{{{description}}}{{^description}}No description provided{{/description}}",
 				{{#variables}}
 				{{#-first}}
@@ -211,7 +211,6 @@ func NewConfiguration(conf StaticConfig) *Configuration {
 		},
 		{{/apiInfo}}
 	}
-	return cfg
 }
 
 // AddDefaultHeader adds a new HTTP header to the default header in the request
