@@ -17,7 +17,7 @@ type StaticConfig interface {
 }
 
 type ClientConf struct {
-	ServiceUrl string `envconfig:"SERVICE2_CLIENT_ENDPOINT" default:"[localhost:33971]"`
+	ServiceUrl string `envconfig:"{{clientEndpointEnv}}" default:"[localhost:{{servicePort}}]"`
 }
 
 func getClientConf(conf StaticConfig) *ClientConf {

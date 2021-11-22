@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/chebykinn/mify/internal/mify/workspace"
+	"github.com/chebykinn/mify/internal/mify/service/lang"
 )
 
 type OpenAPIClientContext struct {
@@ -18,7 +19,9 @@ type OpenAPIContext struct {
 type Context struct {
 	ServiceName string
 	Repository  string
+	Language    lang.ServiceLanguage
 	GoModule    string
 	Workspace   workspace.Context
 	OpenAPI     OpenAPIContext
+	ServiceList []string
 }

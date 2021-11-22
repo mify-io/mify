@@ -232,7 +232,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	result, err := c.service.{{nickname}}(reqCtx, {{#allParams}}, {{paramName}}Param{{/allParams}})
+	result, err := c.service.{{nickname}}(reqCtx{{#allParams}}, {{paramName}}Param{{/allParams}})
 	// If an error occurred, encode the error with the status code
 	if err != nil {
 		c.errorHandler(w, r, err, &result)

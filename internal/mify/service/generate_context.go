@@ -10,6 +10,7 @@ import (
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/chebykinn/mify/internal/mify/service/generate"
+	"github.com/chebykinn/mify/internal/mify/service/lang"
 	"github.com/chebykinn/mify/internal/mify/util"
 	"gopkg.in/yaml.v2"
 )
@@ -86,11 +87,18 @@ func generateClientsContextStep(ctx *core.Context, pool *util.JobPool, serviceCt
 
 func generateClientsContext(ctx *core.Context, serviceCtx Context, conf config.ServiceConfig, list []string) error {
 	tmpDir := config.GetServiceCacheDirectory(serviceCtx.Workspace.BasePath, serviceCtx.ServiceName)
-	// FIXME: go specific
-	// FIXME: regenerate only clients file
-	subPath := "go_services/internal/#svc#/generated/core"
-	if err := RenderTemplateTreeSubPath(ctx, serviceCtx, subPath); err != nil {
-		return err
+	switch serviceCtx.Language {
+		case lang.ServiceLanguageGo:
+			subPath := "go_services/internal/#svc#/generated/core"
+			// FIXME: regenerate only clients file
+			if err := RenderTemplateTreeSubPath(ctx, serviceCtx, subPath); err != nil {
+				return err
+			}
+		case lang.ServiceLanguageJs:
+			subPath := "js_services/#svc#/generated/core"
+			if err := RenderTemplateTreeSubPath(ctx, serviceCtx, subPath); err != nil {
+				return err
+			}
 	}
 
 	err := updateClientsList(ctx, serviceCtx.Workspace.BasePath, tmpDir, list)

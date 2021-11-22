@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/chebykinn/mify/internal/mify/core"
+	"github.com/chebykinn/mify/internal/mify/service/lang"
 )
 
 const (
@@ -21,14 +22,29 @@ func transformPath(context interface{}, path string) (string, error) {
 	return path, nil
 }
 
+func getLanguageTemplatePath(context Context) (string, error) {
+	switch(context.Language) {
+	case lang.ServiceLanguageGo:
+		return "tpl/go_service", nil
+	case lang.ServiceLanguageJs:
+		return "tpl/js_service", nil
+	}
+	return "", fmt.Errorf("no such language: %s", context.Language)
+}
+
 func RenderTemplateTree(ctx *core.Context, context Context) error {
 	funcMap := template.FuncMap{
 		"svcUserCtxName": func(context Context) string {
 			return fmt.Sprintf("%s%s", strings.Title(context.ServiceName), "Context")
 		},
 	}
+	templatesPath, err := getLanguageTemplatePath(context)
+	if err != nil {
+		return err
+	}
+
 	params := core.RenderParams{
-		TemplatesPath:   "tpl/go_service",
+		TemplatesPath:   templatesPath,
 		TargetPath:      context.Workspace.BasePath,
 		PathTransformer: transformPath,
 		FuncMap:         funcMap,
@@ -42,12 +58,17 @@ func RenderTemplateTreeSubPath(ctx *core.Context, context Context, templateSubPa
 			return fmt.Sprintf("%s%s", strings.Title(context.ServiceName), "Context")
 		},
 	}
+	templatesPath, err := getLanguageTemplatePath(context)
+	if err != nil {
+		return err
+	}
+
 	targetSubPath, err := transformPath(context, templateSubPath)
 	if err != nil {
 		return err
 	}
 	params := core.RenderParams{
-		TemplatesPath:   filepath.Join("tpl/go_service", templateSubPath),
+		TemplatesPath:   filepath.Join(templatesPath, templateSubPath),
 		TargetPath:      filepath.Join(context.Workspace.BasePath, targetSubPath),
 		PathTransformer: transformPath,
 		FuncMap:         funcMap,

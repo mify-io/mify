@@ -9,6 +9,7 @@ import (
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/chebykinn/mify/internal/mify/service"
+	"github.com/chebykinn/mify/internal/mify/service/lang"
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/util/docker"
 	"github.com/chebykinn/mify/internal/mify/workspace"
@@ -31,7 +32,7 @@ func CreateWorkspace(ctx *core.Context, basePath string, name string) error {
 	return handleError(pool, pool.Run())
 }
 
-func CreateService(ctx *core.Context, workspacePath string, name string) error {
+func CreateService(ctx *core.Context, workspacePath string, language string, name string) error {
 	workspaceContext, pool, err := makeCmdContext(ctx, workspacePath)
 	if err != nil {
 		return err
@@ -41,7 +42,7 @@ func CreateService(ctx *core.Context, workspacePath string, name string) error {
 	pool.AddJob(util.Job{
 		Name: "create:"+name,
 		Func: func(c *core.Context) error {
-			return service.CreateService(c, workspaceContext, name)
+			return service.CreateService(c, workspaceContext, lang.ServiceLanguage(language), name)
 		},
 	})
 	if err := pool.Run(); err != nil {
@@ -117,7 +118,7 @@ func makeCmdContext(ctx *core.Context, workspacePath string) (workspace.Context,
 		return workspace.Context{}, nil, err
 	}
 
-	pool, err := util.NewJobPool(ctx, config.GetCacheDirectory(workspacePath), runtime.NumCPU())
+	pool, err := util.NewJobPool(ctx, config.GetCacheDirectory(workspaceContext.BasePath), runtime.NumCPU())
 	if err != nil {
 		return workspace.Context{}, nil, err
 	}

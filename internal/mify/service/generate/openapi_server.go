@@ -31,7 +31,8 @@ func (g *OpenAPIGenerator) doGenerateServer(ctx *core.Context, assetsPath string
 		return fmt.Errorf("failed to get service port: %w", err)
 	}
 
-	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, assetsPath, generatedPath, SERVER_PACKAGE_NAME, listenPort, g.info)
+	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, assetsPath,
+		generatedPath, SERVER_PACKAGE_NAME, g.info.ServiceName, listenPort, g.info)
 	if err != nil {
 		return fmt.Errorf("failed to run openapi-generator: %w", err)
 	}
@@ -48,7 +49,7 @@ func (g *OpenAPIGenerator) doGenerateServer(ctx *core.Context, assetsPath string
 		return err
 	}
 
-	err = formatGenerated(apiPath)
+	err = formatGenerated(apiPath, g.language)
 	if err != nil {
 		return err
 	}

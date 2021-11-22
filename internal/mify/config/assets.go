@@ -2,6 +2,8 @@ package config
 
 import (
 	"embed"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -10,6 +12,15 @@ import (
 
 func GetAssets() embed.FS {
 	return assets.GetAssetsFs()
+}
+
+func HasAssets(assetPath string) bool {
+	assetsFs := GetAssets()
+	_, err := assetsFs.Open(assetPath)
+	if err != nil && errors.Is(err, fs.ErrNotExist) {
+		return false
+	}
+	return true
 }
 
 func DumpAssets(basePath string, assetPath string, targetDir string) (string, error) {

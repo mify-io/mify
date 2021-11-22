@@ -10,6 +10,7 @@ import (
 
 var (
 	addClientName string
+	addServiceLang string
 )
 
 var addServiceCmd = &cobra.Command{
@@ -19,7 +20,7 @@ var addServiceCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {
-			if err := mify.CreateService(appContext, workspacePath, ival); err != nil {
+			if err := mify.CreateService(appContext, workspacePath, addServiceLang, ival); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to create service: %s\n", err)
 				os.Exit(2)
 			}
@@ -52,6 +53,8 @@ var addCmd = &cobra.Command{
 func init() {
 	addClientCmd.PersistentFlags().StringVarP(&addClientName, "to", "t", "", "Name of client service")
 	addClientCmd.MarkPersistentFlagRequired("to")
+
+	addServiceCmd.PersistentFlags().StringVarP(&addServiceLang, "lang", "l", "go", "Service language")
 
 	addCmd.AddCommand(addServiceCmd)
 	addCmd.AddCommand(addClientCmd)

@@ -1,16 +1,14 @@
-generatorName: go
-templateDir: /repo/.mify/assets/openapi/client-template/go
+generatorName: javascript
+templateDir: /repo/.mify/assets/openapi/client-template/js
 enableMinimalUpdate: true
 globalProperties:
+  apiTests: false
+  modelTests: false
   apiDocs: false
   modelDocs: false
 additionalProperties:
-  addResponseHeaders: true
-  enumClassPrefix: true
-  # featureCORS: true
-  hideGenerationTimestamp: false
+  usePromises: true
   packageName: openapi
-  packageVersion: 1.0.0
 files:
   ignore-list.txt:
     destinationFilename: .openapi-generator-ignore
@@ -20,8 +18,9 @@ httpUserAgent: User Agent
 
 apiPackage: handlers
 modelPackage: models
+invokerPackage: null
+sourceFolder: null
 
-invokerPackage: unused
 apiNameSuffix: "_"
 modelNamePrefix: ""
 modelNameSuffix: ""

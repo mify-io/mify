@@ -18,6 +18,7 @@ import (
 
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
+	"github.com/chebykinn/mify/internal/mify/service/lang"
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/util/docker"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -25,11 +26,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type GeneratorLanguage string
-
 const (
-	GENERATOR_LANGUAGE_GO GeneratorLanguage = "go"
-
 	CACHE_SERVER_SUBDIR = "server"
 	CACHE_CLIENT_SUBDIR = "client"
 	SERVER_PACKAGE_NAME = "openapi"
@@ -49,13 +46,13 @@ type OpenAPIGeneratorInfo struct {
 
 type OpenAPIGenerator struct {
 	basePath  string
-	language  GeneratorLanguage
+	language  lang.ServiceLanguage
 	info      OpenAPIGeneratorInfo
 	serverAssetsPath string
 	clientAssetsPath string
 }
 
-func NewOpenAPIGenerator(basePath string, language GeneratorLanguage, info OpenAPIGeneratorInfo) OpenAPIGenerator {
+func NewOpenAPIGenerator(basePath string, language lang.ServiceLanguage, info OpenAPIGeneratorInfo) OpenAPIGenerator {
 	return OpenAPIGenerator{
 		basePath:  basePath,
 		language:  language,
@@ -68,7 +65,7 @@ func (g *OpenAPIGenerator) Prepare(pool *util.JobPool) error {
 		image = "openapitools/openapi-generator-cli:v5.3.0"
 	)
 
-	langStr := string(GENERATOR_LANGUAGE_GO)
+	langStr := string(g.language)
 	pool.AddJob(util.Job{
 		Name:"generate:prepare",
 		Func: func(ctx *core.Context) error {
@@ -79,17 +76,23 @@ func (g *OpenAPIGenerator) Prepare(pool *util.JobPool) error {
 				return err
 			}
 			var err error
-			g.serverAssetsPath, err = config.DumpAssets(g.basePath, "openapi/server-template/"+langStr, "openapi/server-template")
-			if err != nil {
-				return fmt.Errorf("failed to dump assets: %w", err)
+			if config.HasAssets("openapi/server-template/"+langStr) {
+				g.serverAssetsPath, err = config.DumpAssets(
+					g.basePath, "openapi/server-template/"+langStr, "openapi/server-template")
+				if err != nil {
+					return fmt.Errorf("failed to dump assets: %w", err)
+				}
+				ctx.Logger.Printf("dumped server path: %s\n", g.serverAssetsPath)
 			}
-			ctx.Logger.Printf("dumped server path: %s\n", g.serverAssetsPath)
 
-			g.clientAssetsPath, err = config.DumpAssets(g.basePath, "openapi/client-template/"+langStr, "openapi/client-template")
-			if err != nil {
-				return fmt.Errorf("failed to dump assets: %w", err)
+			if config.HasAssets("openapi/client-template/"+langStr) {
+				g.clientAssetsPath, err = config.DumpAssets(
+					g.basePath, "openapi/client-template/"+langStr, "openapi/client-template")
+				if err != nil {
+					return fmt.Errorf("failed to dump assets: %w", err)
+				}
+				ctx.Logger.Printf("dumped client path: %s\n", g.clientAssetsPath)
 			}
-			ctx.Logger.Printf("dumped client path: %s\n", g.clientAssetsPath)
 			return nil
 		},
 	})
@@ -124,6 +127,9 @@ func (g *OpenAPIGenerator) NeedGenerateClient(ctx *core.Context, schemaDir strin
 }
 
 func (g *OpenAPIGenerator) GenerateServer(ctx *core.Context, schemaDir string, outputDir string) error {
+	if len(g.serverAssetsPath) == 0 {
+		return fmt.Errorf("failed to generate server: no generator available for language: %s", g.language)
+	}
 	inputSchemaPath := filepath.Join(g.basePath, schemaDir, "/api.yaml")
 	schemaPath, err := g.makeServerEnrichedSchema(ctx, inputSchemaPath)
 	if err != nil {
@@ -145,6 +151,9 @@ func (g *OpenAPIGenerator) GenerateServer(ctx *core.Context, schemaDir string, o
 }
 
 func (g *OpenAPIGenerator) GenerateClient(ctx *core.Context, clientName string, schemaDir string, outputDir string) error {
+	if len(g.clientAssetsPath) == 0 {
+		return fmt.Errorf("failed to generate client: no generator available for language: %s", g.language)
+	}
 	inputSchemaPath := filepath.Join(g.basePath, schemaDir, "/api.yaml")
 	schemaPath, err := g.makeClientEnrichedSchema(ctx, inputSchemaPath)
 	if err != nil {
@@ -238,7 +247,10 @@ func (g *OpenAPIGenerator) saveEnrichedSchema(
 }
 
 // FIXME: go-specific
-func formatGenerated(apiPath string) error {
+func formatGenerated(apiPath string, language lang.ServiceLanguage) error {
+	if language != lang.ServiceLanguageGo {
+		return nil
+	}
 	return filepath.WalkDir(apiPath, func(path string, d fs.DirEntry, ferr error) error {
 		if d == nil {
 			return fmt.Errorf("failed to format: %s: %w", apiPath, ferr)
@@ -375,6 +387,7 @@ func isSchemasChanged(ctx *core.Context, basePath string, schemaDir string, tmpS
 func runOpenapiGenerator(
 	ctx *core.Context, basePath string, schemaPath string, templatePath string, targetDir string,
 	packageName string,
+	clientName string,
 	servicePort int,
 	info OpenAPIGeneratorInfo) error {
 	const (
@@ -408,6 +421,7 @@ func runOpenapiGenerator(
 		"-o", filepath.Join("/repo", targetDirRel),
 		"-p", "goModule="+info.GoModule,
 		"-p", "serviceName="+info.ServiceName,
+		"-p", "clientName="+clientName,
 		"-p", "clientEndpointEnv="+MakeEnvName(packageName),
 		"-p", "servicePort="+strconv.Itoa(servicePort),
 		"--package-name", packageName,
@@ -437,5 +451,3 @@ func copyFile(from string, to string) error {
 
 	return ioutil.WriteFile(to, data, 0644)
 }
-
-
