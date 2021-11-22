@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	"context"
+	"time"
 )
 
 type MifyRequestContextBuilder struct {
@@ -63,17 +64,18 @@ func (b *MifyRequestContextBuilder) ServiceContext() *MifyServiceContext {
 
 func (b *MifyRequestContextBuilder) Build(ctx context.Context) (*MifyRequestContext, error) {
 	return &MifyRequestContext{
+		MifyServiceContext: b.serviceContext,
+
 		requestId:      b.requestId,
-		serviceContext: b.serviceContext,
 		logger:         b.Logger(),
 		requestCtx:     ctx,
 	}, nil
 }
 
 type MifyRequestContext struct {
-	requestId      string
-	serviceContext *MifyServiceContext
+	*MifyServiceContext
 
+	requestId      string
 	logger     *zap.Logger
 	requestCtx context.Context
 }
@@ -82,10 +84,24 @@ func (c *MifyRequestContext) Logger() *zap.Logger {
 	return c.logger
 }
 
-func (c *MifyRequestContext) ServiceContext() *MifyServiceContext {
-	return c.serviceContext
-}
-
 func (c *MifyRequestContext) RequestContext() context.Context {
 	return c.requestCtx
+}
+
+// context.Context
+
+func (c *MifyRequestContext) Deadline() (deadline time.Time, ok bool) {
+	return c.requestCtx.Deadline()
+}
+
+func (c *MifyRequestContext) Done() <-chan struct{} {
+	return c.requestCtx.Done()
+}
+
+func (c *MifyRequestContext) Err() error {
+	return c.requestCtx.Err()
+}
+
+func (c *MifyRequestContext) Value(key interface{}) interface{} {
+	return c.requestCtx.Value(key)
 }

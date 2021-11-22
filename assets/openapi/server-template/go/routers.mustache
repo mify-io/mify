@@ -47,7 +47,6 @@ func NewRouter(mifyCtx *core.MifyServiceContext, routers ...Router) {{#routers}}
 	router.Use(RequestContext(mifyCtx))
 	router.Use(Logger())
 	router.Use(Metrics())
-	router.Use(Logger())
 	{{#featureCORS}}
 	router.Use(cors.Handler(cors.Options{}))
 	{{/featureCORS}}

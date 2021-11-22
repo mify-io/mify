@@ -343,7 +343,12 @@ func (a *{{{classname}}}Service) {{nickname}}Execute(r {{#structPrefix}}{{&class
 
 	localVarStatusCode := 0
 	if err != nil || localVarHTTPResponse == nil {
-		localVarStatusCode = localVarHTTPResponse.StatusCode
+		if localVarHTTPResponse != nil {
+			localVarStatusCode = localVarHTTPResponse.StatusCode
+		} else {
+            // TODO: send different metric if client is not responding
+			localVarStatusCode = _nethttp.StatusInternalServerError
+		}
 	}
 
 	a.client.metrics.ReportRequestEnd(
