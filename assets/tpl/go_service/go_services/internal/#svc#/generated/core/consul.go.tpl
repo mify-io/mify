@@ -2,7 +2,12 @@
 
 package core
 
-const (
-	consulEndpointEnvKey  = "CONSUL_ENDPOINT"
-	consulEndpointDefault = "127.0.0.1:8500"
-)
+import "repo.com/namespace/somerepo/go_services/internal/pkg/generated/configs"
+
+type ConsulConfig struct {
+	Endpoint string `yaml:"endpoint" envconfig:"CONSUL_ENDPOINT" default:"127.0.0.1:8500"`
+}
+
+func GetConsulConfig(cfg *configs.MifyStaticConfig) *ConsulConfig {
+	return cfg.MustGet((*ConsulConfig)(nil)).(*ConsulConfig)
+}
