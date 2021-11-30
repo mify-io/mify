@@ -136,6 +136,8 @@ func moveServerHandlers(ctx *core.Context, apiPath string, handlersPath string, 
 	}
 	pathsSet := map[string]string{}
 	for _, path := range apiPaths {
+		path = strings.ReplaceAll(path, "{", "")
+		path = strings.ReplaceAll(path, "}", "")
 		pathsSet[toAPIFilename(path)] = path
 	}
 	ctx.Logger.Printf("paths: %v\n", pathsSet)
