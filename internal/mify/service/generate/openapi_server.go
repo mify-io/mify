@@ -12,6 +12,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/chebykinn/mify/internal/mify/config"
@@ -23,7 +24,8 @@ type serviceGenCache struct {
 	ListenPort int `yaml:"listen_port"`
 }
 
-func (g *OpenAPIGenerator) doGenerateServer(ctx *core.Context, assetsPath string, schemaPath string, targetPath string) error {
+func (g *OpenAPIGenerator) doGenerateServer(
+	ctx *core.Context, assetsPath string, schemaPath string, targetPath string, paths []string) error {
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated")
 
 	listenPort, err := makeServicePort(g.basePath, g.info.ServiceName)
@@ -44,7 +46,7 @@ func (g *OpenAPIGenerator) doGenerateServer(ctx *core.Context, assetsPath string
 	}
 
 	handlersPath := filepath.Join(g.basePath, targetPath, "handlers")
-	err = moveServerHandlers(ctx, apiPath, handlersPath)
+	err = moveServerHandlers(ctx, apiPath, handlersPath, paths)
 	if err != nil {
 		return err
 	}
@@ -57,8 +59,72 @@ func (g *OpenAPIGenerator) doGenerateServer(ctx *core.Context, assetsPath string
 	return nil
 }
 
+// taken from openapi-generator
+func isReservedFilename(name string) bool {
+	parts := strings.Split(name, "_")
+	suffix := parts[len(parts) - 1];
+
+	reservedSuffixes := []string{
+		// Test
+		"test",
+		// $GOOS
+		"aix", "android", "darwin", "dragonfly", "freebsd", "illumos", "js", "linux", "netbsd", "openbsd",
+		"plan9", "solaris", "windows",
+		// $GOARCH
+		"386", "amd64", "arm", "arm64", "mips", "mips64", "mips64le", "mipsle", "ppc64", "ppc64le", "s390x",
+		"wasm",
+	}
+	reservedSuffixesSet := map[string]struct{}{}
+	for _, suf := range reservedSuffixes {
+		reservedSuffixesSet[suf] = struct{}{}
+	}
+	_, ok := reservedSuffixesSet[suffix]
+	return ok
+}
+
+var (
+	capitalLetterPattern = regexp.MustCompile("([A-Z]+)([A-Z][a-z][a-z]+)");
+	lowercasePattern = regexp.MustCompile("([a-z\\d])([A-Z])");
+	pkgSeparatorPattern = regexp.MustCompile("\\.");
+	dollarPattern = regexp.MustCompile("\\$");
+)
+
+// taken from openapi-generator
+func underscore(word string) string {
+	replacementPattern := "$1_$2"
+	// Replace package separator with slash.
+	result := pkgSeparatorPattern.ReplaceAllString(word, "/")
+	// Replace $ with two underscores for inner classes.
+	result = dollarPattern.ReplaceAllString(result, "__")
+	// Replace capital letter with _ plus lowercase letter.
+	result = capitalLetterPattern.ReplaceAllString(result, replacementPattern)
+	result = lowercasePattern.ReplaceAllString(result, replacementPattern)
+	result = strings.ReplaceAll(result, "-", "_")
+	// replace space with underscore
+	result = strings.ReplaceAll(result, " ", "_")
+	result = strings.ToLower(result)
+	return result
+}
+
+// taken from openapi-generator
+func toAPIFilename(name string) string {
+	// NOTE: openapi-generator transforms tag to camelCase, we don't do that here
+	// we just remove slashes from path and then use openapi-generator logic
+	// to convert this path to filename.
+	api := strings.TrimPrefix(name, "/")
+	api = strings.ReplaceAll(api, "/", "_")
+	// replace - with _ e.g. created-at => created_at
+	api = strings.ReplaceAll(api, "-", "_")
+	// // e.g. PetApi.go => pet_api.go
+	api = "api_" + underscore(api)
+	if (isReservedFilename(api)) {
+		api += "_"
+	}
+	return api
+}
+
 // FIXME: go-specific
-func moveServerHandlers(ctx *core.Context, apiPath string, handlersPath string) error {
+func moveServerHandlers(ctx *core.Context, apiPath string, handlersPath string, apiPaths []string) error {
 	services, err := filepath.Glob(filepath.Join(apiPath, "api_*_service.go"))
 	if err != nil {
 		return err
@@ -68,14 +134,21 @@ func moveServerHandlers(ctx *core.Context, apiPath string, handlersPath string) 
 		ctx.Logger.Printf("no handlers to move\n")
 		return nil
 	}
+	pathsSet := map[string]string{}
+	for _, path := range apiPaths {
+		pathsSet[toAPIFilename(path)] = path
+	}
+	ctx.Logger.Printf("paths: %v\n", pathsSet)
 	for _, service := range services {
-		baseName := filepath.Base(service)
-		baseName = strings.TrimPrefix(baseName, "api_")
-		baseName = strings.TrimSuffix(baseName, "_service.go")
-		baseName = strings.ReplaceAll(baseName, "_", "/")
+		serviceFileName := filepath.Base(service)
+		serviceFileName = strings.TrimSuffix(serviceFileName, "_service.go")
+		path, ok := pathsSet[serviceFileName]
+		if !ok {
+			return fmt.Errorf("failed to find path for service file: %s", serviceFileName)
+		}
 
-		ctx.Logger.Printf("processing handler for: %v\n", baseName)
-		targetFile := filepath.Join(handlersPath, baseName, "service.go")
+		ctx.Logger.Printf("processing handler for: %v\n", path)
+		targetFile := filepath.Join(handlersPath, path, "service.go")
 		defer func(svc string) {
 			if err := os.Remove(svc); err != nil {
 				ctx.Logger.Printf("failed to remove service file: %s: %s\n", svc, err)
@@ -85,38 +158,40 @@ func moveServerHandlers(ctx *core.Context, apiPath string, handlersPath string) 
 		}(service)
 
 		if _, err := os.Stat(targetFile); err == nil {
-			ctx.Logger.Printf("skipping existing handler for: %v", baseName)
+			ctx.Logger.Printf("skipping existing handler for: %v", path)
 			continue
 		}
-		if err := os.MkdirAll(filepath.Join(handlersPath, baseName), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Join(handlersPath, path), 0755); err != nil {
 			return err
 		}
 		if err := createServerHandlersFile(ctx, service, targetFile); err != nil {
 			return err
 		}
-		ctx.Logger.Printf("created handler for: %v\n", baseName)
+		ctx.Logger.Printf("created handler for: %v\n", path)
 	}
 	return nil
 }
 
-func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *core.Context, schemaPath string) (string, error) {
+func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *core.Context, schemaPath string) (string, []string, error) {
 	doc, err := g.readSchema(ctx, schemaPath)
 	if err != nil {
-		return "", fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
+		return "", nil, fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
 	}
 
 	pathsIface, ok := doc["paths"]
 	if !ok {
-		return "", fmt.Errorf("missing paths in schema: %s", schemaPath)
+		return "", nil, fmt.Errorf("missing paths in schema: %s", schemaPath)
 	}
 	// TODO mapstructure
+	pathsList := []string{}
 	paths := pathsIface.(map[interface{}]interface{})
 	for path, v := range paths {
 		ctx.Logger.Printf("processing path: %s\n", path)
 		methods := v.(map[interface{}]interface{})
 		if _, ok := methods["$ref"]; ok {
-			return "", fmt.Errorf("paths with $ref are not supported yet")
+			return "", nil, fmt.Errorf("paths with $ref are not supported yet")
 		}
+		pathsList = append(pathsList, path.(string))
 		for m, vv := range methods {
 			ctx.Logger.Printf("processing method: %s\n", m)
 			method := vv.(map[interface{}]interface{})
@@ -125,7 +200,11 @@ func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *core.Context, schemaPat
 		}
 	}
 
-	return g.saveEnrichedSchema(ctx, doc, schemaPath, CACHE_SERVER_SUBDIR)
+	path, err := g.saveEnrichedSchema(ctx, doc, schemaPath, CACHE_SERVER_SUBDIR)
+	if err != nil {
+		return "", nil, err
+	}
+	return path, pathsList, nil
 }
 
 // FIXME: go-specific

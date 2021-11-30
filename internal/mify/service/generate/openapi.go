@@ -131,12 +131,12 @@ func (g *OpenAPIGenerator) GenerateServer(ctx *core.Context, schemaDir string, o
 		return fmt.Errorf("failed to generate server: no generator available for language: %s", g.language)
 	}
 	inputSchemaPath := filepath.Join(g.basePath, schemaDir, "/api.yaml")
-	schemaPath, err := g.makeServerEnrichedSchema(ctx, inputSchemaPath)
+	schemaPath, paths, err := g.makeServerEnrichedSchema(ctx, inputSchemaPath)
 	if err != nil {
 		return fmt.Errorf("failed to generate server: %w", err)
 	}
 
-	err = g.doGenerateServer(ctx, g.serverAssetsPath, schemaPath, outputDir)
+	err = g.doGenerateServer(ctx, g.serverAssetsPath, schemaPath, outputDir, paths)
 	if err != nil {
 		return fmt.Errorf("failed to generate server: %w", err)
 	}
