@@ -1,6 +1,17 @@
 version: '3.7'
 
 services:
+  # Consul
+  consul-server:
+    image: consul:1.10.4
+    networks:
+      - intranet
+    ports:
+      - '8500:8500'
+      - '8600:8600/udp'
+    command: "agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0"
+
+  # Kratos
   kratos-migrate:
     image: oryd/kratos:v0.8.0
     environment:
