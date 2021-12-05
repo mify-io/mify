@@ -7,68 +7,35 @@
 package configs
 
 import (
-	"reflect"
-	"sync"
-
 	"github.com/hashicorp/consul/api"
 	"github.com/lalamove/konfig"
 	"github.com/lalamove/konfig/loader/klconsul"
 	"github.com/lalamove/konfig/parser/kpyaml"
+	"reflect"
 )
-
-type MyConfig struct {
-	Data string `yaml:"data" default:"127.0.0.1:8500"`
-}
 
 const (
 	configsPath = "config"
 )
 
-var defaultDynamicRegisterOpts = DynamicRegisterOpts{
-	UseConsul: true,
-	UseFiles:  false,
-}
+// Loader
 
-type registeredDynamicConfig struct {
-	structType reflect.Type
-	data       interface{}
-	opts       DynamicRegisterOpts
-	store      konfig.Store
-}
-
-type MifyDynamicConfig struct {
-	configs        map[string]*registeredDynamicConfig // TypeName -> config
-	configsRwMutex sync.RWMutex
-
-	rootStore    konfig.Store
+type dynamicConfigLoader struct {
+	useConsul    bool
+	useFiles     bool
 	consulClient *api.Client
+	rootStore    konfig.Store
+	onUpdate     func(configType reflect.Type, newDataPtr interface{})
 }
 
-func NewMifyDynamicConfig(consulClient *api.Client) (*MifyDynamicConfig, error) {
-	// TODO: start watching all configs in config/
-	return &MifyDynamicConfig{
-		configs:      make(map[string]*registeredDynamicConfig),
-		rootStore:    konfig.New(konfig.DefaultConfig()),
-		consulClient: consulClient,
-	}, nil
-}
+func (l dynamicConfigLoader) load(cfgType reflect.Type) interface{} {
+	store := l.rootStore.Group(cfgType.Name())
 
-type DynamicRegisterOpts struct {
-	UseConsul bool
-	UseFiles  bool
-}
+	var dataPtr interface{}
 
-func (c *MifyDynamicConfig) addConfigImpl(cfgType reflect.Type, opts DynamicRegisterOpts) *registeredDynamicConfig {
-	cfg := &registeredDynamicConfig{
-		structType: cfgType,
-		data:       reflect.New(cfgType).Interface(),
-		store:      c.rootStore.Group(cfgType.Name()),
-		opts:       opts,
-	}
-
-	if cfg.opts.UseConsul {
+	if l.useConsul {
 		consulLoader := klconsul.New(&klconsul.Config{
-			Client: c.consulClient,
+			Client: l.consulClient,
 			Keys: []klconsul.Key{
 				{
 					Key:    configsPath + "/" + cfgType.Name(), // TODO: fuzzy names
@@ -77,92 +44,72 @@ func (c *MifyDynamicConfig) addConfigImpl(cfgType reflect.Type, opts DynamicRegi
 			},
 			Watch: true,
 		})
-		cfg.store.RegisterLoader(consulLoader)
+		store.RegisterLoader(consulLoader)
 
-		emptyStruct := reflect.Zero(cfg.structType).Interface()
-		cfg.store.Bind(emptyStruct)
+		emptyStruct := reflect.Zero(cfgType).Interface()
+		store.Bind(emptyStruct)
 
-		err := cfg.store.Load()
+		err := store.Load()
 		if err != nil {
 			panic(err)
 		}
 
-		newData := reflect.New(cfg.structType)
-		newData.Elem().Set(reflect.ValueOf(cfg.store.Value()))
-		cfg.data = newData.Interface()
+		newData := reflect.New(cfgType)
+		newData.Elem().Set(reflect.ValueOf(store.Value()))
+		dataPtr = newData.Interface()
 
-		cfg.store.RegisterLoaderWatcher(consulLoader, func(s konfig.Store) error {
-			c.configsRwMutex.Lock()
-			defer func() { c.configsRwMutex.Unlock() }()
-
-			newData := reflect.New(cfg.structType)
-			newData.Elem().Set(reflect.ValueOf(cfg.store.Value()))
-			cfg.data = newData.Interface()
+		store.RegisterLoaderWatcher(consulLoader, func(s konfig.Store) error {
+			newData := reflect.New(cfgType)
+			newData.Elem().Set(reflect.ValueOf(store.Value()))
+			l.onUpdate(cfgType, newData.Interface())
 
 			return nil
 		})
 
-		cfg.store.Watch()
+		store.Watch()
 	}
 
-	c.configs[cfgType.Name()] = cfg
+	return dataPtr
+}
 
-	if cfg.opts.UseFiles {
-		panic("Not supported yet") // TODO:
+// MifyDynamicConfig
+
+type MifyDynamicConfig struct {
+	configProviderBase
+	consulClient *api.Client
+}
+
+func NewMifyDynamicConfig(consulClient *api.Client) (*MifyDynamicConfig, error) {
+	loader := dynamicConfigLoader{
+		useConsul:    true,
+		useFiles:     false,
+		consulClient: consulClient,
+		rootStore:    konfig.New(konfig.DefaultConfig()),
 	}
-
-	return cfg
-}
-
-func (c *MifyDynamicConfig) safeGetConfig(cfgType reflect.Type) *registeredDynamicConfig {
-	c.configsRwMutex.RLock()
-	defer func() { c.configsRwMutex.RUnlock() }()
-
-	if val, ok := c.configs[cfgType.Name()]; ok {
-		return val
+	dynamicConfig := &MifyDynamicConfig{
+		configProviderBase: configProviderBase{
+			configs:      make(map[string]*storedConfig),
+			defaulLoader: loader,
+		},
 	}
+	loader.onUpdate = dynamicConfig.updateConfigData
 
-	return nil
+	return dynamicConfig, nil
 }
 
-func (c *MifyDynamicConfig) addOrGetConfig(cfgType reflect.Type, opts DynamicRegisterOpts) *registeredDynamicConfig {
-	cfg := c.safeGetConfig(cfgType)
-	if cfg != nil {
-		return cfg
+type DynamicRegisterOpts struct {
+	UseConsul bool
+	UseFiles  bool
+}
+
+func (c *MifyDynamicConfig) RegisterConfig(cfgType interface{}, opts DynamicRegisterOpts) {
+	loader := dynamicConfigLoader{
+		useConsul:    opts.UseConsul,
+		useFiles:     opts.UseFiles,
+		consulClient: c.consulClient,
+		rootStore:    konfig.New(konfig.DefaultConfig()),
+		onUpdate:     c.updateConfigData,
 	}
-
-	c.configsRwMutex.Lock()
-	defer func() { c.configsRwMutex.Unlock() }()
-
-	if val, ok := c.configs[cfgType.Name()]; ok {
-		return val
-	}
-
-	return c.addConfigImpl(cfgType, opts)
+	c.registerConfig(getConfigType(cfgType), loader)
 }
 
-// Public
-
-func (c *MifyDynamicConfig) Register(cfgPtr interface{}, opts DynamicRegisterOpts) {
-	configType := getConfigType(cfgPtr)
-
-	// TODO: rewrite existing?
-	c.addOrGetConfig(configType, opts)
-}
-
-// Returns ptr to config
-func (c *MifyDynamicConfig) Get(cfgPtr interface{}) (interface{}, error) {
-	configType := getConfigType(cfgPtr)
-
-	cfg := c.addOrGetConfig(configType, defaultDynamicRegisterOpts)
-
-	return cfg.data, nil
-}
-
-func (c *MifyDynamicConfig) MustGet(cfgPtr interface{}) interface{} {
-	res, err := c.Get(cfgPtr)
-	if err != nil {
-		panic(err)
-	}
-	return res
-}

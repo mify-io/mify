@@ -9,5 +9,5 @@ type ConsulConfig struct {
 }
 
 func GetConsulConfig(cfg *configs.MifyStaticConfig) *ConsulConfig {
-	return cfg.MustGet((*ConsulConfig)(nil)).(*ConsulConfig)
+	return cfg.MustGetPtr((*ConsulConfig)(nil)).(*ConsulConfig)
 }

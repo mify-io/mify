@@ -13,7 +13,7 @@ import (
 // context key for logging and debugging using key.String().
 
 type StaticConfig interface {
-	MustGet(cfg interface{}) interface{}
+	MustGetPtr(cfg interface{}) interface{}
 }
 
 type ClientConf struct {
@@ -21,7 +21,7 @@ type ClientConf struct {
 }
 
 func getClientConf(conf StaticConfig) *ClientConf {
-	return conf.MustGet((*ClientConf)(nil)).(*ClientConf)
+	return conf.MustGetPtr((*ClientConf)(nil)).(*ClientConf)
 }
 
 type contextKey string
