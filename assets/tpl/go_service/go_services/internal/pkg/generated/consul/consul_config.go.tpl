@@ -1,8 +1,8 @@
 {{- .Workspace.TplHeader}}
 
-package core
+package consul
 
-import "repo.com/namespace/somerepo/go_services/internal/pkg/generated/configs"
+import "{{.GoModule}}/internal/pkg/generated/configs"
 
 type ConsulConfig struct {
 	Endpoint string `yaml:"endpoint" envconfig:"CONSUL_ENDPOINT" default:"127.0.0.1:8500"`

@@ -10,6 +10,7 @@ import (
 	"{{.GoModule}}/internal/pkg/generated/configs"
 	"{{.GoModule}}/internal/pkg/generated/logs"
 	"{{.GoModule}}/internal/pkg/generated/metrics"
+	"{{.GoModule}}/internal/pkg/generated/consul"
 	"{{.GoModule}}/internal/{{.ServiceName}}/app"
 )
 
@@ -49,7 +50,7 @@ func NewMifyServiceContext(serviceName string) (*MifyServiceContext, error) {
 	}
 	context.loggerWrapper = logger
 
-	consulClient, err := api.NewClient(&api.Config{Address: GetConsulConfig(staticConfig).Endpoint})
+	consulClient, err := api.NewClient(&api.Config{Address: consul.GetConsulConfig(staticConfig).Endpoint})
 	if err != nil {
 		return nil, err
 	}
