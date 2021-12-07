@@ -1,6 +1,6 @@
 {{- .Workspace.TplHeader}}
 
-package core
+package metrics
 
 import (
 	"strconv"

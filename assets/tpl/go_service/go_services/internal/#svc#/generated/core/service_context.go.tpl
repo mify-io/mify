@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/consul/api"
 	"{{.GoModule}}/internal/pkg/generated/configs"
 	"{{.GoModule}}/internal/pkg/generated/logs"
+	"{{.GoModule}}/internal/pkg/generated/metrics"
 	"{{.GoModule}}/internal/{{.ServiceName}}/app"
 )
 
@@ -17,7 +18,7 @@ type MifyServiceContext struct {
 	hostname    string
 
 	loggerWrapper  *logs.MifyLoggerWrapper
-	metricsWrapper *MifyMetricsWrapper
+	metricsWrapper *metrics.MifyMetricsWrapper
 	staticConfig   *configs.MifyStaticConfig
 	dynamicConfig  *configs.MifyDynamicConfig
 	clients        *MifyServiceClients

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"{{goModule}}/internal/pkg/generated/metrics"
 )
 
 func Metrics() func(next http.Handler) http.Handler {
@@ -19,7 +20,11 @@ func Metrics() func(next http.Handler) http.Handler {
 			next.ServeHTTP(ww, r)
 
 			ctxBuilder.GetMetrics().ReportRequestEnd(
-				ctxBuilder,
+				metrics.RequestInfo{
+					ServiceName: ctxBuilder.ServiceContext().ServiceName(),
+					Hostname:    ctxBuilder.ServiceContext().Hostname(),
+					URLPath:     ctxBuilder.GetURLPath(),
+				},
 				ww.Status(),
 				time.Since(start),
 				int(r.ContentLength),

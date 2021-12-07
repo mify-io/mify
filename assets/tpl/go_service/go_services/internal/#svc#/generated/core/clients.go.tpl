@@ -6,6 +6,8 @@ import (
 	{{- range .OpenAPI.Clients}}
 	"{{$.GoModule}}/internal/{{$.ServiceName}}/generated/api/clients/{{.ClientName}}"
 	{{- end}}
+
+	"{{$.GoModule}}/internal/pkg/generated/metrics"
 )
 
 type MifyServiceClients struct {
@@ -16,7 +18,7 @@ type MifyServiceClients struct {
 
 func NewMifyServiceClients(ctx *MifyServiceContext) (*MifyServiceClients, error) {
 	{{- range .OpenAPI.Clients}}
-	{{.PrivateFieldName}} := {{.PackageName}}.NewAPIClient(NewClientMetrics(), {{.PackageName}}.NewConfiguration(ctx.StaticConfig()))
+	{{.PrivateFieldName}} := {{.PackageName}}.NewAPIClient(metrics.NewClientMetrics(), {{.PackageName}}.NewConfiguration(ctx.StaticConfig()))
 	{{- end}}
 
 	clients := &MifyServiceClients {

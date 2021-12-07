@@ -7,6 +7,8 @@ import (
 
 	"context"
 	"time"
+
+	"{{.GoModule}}/internal/pkg/generated/metrics"
 )
 
 type MifyRequestContextBuilder struct {
@@ -14,7 +16,7 @@ type MifyRequestContextBuilder struct {
 	protocol  string
 	urlPath   string
 	logger    *zap.Logger
-	metrics   *RequestMetrics
+	metrics   *metrics.RequestMetrics
 
 	serviceContext *MifyServiceContext
 }
@@ -23,7 +25,7 @@ func NewMifyRequestContextBuilder(serviceContext *MifyServiceContext) *MifyReque
 	return &MifyRequestContextBuilder{
 		logger:         serviceContext.Logger(),
 		serviceContext: serviceContext,
-		metrics:        NewRequestMetrics(),
+		metrics:        metrics.NewRequestMetrics(),
 	}
 }
 
@@ -46,7 +48,7 @@ func (b *MifyRequestContextBuilder) GetURLPath() string {
 	return b.urlPath
 }
 
-func (b *MifyRequestContextBuilder) GetMetrics() *RequestMetrics {
+func (b *MifyRequestContextBuilder) GetMetrics() *metrics.RequestMetrics {
 	return b.metrics
 }
 

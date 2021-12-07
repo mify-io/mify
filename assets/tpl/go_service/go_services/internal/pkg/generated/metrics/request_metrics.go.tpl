@@ -1,6 +1,6 @@
 {{- .Workspace.TplHeader}}
 
-package core
+package metrics
 
 import (
 	"strconv"
@@ -14,6 +14,12 @@ type RequestMetrics struct {
 	responseSize    *prometheus.SummaryVec
 	requestDuration *prometheus.HistogramVec
 	requestCount    *prometheus.CounterVec
+}
+
+type RequestInfo struct {
+	ServiceName string
+	Hostname string
+	URLPath string
 }
 
 func NewRequestMetrics() *RequestMetrics {
@@ -63,7 +69,7 @@ func NewRequestMetrics() *RequestMetrics {
 }
 
 func (rm *RequestMetrics) ReportRequestEnd(
-	reqCtx *MifyRequestContextBuilder,
+	reqInfo RequestInfo,
 	status int,
 	duration time.Duration,
 	requestSizeBytes int,
@@ -71,30 +77,30 @@ func (rm *RequestMetrics) ReportRequestEnd(
 
 	rm.requestSize.
 		WithLabelValues(
-			reqCtx.ServiceContext().ServiceName(),
-			reqCtx.ServiceContext().Hostname(),
-			reqCtx.GetURLPath()).
+			reqInfo.ServiceName,
+			reqInfo.Hostname,
+			reqInfo.URLPath).
 		Observe(float64(requestSizeBytes))
 
 	rm.responseSize.
 		WithLabelValues(
-			reqCtx.ServiceContext().ServiceName(),
-			reqCtx.ServiceContext().Hostname(),
-			reqCtx.GetURLPath()).
+			reqInfo.ServiceName,
+			reqInfo.Hostname,
+			reqInfo.URLPath).
 		Observe(float64(responseSizeBytes))
 
 	rm.requestDuration.
 		WithLabelValues(
-			reqCtx.ServiceContext().ServiceName(),
-			reqCtx.ServiceContext().Hostname(),
-			reqCtx.GetURLPath()).
+			reqInfo.ServiceName,
+			reqInfo.Hostname,
+			reqInfo.URLPath).
 		Observe(duration.Seconds())
 
 	rm.requestCount.
 		WithLabelValues(
-			reqCtx.ServiceContext().ServiceName(),
-			reqCtx.ServiceContext().Hostname(),
-			reqCtx.GetURLPath(),
+			reqInfo.ServiceName,
+			reqInfo.Hostname,
+			reqInfo.URLPath,
 			strconv.Itoa(status)).
 		Inc()
 }
