@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 	"github.com/hashicorp/consul/api"
 	"{{.GoModule}}/internal/pkg/generated/configs"
+	"{{.GoModule}}/internal/pkg/generated/logs"
 	"{{.GoModule}}/internal/{{.ServiceName}}/app"
 )
 
@@ -15,7 +16,7 @@ type MifyServiceContext struct {
 	serviceName string
 	hostname    string
 
-	loggerWrapper  *MifyLoggerWrapper
+	loggerWrapper  *logs.MifyLoggerWrapper
 	metricsWrapper *MifyMetricsWrapper
 	staticConfig   *configs.MifyStaticConfig
 	dynamicConfig  *configs.MifyDynamicConfig
@@ -41,7 +42,7 @@ func NewMifyServiceContext(serviceName string) (*MifyServiceContext, error) {
 	}
 	context.staticConfig = staticConfig
 
-	logger, err := NewMifyLoggerWrapper(context)
+	logger, err := logs.NewMifyLoggerWrapper(context)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,6 @@
 {{- .Workspace.TplHeader}}
 
-package core
+package logs
 
 import (
 	"sync"
@@ -14,15 +14,20 @@ type MifyLoggerWrapper struct {
 	rwMutex    sync.RWMutex
 }
 
-func NewMifyLoggerWrapper(ctx *MifyServiceContext) (*MifyLoggerWrapper, error) {
+type MifyServiceContext interface {
+	ServiceName() string
+	Hostname()    string
+}
+
+func NewMifyLoggerWrapper(ctx MifyServiceContext) (*MifyLoggerWrapper, error) {
 	logger, err := zap.NewProduction()
 	if err != nil {
 		return &MifyLoggerWrapper{}, err
 	}
 
 	logger = logger.With(
-		zap.String("service_name", ctx.serviceName),
-		zap.String("hostname", ctx.hostname),
+		zap.String("service_name", ctx.ServiceName()),
+		zap.String("hostname", ctx.Hostname()),
 	)
 
 	defer logger.Sync()
