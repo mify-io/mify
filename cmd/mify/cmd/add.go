@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	addClientName string
-	addServiceLang string
+	addClientName   string
+	addFrontendType string
 )
 
 var addServiceCmd = &cobra.Command{
@@ -20,7 +20,7 @@ var addServiceCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {
-			if err := mify.CreateService(appContext, workspacePath, addServiceLang, ival); err != nil {
+			if err := mify.CreateService(appContext, workspacePath, "go", ival); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to create service: %s\n", err)
 				os.Exit(2)
 			}
@@ -43,6 +43,21 @@ var addClientCmd = &cobra.Command{
 	},
 }
 
+var addFrontendCmd = &cobra.Command{
+	Use:   "frontend",
+	Short: "Add frontend",
+	Long:  `Add frontend`,
+	Args:  cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		for _, ival := range args {
+			if err := mify.CreateService(appContext, workspacePath, "js", ival); err != nil {
+				fmt.Fprintf(os.Stderr, "failed to create service: %s\n", err)
+				os.Exit(2)
+			}
+		}
+	},
+}
+
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
@@ -54,8 +69,16 @@ func init() {
 	addClientCmd.PersistentFlags().StringVarP(&addClientName, "to", "t", "", "Name of client service")
 	addClientCmd.MarkPersistentFlagRequired("to")
 
-	addServiceCmd.PersistentFlags().StringVarP(&addServiceLang, "lang", "l", "go", "Service language")
+	// TODO: limit witn enum
+	addFrontendCmd.PersistentFlags().StringVarP(
+		&addFrontendType,
+		"template",
+		"t",
+		"vue",
+		"Template (f.e. vue app)",
+	)
 
 	addCmd.AddCommand(addServiceCmd)
 	addCmd.AddCommand(addClientCmd)
+	addCmd.AddCommand(addFrontendCmd)
 }
