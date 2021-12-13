@@ -50,7 +50,7 @@ var addFrontendCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {
-			if err := mify.CreateService(appContext, workspacePath, "js", ival); err != nil {
+			if err := mify.CreateFrontend(appContext, workspacePath, "vue_js", ival); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to create service: %s\n", err)
 				os.Exit(2)
 			}

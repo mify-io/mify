@@ -23,7 +23,7 @@ func CreateWorkspace(ctx *core.Context, basePath string, name string) error {
 	defer pool.ClosePool()
 
 	pool.AddJob(util.Job{
-		Name: "workspace:"+name,
+		Name: "workspace:" + name,
 		Func: func(c *core.Context) error {
 			return workspace.CreateWorkspace(c, basePath, name)
 		},
@@ -40,7 +40,7 @@ func CreateService(ctx *core.Context, workspacePath string, language string, nam
 	defer pool.ClosePool()
 
 	pool.AddJob(util.Job{
-		Name: "create:"+name,
+		Name: "create:" + name,
 		Func: func(c *core.Context) error {
 			return service.CreateService(c, workspaceContext, lang.ServiceLanguage(language), name)
 		},
@@ -48,6 +48,43 @@ func CreateService(ctx *core.Context, workspacePath string, language string, nam
 	if err := pool.Run(); err != nil {
 		return handleError(pool, err)
 	}
+	return handleError(pool, service.Generate(ctx, pool, workspaceContext, name))
+}
+
+func CreateFrontend(ctx *core.Context, workspacePath string, template string, name string) error {
+	workspaceContext, pool, err := makeCmdContext(ctx, workspacePath)
+	if err != nil {
+		return err
+	}
+	defer pool.ClosePool()
+
+	pool.AddJob(util.Job{
+		Name: "create:" + service.ApiGatewayName,
+		Func: func(c *core.Context) error {
+			_, err := service.TryCreateApiGateway(c, workspaceContext)
+			return err
+		},
+	})
+	if err := pool.Run(); err != nil {
+		return handleError(pool, err)
+	}
+	// TODO: skip generation if api gateway already exists
+	err = handleError(pool, service.Generate(ctx, pool, workspaceContext, service.ApiGatewayName))
+	if err != nil {
+		return err
+	}
+
+	pool.AddJob(util.Job{
+		Name: "create:" + name,
+		Func: func(c *core.Context) error {
+			return service.CreateFrontend(c, workspaceContext, template, name)
+		},
+	})
+
+	if err := pool.Run(); err != nil {
+		return handleError(pool, err)
+	}
+
 	return handleError(pool, service.Generate(ctx, pool, workspaceContext, name))
 }
 

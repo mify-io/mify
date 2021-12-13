@@ -7,7 +7,7 @@ import (
 	"{{$.GoModule}}/internal/{{$.ServiceName}}/generated/api/clients/{{.ClientName}}"
 	{{- end}}
 
-	"{{$.GoModule}}/internal/pkg/generated/metrics"
+	{{if .OpenAPI.Clients }}"{{$.GoModule}}/internal/pkg/generated/metrics"{{end}}
 )
 
 type MifyServiceClients struct {
