@@ -12,11 +12,12 @@ import (
 
 // genCmd represents the gen command
 var genCmd = &cobra.Command{
-	Use:   "generate",
+	Use:   "generate [service]",
 	Short: "generate",
 	Long:  `generate`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		// TODO: make service name as optional
 		for _, ival := range args {
 			if err := mify.ServiceGenerate(appContext, workspacePath, ival); err != nil {
 				if errors.Is(err, context.Canceled) {
