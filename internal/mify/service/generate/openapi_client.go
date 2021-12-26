@@ -95,9 +95,14 @@ func MakePackageName(clientName string) string {
 	return packageName + "_client"
 }
 
-func MakeEnvName(packageName string) string {
+func MakeClientEnvName(packageName string) string {
 	return strings.ToUpper(packageName) + "_ENDPOINT"
 }
+
+func MakeServerEnvName(packageName string) string {
+	return strings.ToUpper(packageName) + "_SERVER_ENDPOINT"
+}
+
 
 func SnakeCaseToCamelCase(inputUnderScoreStr string, capitalize bool) (camelCase string) {
 	isToUpper := false

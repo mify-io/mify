@@ -18,7 +18,7 @@ type WorkspaceConfig struct {
 	WorkspaceName string `yaml:"workspace_name"`
 	GitHost       string `yaml:"git_host"`
 	GitNamespace  string `yaml:"git_namespace"`
-	GitRepository string `yaml:"git_repository"`
+	GitRepository string `yaml:"git_repository,omitempty"`
 }
 
 func ReadWorkspaceConfig(path string) (WorkspaceConfig, error) {
@@ -36,6 +36,9 @@ func ReadWorkspaceConfig(path string) (WorkspaceConfig, error) {
 	err = yaml.Unmarshal(workspaceConfFile, &data)
 	if err != nil {
 		return WorkspaceConfig{}, fmt.Errorf("failed to read workspace config: %w", err)
+	}
+	if len(data.GitRepository) == 0 {
+		data.GitRepository = data.WorkspaceName
 	}
 
 	return data, nil

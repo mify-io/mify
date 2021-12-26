@@ -317,7 +317,7 @@ func makeFileUpdateMap(ctx *core.Context, basePath string, schemaDir string, tmp
 		if err != nil {
 			return err
 		}
-		fileMap[path] = info.ModTime().UnixMicro()
+		fileMap[path] = info.ModTime().UnixNano()
 		return nil
 	})
 	if err != nil {
@@ -422,8 +422,9 @@ func runOpenapiGenerator(
 		"-p", "goModule="+info.GoModule,
 		"-p", "serviceName="+info.ServiceName,
 		"-p", "clientName="+clientName,
-		"-p", "clientEndpointEnv="+MakeEnvName(packageName),
-		"-p", "servicePort="+strconv.Itoa(servicePort),
+		"-p", "clientEndpointEnv="+MakeClientEnvName(packageName),
+		"-p", "serviceEndpointEnv=:"+MakeServerEnvName(info.ServiceName),
+		"-p", "serviceEndpoint=:"+strconv.Itoa(servicePort),
 		"--package-name", packageName,
 	}
 	ctx.Logger.Printf("running docker %s\n", args)
