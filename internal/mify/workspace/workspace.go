@@ -21,7 +21,7 @@ func CreateWorkspace(ctx *core.Context, dir string, name string) error {
 		return err
 	}
 
-	if err := createYaml(filepath.Join(dir, name)); err != nil {
+	if err := createYaml(name, filepath.Join(dir, name)); err != nil {
 		return err
 	}
 	return nil
@@ -29,9 +29,9 @@ func CreateWorkspace(ctx *core.Context, dir string, name string) error {
 
 // private
 
-func createYaml(dir string) error {
+func createYaml(name, dir string) error {
 	conf := config.WorkspaceConfig{
-		WorkspaceName: dir,
+		WorkspaceName: name,
 		GitHost: "example.com",
 		GitNamespace: "namespace",
 	}
