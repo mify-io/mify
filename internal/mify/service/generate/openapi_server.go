@@ -62,7 +62,7 @@ func (g *OpenAPIGenerator) doGenerateServer(
 // taken from openapi-generator
 func isReservedFilename(name string) bool {
 	parts := strings.Split(name, "_")
-	suffix := parts[len(parts) - 1];
+	suffix := parts[len(parts)-1]
 
 	reservedSuffixes := []string{
 		// Test
@@ -83,10 +83,10 @@ func isReservedFilename(name string) bool {
 }
 
 var (
-	capitalLetterPattern = regexp.MustCompile("([A-Z]+)([A-Z][a-z][a-z]+)");
-	lowercasePattern = regexp.MustCompile("([a-z\\d])([A-Z])");
-	pkgSeparatorPattern = regexp.MustCompile("\\.");
-	dollarPattern = regexp.MustCompile("\\$");
+	capitalLetterPattern = regexp.MustCompile("([A-Z]+)([A-Z][a-z][a-z]+)")
+	lowercasePattern     = regexp.MustCompile("([a-z\\d])([A-Z])")
+	pkgSeparatorPattern  = regexp.MustCompile("\\.")
+	dollarPattern        = regexp.MustCompile("\\$")
 )
 
 // taken from openapi-generator
@@ -117,7 +117,7 @@ func toAPIFilename(name string) string {
 	api = strings.ReplaceAll(api, "-", "_")
 	// // e.g. PetApi.go => pet_api.go
 	api = "api_" + underscore(api)
-	if (isReservedFilename(api)) {
+	if isReservedFilename(api) {
 		api += "_"
 	}
 	return api
@@ -174,20 +174,84 @@ func moveServerHandlers(ctx *core.Context, apiPath string, handlersPath string, 
 	return nil
 }
 
-func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *core.Context, schemaPath string) (string, []string, error) {
-	doc, err := g.readSchema(ctx, schemaPath)
+type schemaYaml struct {
+	origin map[string]interface{}
+
+	// Parsed fields
+	paths map[interface{}]interface{}
+}
+
+func (g *OpenAPIGenerator) loadSchema(ctx *core.Context, schemaPath string) (schemaYaml, error) {
+	schema, err := g.readSchema(ctx, schemaPath)
 	if err != nil {
-		return "", nil, fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
+		return schemaYaml{}, fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
 	}
 
-	pathsIface, ok := doc["paths"]
-	if !ok {
-		return "", nil, fmt.Errorf("missing paths in schema: %s", schemaPath)
+	res, err := parseSchema(schema)
+	if err != nil {
+		return schemaYaml{}, fmt.Errorf("failed to parse schema '%s': %s", schemaPath, err)
 	}
+
+	return res, nil
+}
+
+func parseSchema(schema map[string]interface{}) (schemaYaml, error) {
+	res := schemaYaml{origin: schema}
+	paths, ok := schema["paths"]
+	if !ok {
+		return res, fmt.Errorf("missing 'paths' section")
+	}
+	res.paths = paths.(map[interface{}]interface{})
+
+	return res, nil
+}
+
+func mergeSchemas(main schemaYaml, generated schemaYaml) (schemaYaml, error) {
+	newPaths := make(map[interface{}]interface{})
+
+	for k, v := range main.paths {
+		newPaths[k] = v
+	}
+
+	for k, v := range generated.paths {
+		if _, ok := newPaths[k]; ok {
+			return schemaYaml{}, fmt.Errorf("key %s is alredy defined in generated schema (section 'paths'). Please remove it from your schema", k)
+		}
+
+		newPaths[k] = v
+	}
+
+	newOrigin := main.origin
+	newOrigin["paths"] = newPaths
+
+	return parseSchema(newOrigin)
+}
+
+func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *core.Context, schemaDir string) (string, []string, error) {
+	mainSchemaPath := filepath.Join(g.basePath, schemaDir, "/api.yaml")
+	generatedSchemaPath := filepath.Join(g.basePath, schemaDir, "/api_generated.yaml")
+
+	mainSchema, err := g.loadSchema(ctx, mainSchemaPath)
+	if err != nil {
+		return "", nil, err
+	}
+
+	mergedSchema := mainSchema
+	if _, err := os.Stat(generatedSchemaPath); err == nil {
+		generatedSchema, err := g.loadSchema(ctx, generatedSchemaPath)
+		if err != nil {
+			return "", nil, err
+		}
+
+		mergedSchema, err = mergeSchemas(mainSchema, generatedSchema)
+		if err != nil {
+			return "", nil, err
+		}
+	}
+
 	// TODO mapstructure
 	pathsList := []string{}
-	paths := pathsIface.(map[interface{}]interface{})
-	for path, v := range paths {
+	for path, v := range mergedSchema.paths {
 		ctx.Logger.Printf("processing path: %s\n", path)
 		methods := v.(map[interface{}]interface{})
 		if _, ok := methods["$ref"]; ok {
@@ -202,7 +266,7 @@ func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *core.Context, schemaPat
 		}
 	}
 
-	path, err := g.saveEnrichedSchema(ctx, doc, schemaPath, CACHE_SERVER_SUBDIR)
+	path, err := g.saveEnrichedSchema(ctx, mergedSchema.origin, mainSchemaPath, CACHE_SERVER_SUBDIR)
 	if err != nil {
 		return "", nil, err
 	}
@@ -363,7 +427,6 @@ func sanitizeServerHandlersImports(ctx *core.Context, apiPath string) error {
 	ctx.Logger.Printf("sanitized routes imports\n")
 	return nil
 }
-
 
 func makeServicePort(basePath, serviceName string) (int, error) {
 	tmpDir := config.GetServiceCacheDirectory(basePath, serviceName)
