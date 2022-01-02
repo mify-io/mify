@@ -83,10 +83,10 @@ func isReservedFilename(name string) bool {
 }
 
 var (
-	capitalLetterPattern = regexp.MustCompile("([A-Z]+)([A-Z][a-z][a-z]+)")
-	lowercasePattern     = regexp.MustCompile("([a-z\\d])([A-Z])")
-	pkgSeparatorPattern  = regexp.MustCompile("\\.")
-	dollarPattern        = regexp.MustCompile("\\$")
+	capitalLetterPattern = regexp.MustCompile(`([A-Z]+)([A-Z][a-z][a-z]+)`)
+	lowercasePattern     = regexp.MustCompile(`([a-z\d])([A-Z])`)
+	pkgSeparatorPattern  = regexp.MustCompile(`\.`)
+	dollarPattern        = regexp.MustCompile(`\$`)
 )
 
 // taken from openapi-generator

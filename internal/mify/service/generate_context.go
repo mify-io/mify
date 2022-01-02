@@ -130,39 +130,6 @@ func updateClientsList(ctx *core.Context, basePath string, tmpDir string, list [
 	return nil
 }
 
-func isClientsChanged(ctx *core.Context, basePath string, tmpDir string, newList []string) (bool, error) {
-	f, err := os.Open(filepath.Join(tmpDir, CLIENTS_FILENAME))
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return true, nil
-		}
-		return false, fmt.Errorf("failed to compare clients: %w", err)
-	}
-
-	var oldList []string
-	err = yaml.NewDecoder(f).Decode(&oldList)
-	if err != nil {
-		return false, fmt.Errorf("failed to compare clients: %w", err)
-	}
-
-	if len(oldList) != len(newList) {
-		return true, nil
-	}
-
-	oldSet := map[string]struct{}{}
-	for _, cl := range oldList {
-		oldSet[cl] = struct{}{}
-	}
-
-	for _, cl := range newList {
-		if _, ok := oldSet[cl]; !ok {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
 func getClientsDiff(ctx *core.Context, basePath string, tmpDir string, newList []string) (clientsDiff, error) {
 	f, err := os.Open(filepath.Join(tmpDir, CLIENTS_FILENAME))
 	if err != nil {

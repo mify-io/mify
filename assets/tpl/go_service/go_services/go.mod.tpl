@@ -3,11 +3,12 @@ module {{.GoModule}}
 require (
 	github.com/go-chi/chi/v5 v5.0.5
 	github.com/go-chi/cors v1.2.0
-	github.com/google/uuid v1.3.0
 	go.uber.org/zap v1.19.1
 )
 
 require (
-	go.uber.org/atomic v1.7.0 // indirect
-	go.uber.org/multierr v1.6.0 // indirect
+	github.com/hashicorp/consul/api v1.12.0
+	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/lalamove/konfig v0.8.3
+	github.com/prometheus/client_golang v1.11.0
 )
