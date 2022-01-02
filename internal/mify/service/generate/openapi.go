@@ -22,6 +22,7 @@ import (
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/util/docker"
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/otiai10/copy"
 	"gopkg.in/yaml.v2"
 )
 
@@ -30,7 +31,8 @@ const (
 	CACHE_CLIENT_SUBDIR = "client"
 	SERVER_PACKAGE_NAME = "openapi"
 
-	FILE_TIME_FILENAME = ".timestamps.yaml"
+	FILE_TIME_FILENAME     = ".timestamps.yaml"
+	GENERATED_API_FILENAME = "api_generated.yaml"
 )
 
 type fileTimeMap map[string]int64
@@ -214,12 +216,16 @@ func (g *OpenAPIGenerator) saveEnrichedSchema(
 	targetDir := filepath.Join(cacheDir, schemaDir, cacheSubdir)
 	ctx.Logger.Printf("saving schema in: %s\n", targetDir)
 
-	if err := os.RemoveAll(targetDir); err != nil {
-		return "", fmt.Errorf("can't clear temp api directory: %w", err)
-	}
-
-	if err := os.Mkdir(targetDir, os.ModePerm); err != nil {
-		return "", fmt.Errorf("can't create temp api directory: %w", err)
+	err := copy.Copy(filepath.Join(g.basePath, schemaDir), targetDir, copy.Options{
+		OnDirExists: func(src, dest string) copy.DirExistsAction {
+			return copy.Replace
+		},
+		Skip: func(src string) (bool, error) {
+			return filepath.Base(src) == GENERATED_API_FILENAME, nil
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to prepare temp api schema: %w", err)
 	}
 
 	targetPath := targetDir + "/api.yaml"

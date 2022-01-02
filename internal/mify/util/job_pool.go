@@ -70,7 +70,8 @@ func (p *JobPool) worker(n int) {
 		p.addJob(job)
 
 		if !p.isError.Load() {
-			logFile, err = os.OpenFile(p.GetJobLogPath(job.Name), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+			path := p.GetJobLogPath(job.Name)
+			logFile, err = os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 			logger := log.New(logFile, "", 0)
 			pCtx := &core.Context{
 				Ctx:    p.ctx.Ctx,
@@ -80,7 +81,7 @@ func (p *JobPool) worker(n int) {
 				err = job.Func(pCtx)
 			}
 			if err := logFile.Close(); err != nil {
-				panic(err)
+				panic(fmt.Errorf("failed to close file %s %w", path, err))
 			}
 		}
 
@@ -92,8 +93,8 @@ func (p *JobPool) worker(n int) {
 			}
 			p.isError.Store(true)
 			select {
-				case p.errChan <- jobErr:
-				default:
+			case p.errChan <- jobErr:
+			default:
 			}
 		}
 		p.delJob(job)

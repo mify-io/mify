@@ -229,7 +229,7 @@ func mergeSchemas(main schemaYaml, generated schemaYaml) (schemaYaml, error) {
 
 func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *core.Context, schemaDir string) (string, []string, error) {
 	mainSchemaPath := filepath.Join(g.basePath, schemaDir, "/api.yaml")
-	generatedSchemaPath := filepath.Join(g.basePath, schemaDir, "/api_generated.yaml")
+	generatedSchemaPath := filepath.Join(g.basePath, schemaDir, filepath.Join("/", GENERATED_API_FILENAME))
 
 	mainSchema, err := g.loadSchema(ctx, mainSchemaPath)
 	if err != nil {
