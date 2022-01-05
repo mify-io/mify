@@ -4,6 +4,7 @@ package core
 
 import (
 	"os"
+	"context"
 
 	"go.uber.org/zap"
 	"github.com/hashicorp/consul/api"
@@ -15,6 +16,7 @@ import (
 )
 
 type MifyServiceContext struct {
+	goContext   context.Context
 	serviceName string
 	hostname    string
 
@@ -27,13 +29,14 @@ type MifyServiceContext struct {
 	serviceContext *app.ServiceContext
 }
 
-func NewMifyServiceContext(serviceName string) (*MifyServiceContext, error) {
+func NewMifyServiceContext(goContext context.Context, serviceName string) (*MifyServiceContext, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return &MifyServiceContext{}, err
 	}
 
 	context := &MifyServiceContext{
+		goContext:   goContext,
 		serviceName: serviceName,
 		hostname:    hostname,
 	}
@@ -73,6 +76,10 @@ func NewMifyServiceContext(serviceName string) (*MifyServiceContext, error) {
 	context.serviceContext = svcCtx
 
 	return context, nil
+}
+
+func (c *MifyServiceContext) GetContext() context.Context {
+	return c.goContext
 }
 
 func (c *MifyServiceContext) ServiceName() string {

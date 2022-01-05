@@ -3,10 +3,11 @@
 package main
 
 import (
-	"{{.Repository}}/go_services/internal/{{.ServiceName}}/generated/app"
+	"context"
+	"{{ .Workspace.GetAppIncludePath .ServiceName -}}"
 )
 
 func main() {
-	app := app.NewMifyServiceApp()
+	app := app.NewMifyServiceApp(context.Background())
 	app.Run()
 }

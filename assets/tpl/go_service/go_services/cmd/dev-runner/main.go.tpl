@@ -3,20 +3,20 @@
 package main
 
 import (
-    "context"
+	"context"
 {{- range $key, $value := .Workspace.GoServices }}
-    {{ $value.Name }} "{{ $.Workspace.GetAppIncludePath $value.Name -}}"
+	{{ $value.Name }} "{{ $.Workspace.GetAppIncludePath $value.Name -}}"
 {{- end }}
 )
 
 func main() {
-    ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
 {{ range $key, $value := .Workspace.GoServices }}
-    app_{{ $value.Name }} := {{ $value.Name }}.NewMifyServiceApp()
-    go func() {
-        app_{{ $value.Name }}.Run()
-        cancel()
-    }()
+	app_{{ $value.Name }} := {{ $value.Name }}.NewMifyServiceApp(ctx)
+	go func() {
+		app_{{ $value.Name }}.Run()
+		cancel()
+	}()
 {{ end }}
-    <-ctx.Done()
+	<-ctx.Done()
 }

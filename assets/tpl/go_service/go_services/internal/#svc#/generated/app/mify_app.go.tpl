@@ -3,6 +3,7 @@
 package app
 
 import (
+	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
@@ -16,8 +17,8 @@ type MifyServiceApp struct {
 	router  chi.Router
 }
 
-func NewMifyServiceApp() *MifyServiceApp {
-	serviceContext, _ := core.NewMifyServiceContext("{{.ServiceName}}")
+func NewMifyServiceApp(goGontext context.Context) *MifyServiceApp {
+	serviceContext, _ := core.NewMifyServiceContext(goGontext, "{{.ServiceName}}")
 	router := openapi_init.Routes(serviceContext)
 
 	for _, middleware := range app.MiddlewareList {
