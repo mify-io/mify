@@ -10,6 +10,20 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	WorkspaceConfigName = "workspace.mify.yaml"
+
+	GoServicesRoot      = "go_services"
+	JsServicesRoot      = "js_services"
+)
+
+type WorkspaceConfig struct {
+	WorkspaceName string `yaml:"workspace_name"`
+	GitHost       string `yaml:"git_host"`
+	GitNamespace  string `yaml:"git_namespace"`
+	GitRepository string `yaml:"git_repository,omitempty"`
+}
+
 func ReadWorkspaceConfig(path string) (WorkspaceConfig, error) {
 	workspaceConfFile, err := ioutil.ReadFile(filepath.Join(path, WorkspaceConfigName))
 
@@ -51,6 +65,10 @@ func FindWorkspaceConfigPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	return FindWorkspaceConfigPathInLocation(curDir)
+}
+
+func FindWorkspaceConfigPathInLocation(curDir string) (string, error) {
 	for curDir != "/" {
 		if _, err := os.Stat(filepath.Join(curDir, WorkspaceConfigName)); err == nil {
 			return curDir, nil

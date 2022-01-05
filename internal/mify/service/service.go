@@ -14,29 +14,6 @@ const (
 	ApiGatewayName string = "api_gateway"
 )
 
-func checkServiceExists(basePath string, name string) (bool, error) {
-	services, err := filepath.Glob(filepath.Join(basePath, "*_services/*"))
-	if err != nil {
-		return false, err
-	}
-
-	for _, f := range services {
-		stat, err := os.Stat(f)
-		if err != nil {
-			return false, err
-		}
-		if !stat.IsDir() {
-			continue
-		}
-		svc := filepath.Base(f)
-		if svc == name {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
 func makeServiceList(basePath string, language mifyconfig.ServiceLanguage, name string) ([]string, error) {
 	lst := []string{}
 	if language == mifyconfig.ServiceLanguageJs {
@@ -115,7 +92,11 @@ func CreateFrontend(ctx *core.Context, wspContext workspace.Context, template st
 }
 
 func TryCreateApiGateway(ctx *core.Context, wspContext workspace.Context) (bool, error) {
-	apiGatewayExists, err := mifyconfig.HasService(wspContext.BasePath, ApiGatewayName)
+	w, err := mifyconfig.NewWorkspace(wspContext.BasePath)
+	if err != nil {
+		return false, err
+	}
+	apiGatewayExists, err := w.HasService(ApiGatewayName)
 	if err != nil {
 		return false, err
 	}

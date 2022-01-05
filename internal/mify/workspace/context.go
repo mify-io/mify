@@ -8,8 +8,6 @@ import (
 	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
-const goServices = "go_services"
-
 type GoService struct {
 	Name string
 }
