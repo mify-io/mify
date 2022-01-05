@@ -6,35 +6,34 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/chebykinn/mify/internal/mify/service/generate"
-	"github.com/chebykinn/mify/internal/mify/service/lang"
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/workspace"
+	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
 const (
-	apiSchemaPath                      = "schemas/%s/api"
-	svcLanguage   lang.ServiceLanguage = lang.ServiceLanguageGo
+	apiSchemaPath                             = "schemas/%s/api"
+	svcLanguage          mifyconfig.ServiceLanguage = mifyconfig.ServiceLanguageGo
 )
 
 var (
 	ErrSkip = errors.New("skip step")
 )
 
-func getAPIServicePathByLang(language lang.ServiceLanguage, serviceName string) (string, error) {
-	switch language {
-	case lang.ServiceLanguageGo:
-		return "go_services/internal/" + serviceName, nil
-	case lang.ServiceLanguageJs:
-		return "js_services/" + serviceName, nil
+func getAPIServicePathByLang(language mifyconfig.ServiceLanguage, serviceName string) (string, error) {
+	switch(language) {
+	case mifyconfig.ServiceLanguageGo:
+		return mifyconfig.GoServicesRoot+"/internal/"+serviceName, nil
+	case mifyconfig.ServiceLanguageJs:
+		return mifyconfig.JsServicesRoot+"/"+serviceName, nil
 	}
 	return "", fmt.Errorf("unknown language: %s", language)
 }
 
 func Generate(ctx *core.Context, pool *util.JobPool, workspaceContext workspace.Context, name string) error {
-	serviceConf, err := config.ReadServiceConfig(workspaceContext.BasePath, name)
+	serviceConf, err := mifyconfig.ReadServiceConfig(workspaceContext.BasePath, name)
 	if err != nil {
 		return err
 	}
@@ -46,7 +45,7 @@ func Generate(ctx *core.Context, pool *util.JobPool, workspaceContext workspace.
 		ServiceName: name,
 		Repository:  repo,
 		Language:    serviceConf.Language,
-		GoModule:    repo + "/go_services",
+		GoModule:    repo + "/" + mifyconfig.GoServicesRoot,
 		Workspace:   workspaceContext,
 	}
 
@@ -55,7 +54,7 @@ func Generate(ctx *core.Context, pool *util.JobPool, workspaceContext workspace.
 	}
 
 	// TODO: suppport dev-runner for all languages?
-	if serviceConf.Language == lang.ServiceLanguageGo {
+	if serviceConf.Language == mifyconfig.ServiceLanguageGo {
 		// Hack. We could generate new services during generateServiceOpenAPI, so reload context.
 		// TODO: create default service stub in "create service". Or track service list
 		// by extra yaml file, without scanning fs.
@@ -88,7 +87,7 @@ func generateDevRunner(ctx *core.Context, pool *util.JobPool, serviceCtx Context
 	return nil
 }
 
-func generateServiceOpenAPI(ctx *core.Context, pool *util.JobPool, serviceCtx Context, serviceConf config.ServiceConfig, name string) error {
+func generateServiceOpenAPI(ctx *core.Context, pool *util.JobPool, serviceCtx Context, serviceConf mifyconfig.ServiceConfig, name string) error {
 	hasGenerateTasks := false
 	var err error
 	defer func() {
@@ -123,7 +122,7 @@ func generateServiceOpenAPI(ctx *core.Context, pool *util.JobPool, serviceCtx Co
 	return nil
 }
 
-func checkOpenAPISchemas(ctx *core.Context, basePath string, serviceConf config.ServiceConfig, name string) (bool, error) {
+func checkOpenAPISchemas(ctx *core.Context, basePath string, serviceConf mifyconfig.ServiceConfig, name string) (bool, error) {
 	schemaPath := fmt.Sprintf(apiSchemaPath, name)
 	hasServer := true
 	if _, err := os.Stat(filepath.Join(basePath, schemaPath)); errors.Is(err, os.ErrNotExist) {
@@ -140,7 +139,7 @@ func checkOpenAPISchemas(ctx *core.Context, basePath string, serviceConf config.
 	return hasServer, nil
 }
 
-func generateOpenAPIGeneratorStep(ctx *core.Context, pool *util.JobPool, serviceCtx Context, serviceConf config.ServiceConfig, hasServer bool, name string, clientsDiff clientsDiff) error {
+func generateOpenAPIGeneratorStep(ctx *core.Context, pool *util.JobPool, serviceCtx Context, serviceConf mifyconfig.ServiceConfig, hasServer bool, name string, clientsDiff clientsDiff) error {
 	schemaPath := fmt.Sprintf(apiSchemaPath, name)
 
 	info := generate.OpenAPIGeneratorInfo{

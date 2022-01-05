@@ -8,7 +8,7 @@ import (
 	"unicode"
 
 	"github.com/chebykinn/mify/internal/mify/core"
-	"github.com/chebykinn/mify/internal/mify/service/lang"
+	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
 func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *core.Context, schemaPath string) (string, error) {
@@ -56,7 +56,7 @@ func (g *OpenAPIGenerator) doGenerateClient(ctx *core.Context, assetsPath string
 	}
 
 	// TODO: go specific
-	if g.language == lang.ServiceLanguageGo {
+	if g.language == mifyconfig.ServiceLanguageGo {
 		err = os.Remove(filepath.Join(generatedPath, "api"))
 		if err != nil {
 			return err

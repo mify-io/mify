@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
+	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
 func CreateWorkspace(ctx *core.Context, dir string, name string) error {
@@ -14,7 +14,7 @@ func CreateWorkspace(ctx *core.Context, dir string, name string) error {
 	context := Context{
 		Name:     name,
 		BasePath: filepath.Join(dir, name),
-		GoRoot:   filepath.Join(dir, "go_services"),
+		GoRoot:   filepath.Join(dir, mifyconfig.GoServicesRoot),
 	}
 
 	if err := RenderTemplateTree(ctx, context); err != nil {
@@ -30,11 +30,11 @@ func CreateWorkspace(ctx *core.Context, dir string, name string) error {
 // private
 
 func createYaml(name, dir string) error {
-	conf := config.WorkspaceConfig{
+	conf := mifyconfig.WorkspaceConfig{
 		WorkspaceName: name,
 		GitHost: "example.com",
 		GitNamespace: "namespace",
 	}
-	return config.SaveWorkspaceConfig(dir, conf)
+	return mifyconfig.SaveWorkspaceConfig(dir, conf)
 }
 

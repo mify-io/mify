@@ -5,10 +5,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
-	"github.com/chebykinn/mify/internal/mify/service/lang"
 	"github.com/chebykinn/mify/internal/mify/workspace"
+	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
 const (
@@ -38,10 +37,10 @@ func checkServiceExists(basePath string, name string) (bool, error) {
 	return false, nil
 }
 
-func makeServiceList(basePath string, language lang.ServiceLanguage, name string) ([]string, error) {
+func makeServiceList(basePath string, language mifyconfig.ServiceLanguage, name string) ([]string, error) {
 	lst := []string{}
-	if language == lang.ServiceLanguageJs {
-		services, err := filepath.Glob(filepath.Join(basePath, "js_services/*"))
+	if language == mifyconfig.ServiceLanguageJs {
+		services, err := filepath.Glob(filepath.Join(basePath, mifyconfig.JsServicesRoot+"/*"))
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +67,7 @@ func makeServiceList(basePath string, language lang.ServiceLanguage, name string
 	return lst, nil
 }
 
-func CreateService(ctx *core.Context, wspContext workspace.Context, language lang.ServiceLanguage, name string) error {
+func CreateService(ctx *core.Context, wspContext workspace.Context, language mifyconfig.ServiceLanguage, name string) error {
 	fmt.Printf("Creating service: %s\n", name)
 
 	repo := fmt.Sprintf("%s/%s/%s",
@@ -85,7 +84,7 @@ func CreateService(ctx *core.Context, wspContext workspace.Context, language lan
 		Repository:  repo,
 		Language:    language,
 		// TODO: separate lang specific params
-		GoModule:    repo + "/go_services",
+		GoModule:    repo + "/" + mifyconfig.GoServicesRoot,
 		Workspace:   wspContext,
 		ServiceList: svcList,
 	}
@@ -94,12 +93,12 @@ func CreateService(ctx *core.Context, wspContext workspace.Context, language lan
 		return err
 	}
 
-	conf := config.ServiceConfig{
+	conf := mifyconfig.ServiceConfig{
 		ServiceName: name,
 		Language:    language,
 	}
 
-	if err := config.SaveServiceConfig(wspContext.BasePath, name, conf); err != nil {
+	if err := mifyconfig.SaveServiceConfig(wspContext.BasePath, name, conf); err != nil {
 		return err
 	}
 
@@ -108,7 +107,7 @@ func CreateService(ctx *core.Context, wspContext workspace.Context, language lan
 
 func CreateFrontend(ctx *core.Context, wspContext workspace.Context, template string, name string) error {
 	if template == "vue_js" {
-		CreateService(ctx, wspContext, lang.ServiceLanguageJs, name)
+		CreateService(ctx, wspContext, mifyconfig.ServiceLanguageJs, name)
 		return nil
 	}
 
@@ -116,13 +115,13 @@ func CreateFrontend(ctx *core.Context, wspContext workspace.Context, template st
 }
 
 func TryCreateApiGateway(ctx *core.Context, wspContext workspace.Context) (bool, error) {
-	apiGatewayExists, err := checkServiceExists(wspContext.BasePath, ApiGatewayName)
+	apiGatewayExists, err := mifyconfig.HasService(wspContext.BasePath, ApiGatewayName)
 	if err != nil {
 		return false, err
 	}
 
 	if !apiGatewayExists {
-		if err := CreateService(ctx, wspContext, lang.ServiceLanguageGo, ApiGatewayName); err != nil {
+		if err := CreateService(ctx, wspContext, mifyconfig.ServiceLanguageGo, ApiGatewayName); err != nil {
 			return true, err
 		}
 	} else {

@@ -18,9 +18,9 @@ import (
 
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
-	"github.com/chebykinn/mify/internal/mify/service/lang"
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/util/docker"
+	"github.com/chebykinn/mify/pkg/mifyconfig"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/otiai10/copy"
 	"gopkg.in/yaml.v2"
@@ -47,7 +47,7 @@ type OpenAPIGeneratorInfo struct {
 
 type OpenAPIGenerator struct {
 	basePath         string
-	language         lang.ServiceLanguage
+	language         mifyconfig.ServiceLanguage
 	info             OpenAPIGeneratorInfo
 	serverAssetsPath string
 	clientAssetsPath string
@@ -60,7 +60,7 @@ const (
 	Client
 )
 
-func NewOpenAPIGenerator(basePath string, language lang.ServiceLanguage, info OpenAPIGeneratorInfo) OpenAPIGenerator {
+func NewOpenAPIGenerator(basePath string, language mifyconfig.ServiceLanguage, info OpenAPIGeneratorInfo) OpenAPIGenerator {
 	return OpenAPIGenerator{
 		basePath: basePath,
 		language: language,
@@ -243,8 +243,8 @@ func (g *OpenAPIGenerator) saveEnrichedSchema(
 }
 
 // FIXME: go-specific
-func formatGenerated(apiPath string, language lang.ServiceLanguage) error {
-	if language != lang.ServiceLanguageGo {
+func formatGenerated(apiPath string, language mifyconfig.ServiceLanguage) error {
+	if language != mifyconfig.ServiceLanguageGo {
 		return nil
 	}
 	return filepath.WalkDir(apiPath, func(path string, d fs.DirEntry, ferr error) error {

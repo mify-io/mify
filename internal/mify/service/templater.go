@@ -7,7 +7,7 @@ import (
 	"text/template"
 
 	"github.com/chebykinn/mify/internal/mify/core"
-	"github.com/chebykinn/mify/internal/mify/service/lang"
+	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
 const (
@@ -24,9 +24,9 @@ func transformPath(context interface{}, path string) (string, error) {
 
 func getLanguageTemplatePath(context Context) (string, error) {
 	switch(context.Language) {
-	case lang.ServiceLanguageGo:
+	case mifyconfig.ServiceLanguageGo:
 		return "tpl/go_service", nil
-	case lang.ServiceLanguageJs:
+	case mifyconfig.ServiceLanguageJs:
 		return "tpl/js_service", nil
 	}
 	return "", fmt.Errorf("no such language: %s", context.Language)

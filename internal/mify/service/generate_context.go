@@ -10,8 +10,8 @@ import (
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/chebykinn/mify/internal/mify/service/generate"
-	"github.com/chebykinn/mify/internal/mify/service/lang"
 	"github.com/chebykinn/mify/internal/mify/util"
+	"github.com/chebykinn/mify/pkg/mifyconfig"
 	"gopkg.in/yaml.v2"
 )
 
@@ -24,7 +24,7 @@ type clientsDiff struct {
 	removed map[string]struct{}
 }
 
-func makeClientsContext(conf config.ServiceConfig, basePath string) ([]OpenAPIClientContext, error) {
+func makeClientsContext(conf mifyconfig.ServiceConfig, basePath string) ([]OpenAPIClientContext, error) {
 	clientsCtxList := make([]OpenAPIClientContext, 0, len(conf.OpenAPI.Clients))
 	for clientName := range conf.OpenAPI.Clients {
 		clientSchemaPath := fmt.Sprintf(apiSchemaPath, clientName)
@@ -49,7 +49,7 @@ func makeClientsContext(conf config.ServiceConfig, basePath string) ([]OpenAPICl
 	return clientsCtxList, nil
 }
 
-func generateClientsContextStep(ctx *core.Context, pool *util.JobPool, serviceCtx Context, conf config.ServiceConfig) (clientsDiff, error) {
+func generateClientsContextStep(ctx *core.Context, pool *util.JobPool, serviceCtx Context, conf mifyconfig.ServiceConfig) (clientsDiff, error) {
 	clientsCtx, err := makeClientsContext(conf, serviceCtx.Workspace.BasePath)
 	if err != nil {
 		return clientsDiff{}, err
@@ -85,17 +85,17 @@ func generateClientsContextStep(ctx *core.Context, pool *util.JobPool, serviceCt
 	return diff, nil
 }
 
-func generateClientsContext(ctx *core.Context, serviceCtx Context, conf config.ServiceConfig, list []string) error {
+func generateClientsContext(ctx *core.Context, serviceCtx Context, conf mifyconfig.ServiceConfig, list []string) error {
 	tmpDir := config.GetServiceCacheDirectory(serviceCtx.Workspace.BasePath, serviceCtx.ServiceName)
 	switch serviceCtx.Language {
-		case lang.ServiceLanguageGo:
-			subPath := "go_services/internal/#svc#/generated/core"
+		case mifyconfig.ServiceLanguageGo:
+			subPath := mifyconfig.GoServicesRoot+"/internal/#svc#/generated/core"
 			// FIXME: regenerate only clients file
 			if err := RenderTemplateTreeSubPath(ctx, serviceCtx, subPath); err != nil {
 				return err
 			}
-		case lang.ServiceLanguageJs:
-			subPath := "js_services/#svc#/generated/core"
+		case mifyconfig.ServiceLanguageJs:
+			subPath := mifyconfig.JsServicesRoot+"/#svc#/generated/core"
 			if err := RenderTemplateTreeSubPath(ctx, serviceCtx, subPath); err != nil {
 				return err
 			}

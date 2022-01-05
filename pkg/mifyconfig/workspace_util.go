@@ -1,4 +1,4 @@
-package config
+package mifyconfig
 
 import (
 	"errors"
@@ -10,19 +10,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const (
-	workspaceConfigName = "workspace.mify.yaml"
-)
-
-type WorkspaceConfig struct {
-	WorkspaceName string `yaml:"workspace_name"`
-	GitHost       string `yaml:"git_host"`
-	GitNamespace  string `yaml:"git_namespace"`
-	GitRepository string `yaml:"git_repository,omitempty"`
-}
-
 func ReadWorkspaceConfig(path string) (WorkspaceConfig, error) {
-	workspaceConfFile, err := ioutil.ReadFile(filepath.Join(path, workspaceConfigName))
+	workspaceConfFile, err := ioutil.ReadFile(filepath.Join(path, WorkspaceConfigName))
 
 	if errors.Is(err, os.ErrNotExist) {
 		return WorkspaceConfig{}, fmt.Errorf("workspace config not found at path: %s", path)
@@ -50,7 +39,7 @@ func SaveWorkspaceConfig(path string, conf WorkspaceConfig) error {
 		return fmt.Errorf("failed to create workspace config: %w", err)
 	}
 
-	err = ioutil.WriteFile(fmt.Sprintf("%s/%s", path, workspaceConfigName), data, 0644)
+	err = ioutil.WriteFile(fmt.Sprintf("%s/%s", path, WorkspaceConfigName), data, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to create workspace config: %w", err)
 	}
@@ -63,7 +52,7 @@ func FindWorkspaceConfigPath() (string, error) {
 		return "", err
 	}
 	for curDir != "/" {
-		if _, err := os.Stat(filepath.Join(curDir, workspaceConfigName)); err == nil {
+		if _, err := os.Stat(filepath.Join(curDir, WorkspaceConfigName)); err == nil {
 			return curDir, nil
 		}
 		curDir = filepath.Dir(curDir)

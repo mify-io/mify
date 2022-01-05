@@ -9,10 +9,10 @@ import (
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/chebykinn/mify/internal/mify/service"
-	"github.com/chebykinn/mify/internal/mify/service/lang"
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/util/docker"
 	"github.com/chebykinn/mify/internal/mify/workspace"
+	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
 func CreateWorkspace(ctx *core.Context, basePath string, name string) error {
@@ -42,7 +42,7 @@ func CreateService(ctx *core.Context, workspacePath string, language string, nam
 	pool.AddJob(util.Job{
 		Name: "create:" + name,
 		Func: func(c *core.Context) error {
-			return service.CreateService(c, workspaceContext, lang.ServiceLanguage(language), name)
+			return service.CreateService(c, workspaceContext, mifyconfig.ServiceLanguage(language), name)
 		},
 	})
 	if err := pool.Run(); err != nil {
