@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	apiSchemaPath                             = "schemas/%s/api"
-	svcLanguage          lang.ServiceLanguage = lang.ServiceLanguageGo
+	apiSchemaPath                      = "schemas/%s/api"
+	svcLanguage   lang.ServiceLanguage = lang.ServiceLanguageGo
 )
 
 var (
@@ -24,11 +24,11 @@ var (
 )
 
 func getAPIServicePathByLang(language lang.ServiceLanguage, serviceName string) (string, error) {
-	switch(language) {
+	switch language {
 	case lang.ServiceLanguageGo:
-		return "go_services/internal/"+serviceName, nil
+		return "go_services/internal/" + serviceName, nil
 	case lang.ServiceLanguageJs:
-		return "js_services/"+serviceName, nil
+		return "js_services/" + serviceName, nil
 	}
 	return "", fmt.Errorf("unknown language: %s", language)
 }
@@ -51,6 +51,38 @@ func Generate(ctx *core.Context, pool *util.JobPool, workspaceContext workspace.
 	}
 
 	if err := generateServiceOpenAPI(ctx, pool, tcontext, serviceConf, name); err != nil {
+		return err
+	}
+
+	// TODO: suppport dev-runner for all languages?
+	if serviceConf.Language == lang.ServiceLanguageGo {
+		// Hack. We could generate new services during generateServiceOpenAPI, so reload context.
+		// TODO: create default service stub in "create service". Or track service list
+		// by extra yaml file, without scanning fs.
+		tcontext.Workspace, err = workspace.InitContext(workspaceContext.BasePath)
+		if err != nil {
+			return err
+		}
+
+		if err := generateDevRunner(ctx, pool, tcontext); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func generateDevRunner(ctx *core.Context, pool *util.JobPool, serviceCtx Context) error {
+	pool.AddJob(util.Job{
+		Name: "generate:dev-runner",
+		Func: func(ctx *core.Context) error {
+			if err := RenderTemplateTreeSubPath(ctx, serviceCtx, "go_services/cmd/dev-runner"); err != nil {
+				return err
+			}
+			return nil
+		},
+	})
+	if err := pool.Run(); err != nil {
 		return err
 	}
 	return nil
