@@ -58,6 +58,10 @@ func (c Context) GetAppIncludePath(serviceName string) string {
 		serviceName)
 }
 
+func (c Context) GetApiSchemaDirAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, "schemas", serviceName, "api")
+}
+
 func (c Context) GetApiSchemaAbsPath(serviceName string) string {
 	return path.Join(c.BasePath, "schemas", serviceName, "api/api.yaml")
 }

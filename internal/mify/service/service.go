@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	ApiGatewayName string = "api_gateway"
+	ApiGatewayName string = "api-gateway"
 )
 
 func makeServiceList(basePath string, language mifyconfig.ServiceLanguage, name string) ([]string, error) {

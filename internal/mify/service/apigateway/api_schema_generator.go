@@ -14,12 +14,21 @@ import (
 
 const (
 	ExtensionKey   = "x-mify-public"
-	ApiGatewayName = "api_gateway"
+	ApiGatewayName = "api-gateway"
 )
 
 type pathsItems map[string]*openapi3.PathItem
 
 func RegenerateApiSchemaForGateway(workspace workspace.Context) error {
+	check, err := apiGatewayExists(workspace)
+	if err != nil {
+		return err
+	}
+
+	if !check {
+		return nil
+	}
+
 	gatewayGeneratedApiSchemaPath := workspace.GetApiSchemaGenAbsPath(ApiGatewayName)
 	os.Remove(gatewayGeneratedApiSchemaPath)
 
@@ -41,6 +50,19 @@ func RegenerateApiSchemaForGateway(workspace workspace.Context) error {
 	}
 
 	return nil
+}
+
+func apiGatewayExists(workspace workspace.Context) (bool, error) {
+	path := workspace.GetApiSchemaDirAbsPath(ApiGatewayName)
+	if _, err := os.Stat(path); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
 }
 
 func extractPublicAPI(apiSchemaAbsPath string) (pathsItems, error) {
