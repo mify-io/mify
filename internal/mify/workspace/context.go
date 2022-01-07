@@ -3,6 +3,7 @@ package workspace
 import (
 	"fmt"
 	"io/ioutil"
+	"path"
 	"path/filepath"
 
 	"github.com/chebykinn/mify/pkg/mifyconfig"
@@ -55,6 +56,15 @@ func (c Context) GetAppIncludePath(serviceName string) string {
 		"%s/go_services/internal/%s/generated/app",
 		c.GetRepository(),
 		serviceName)
+}
+
+func (c Context) GetApiSchemaAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, "schemas", serviceName, "api/api.yaml")
+}
+
+// Path to api_generated.yaml
+func (c Context) GetApiSchemaGenAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, "schemas", serviceName, "api/api_generated.yaml")
 }
 
 func (c *Context) GetRepository() string {

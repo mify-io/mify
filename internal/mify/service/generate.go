@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/chebykinn/mify/internal/mify/core"
+	"github.com/chebykinn/mify/internal/mify/service/apigateway"
 	"github.com/chebykinn/mify/internal/mify/service/generate"
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/workspace"
@@ -14,8 +15,8 @@ import (
 )
 
 const (
-	apiSchemaPath                             = "schemas/%s/api"
-	svcLanguage          mifyconfig.ServiceLanguage = mifyconfig.ServiceLanguageGo
+	apiSchemaPath                            = "schemas/%s/api"
+	svcLanguage   mifyconfig.ServiceLanguage = mifyconfig.ServiceLanguageGo
 )
 
 var (
@@ -23,11 +24,11 @@ var (
 )
 
 func getAPIServicePathByLang(language mifyconfig.ServiceLanguage, serviceName string) (string, error) {
-	switch(language) {
+	switch language {
 	case mifyconfig.ServiceLanguageGo:
-		return mifyconfig.GoServicesRoot+"/internal/"+serviceName, nil
+		return mifyconfig.GoServicesRoot + "/internal/" + serviceName, nil
 	case mifyconfig.ServiceLanguageJs:
-		return mifyconfig.JsServicesRoot+"/"+serviceName, nil
+		return mifyconfig.JsServicesRoot + "/" + serviceName, nil
 	}
 	return "", fmt.Errorf("unknown language: %s", language)
 }
@@ -47,6 +48,10 @@ func Generate(ctx *core.Context, pool *util.JobPool, workspaceContext workspace.
 		Language:    serviceConf.Language,
 		GoModule:    repo + "/" + mifyconfig.GoServicesRoot,
 		Workspace:   workspaceContext,
+	}
+
+	if err := generateApiGatewaySchema(ctx, pool, tcontext); err != nil {
+		return err
 	}
 
 	if err := generateServiceOpenAPI(ctx, pool, tcontext, serviceConf, name); err != nil {
@@ -79,6 +84,19 @@ func generateDevRunner(ctx *core.Context, pool *util.JobPool, serviceCtx Context
 				return err
 			}
 			return nil
+		},
+	})
+	if err := pool.Run(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func generateApiGatewaySchema(ctx *core.Context, pool *util.JobPool, serviceCtx Context) error {
+	pool.AddJob(util.Job{
+		Name: "generate:api-gateway-schema",
+		Func: func(ctx *core.Context) error {
+			return apigateway.RegenerateApiSchemaForGateway(serviceCtx.Workspace)
 		},
 	})
 	if err := pool.Run(); err != nil {
