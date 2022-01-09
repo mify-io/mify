@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/chebykinn/mify/internal/mify/workspace"
+	"github.com/chebykinn/mify/internal/mify/service/generate"
 	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
@@ -25,3 +26,8 @@ type Context struct {
 	OpenAPI     OpenAPIContext
 	ServiceList []string
 }
+
+func (c Context) GetEndpointEnvName() string {
+	return generate.MakeServerEnvName(c.ServiceName)
+}
+

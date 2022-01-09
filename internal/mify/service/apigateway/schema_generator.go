@@ -52,7 +52,7 @@ func RegenerateSchema(workspace workspace.Context) (PublicApis, error) {
 			continue
 		}
 
-		for path, _ := range pathItems {
+		for path := range pathItems {
 			res[path] = goService.Name
 		}
 

@@ -68,6 +68,16 @@ func (s Service) ReadConfig() (ServiceConfig, error) {
 	return data, nil
 }
 
+func (s Service) GetServicesRootDirectory() string {
+	switch s.Language {
+	case ServiceLanguageGo:
+		return GoServicesRoot
+	case ServiceLanguageJs:
+		return JsServicesRoot
+	}
+	return ""
+}
+
 func getServiceConfigPathByLang(language ServiceLanguage) (string, error) {
 	switch language {
 	case ServiceLanguageGo:
