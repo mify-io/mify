@@ -6,6 +6,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
@@ -76,6 +77,11 @@ func (c *Context) GetRepository() string {
 		c.Config.GitHost,
 		c.Config.GitNamespace,
 		c.Config.GitRepository)
+}
+
+// Name which can be used in generated go code
+func (c GoService) GetSafeName() string {
+	return util.ToSafeGoVariableName(c.Name)
 }
 
 func fillGoServices(ctx *Context) error {
