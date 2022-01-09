@@ -34,24 +34,21 @@ func getAPIServicePathByLang(language mifyconfig.ServiceLanguage, serviceName st
 }
 
 func Generate(ctx *core.Context, pool *util.JobPool, workspaceContext workspace.Context, name string) error {
-	serviceConf, err := mifyconfig.ReadServiceConfig(workspaceContext.BasePath, name)
+	serviceConf, tcontext, err := initCtx(workspaceContext, name)
 	if err != nil {
 		return err
 	}
-	repo := fmt.Sprintf("%s/%s/%s",
-		workspaceContext.Config.GitHost,
-		workspaceContext.Config.GitNamespace,
-		workspaceContext.Config.GitRepository)
-	tcontext := Context{
-		ServiceName: name,
-		Repository:  repo,
-		Language:    serviceConf.Language,
-		GoModule:    repo + "/" + mifyconfig.GoServicesRoot,
-		Workspace:   workspaceContext,
-	}
 
-	if err := generateApiGatewaySchema(ctx, pool, tcontext); err != nil {
-		return err
+	if name == apigateway.ApiGatewayName {
+		if err := regenerateApiGateway(ctx, pool, tcontext); err != nil {
+			return err
+		}
+
+		// Reload configs. They could have changed.
+		serviceConf, tcontext, err = initCtx(workspaceContext, name)
+		if err != nil {
+			return err
+		}
 	}
 
 	if err := generateServiceOpenAPI(ctx, pool, tcontext, serviceConf, name); err != nil {
@@ -76,6 +73,26 @@ func Generate(ctx *core.Context, pool *util.JobPool, workspaceContext workspace.
 	return nil
 }
 
+func initCtx(workspaceContext workspace.Context, name string) (mifyconfig.ServiceConfig, Context, error) {
+	serviceConf, err := mifyconfig.ReadServiceConfig(workspaceContext.BasePath, name)
+	if err != nil {
+		return mifyconfig.ServiceConfig{}, Context{}, err
+	}
+
+	repo := fmt.Sprintf("%s/%s/%s",
+		workspaceContext.Config.GitHost,
+		workspaceContext.Config.GitNamespace,
+		workspaceContext.Config.GitRepository)
+
+	return serviceConf, Context{
+		ServiceName: name,
+		Repository:  repo,
+		Language:    serviceConf.Language,
+		GoModule:    repo + "/" + mifyconfig.GoServicesRoot,
+		Workspace:   workspaceContext,
+	}, nil
+}
+
 func generateDevRunner(ctx *core.Context, pool *util.JobPool, serviceCtx Context) error {
 	pool.AddJob(util.Job{
 		Name: "generate:dev-runner",
@@ -92,16 +109,37 @@ func generateDevRunner(ctx *core.Context, pool *util.JobPool, serviceCtx Context
 	return nil
 }
 
-func generateApiGatewaySchema(ctx *core.Context, pool *util.JobPool, serviceCtx Context) error {
-	pool.AddJob(util.Job{
+func regenerateApiGateway(ctx *core.Context, pool *util.JobPool, serviceCtx Context) error {
+	var publicApis apigateway.PublicApis = nil
+	err := pool.RunImmediate(util.Job{
 		Name: "generate:api-gateway-schema",
 		Func: func(ctx *core.Context) error {
-			return apigateway.RegenerateApiSchemaForGateway(serviceCtx.Workspace)
+			var err error
+			publicApis, err = apigateway.RegenerateSchema(serviceCtx.Workspace)
+			return err
 		},
 	})
-	if err := pool.Run(); err != nil {
+
+	if err != nil {
 		return err
 	}
+
+	if publicApis == nil {
+		fmt.Println("No public apis were found. Skipping api gateway handlers generation")
+		return nil
+	}
+
+	err = pool.RunImmediate(util.Job{
+		Name: "generate:api-gateway-handlers",
+		Func: func(ctx *core.Context) error {
+			return apigateway.RegenerateHandlers(ctx, serviceCtx.Workspace, publicApis)
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -17,20 +17,25 @@ const (
 	ApiGatewayName = "api-gateway"
 )
 
+// Api path -> service name
+type PublicApis map[string]string
+
 type pathsItems map[string]*openapi3.PathItem
 
-func RegenerateApiSchemaForGateway(workspace workspace.Context) error {
+func RegenerateSchema(workspace workspace.Context) (PublicApis, error) {
 	check, err := apiGatewayExists(workspace)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !check {
-		return nil
+		return nil, nil
 	}
 
 	gatewayGeneratedApiSchemaPath := workspace.GetApiSchemaGenAbsPath(ApiGatewayName)
 	os.Remove(gatewayGeneratedApiSchemaPath)
+
+	var res PublicApis = make(PublicApis)
 
 	for _, goService := range workspace.GoServices {
 		if goService.Name == ApiGatewayName {
@@ -40,16 +45,24 @@ func RegenerateApiSchemaForGateway(workspace workspace.Context) error {
 		apiSchemaAbsPath := workspace.GetApiSchemaAbsPath(goService.Name)
 		pathItems, err := extractPublicAPI(apiSchemaAbsPath)
 		if err != nil {
-			return err
+			return nil, err
+		}
+
+		if len(pathItems) == 0 {
+			continue
+		}
+
+		for path, _ := range pathItems {
+			res[path] = goService.Name
 		}
 
 		generatedApiSchemaAbsPath := workspace.GetApiSchemaGenAbsPath(ApiGatewayName)
 		if err := appendApiSchema(generatedApiSchemaAbsPath, pathItems); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return res, nil
 }
 
 func apiGatewayExists(workspace workspace.Context) (bool, error) {

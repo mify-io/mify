@@ -9,6 +9,7 @@ import (
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/chebykinn/mify/internal/mify/service"
+	"github.com/chebykinn/mify/internal/mify/service/client"
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/util/docker"
 	"github.com/chebykinn/mify/internal/mify/workspace"
@@ -95,7 +96,7 @@ func AddClient(ctx *core.Context, workspacePath string, name string, clientName 
 	}
 	defer pool.ClosePool()
 
-	err = service.AddClient(ctx, workspaceContext, name, clientName)
+	err = client.AddClient(ctx, workspaceContext, name, clientName)
 	if err != nil {
 		return err
 	}
@@ -110,7 +111,7 @@ func RemoveClient(ctx *core.Context, workspacePath string, name string, clientNa
 	}
 	defer pool.ClosePool()
 
-	err = service.RemoveClient(ctx, workspaceContext, name, clientName)
+	err = client.RemoveClient(ctx, workspaceContext, name, clientName)
 	if err != nil {
 		return err
 	}

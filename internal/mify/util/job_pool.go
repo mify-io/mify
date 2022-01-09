@@ -173,6 +173,11 @@ func (p *JobPool) Run() error {
 	return nil
 }
 
+func (p *JobPool) RunImmediate(j Job) error {
+	p.AddJob(j)
+	return p.Run()
+}
+
 func (p *JobPool) GetJobLogPath(name string) string {
 	return filepath.Join(p.logDir, "job-"+name+".log")
 }

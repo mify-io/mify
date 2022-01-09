@@ -1,4 +1,4 @@
-package service
+package client
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 	"github.com/chebykinn/mify/internal/mify/workspace"
 	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
-
 
 func AddClient(ctx *core.Context, workspaceContext workspace.Context, name string, clientName string) error {
 	fmt.Printf("Adding client: %s to %s\n", name, clientName)
