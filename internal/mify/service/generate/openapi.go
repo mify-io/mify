@@ -56,7 +56,7 @@ type OpenAPIGenerator struct {
 type OpenAPIGeneratorMode int16
 
 const (
-	Server OpenAPIGeneratorMode = 0
+	Server OpenAPIGeneratorMode = iota
 	Client
 )
 
@@ -344,7 +344,8 @@ func updateGenerationTime(ctx *core.Context, basePath string, schemaDir string, 
 }
 
 func (g *OpenAPIGenerator) anySchemaChanged(ctx *core.Context, mode OpenAPIGeneratorMode, schemaDir string) (bool, error) {
-	files, err := ioutil.ReadDir(filepath.Join(g.basePath, schemaDir))
+	fullPath := filepath.Join(g.basePath, schemaDir)
+	files, err := ioutil.ReadDir(fullPath)
 	if err != nil {
 		return false, err
 	}
@@ -355,7 +356,8 @@ func (g *OpenAPIGenerator) anySchemaChanged(ctx *core.Context, mode OpenAPIGener
 			cache_subdir = CACHE_CLIENT_SUBDIR
 		}
 
-		schemaPath := g.getTempSchemaPath(f.Name(), cache_subdir)
+		schemaFile := filepath.Join(fullPath, f.Name())
+		schemaPath := g.getTempSchemaPath(schemaFile, cache_subdir)
 
 		changed, err := isSchemasChanged(ctx, g.basePath, schemaDir, schemaPath)
 		if err != nil {
@@ -389,6 +391,7 @@ func isSchemasChanged(ctx *core.Context, basePath string, schemaDir string, tmpS
 	if err != nil {
 		return false, fmt.Errorf("failed to compare file update times: %w", err)
 	}
+
 
 	if len(fileMap) != len(oldMap) {
 		return true, nil
