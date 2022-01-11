@@ -81,26 +81,28 @@ func (g *OpenAPIGenerator) doRemoveClient(ctx *core.Context, clientName string, 
 	return nil
 }
 
-func SanitizeClientName(clientName string) string {
-	if unicode.IsDigit(rune(clientName[0])) {
-		clientName = "service_" + clientName
+func SanitizeServiceName(serviceName string) string {
+	if unicode.IsDigit(rune(serviceName[0])) {
+		serviceName = "service_" + serviceName
 	}
-	clientName = strings.ReplaceAll(clientName, "-", "_")
+	serviceName = strings.ReplaceAll(serviceName, "-", "_")
 
-	return clientName
+	return serviceName
 }
 
 func MakePackageName(clientName string) string {
-	packageName := SanitizeClientName(clientName)
+	packageName := SanitizeServiceName(clientName)
 	return packageName + "_client"
 }
 
-func MakeClientEnvName(packageName string) string {
-	return strings.ToUpper(packageName) + "_ENDPOINT"
+func MakeClientEnvName(serviceName string) string {
+	sanitizedName := SanitizeServiceName(serviceName)
+	return strings.ToUpper(sanitizedName) + "_CLIENT_ENDPOINT"
 }
 
-func MakeServerEnvName(packageName string) string {
-	return strings.ToUpper(packageName) + "_SERVER_ENDPOINT"
+func MakeServerEnvName(serviceName string) string {
+	sanitizedName := SanitizeServiceName(serviceName)
+	return strings.ToUpper(sanitizedName) + "_SERVER_ENDPOINT"
 }
 
 
