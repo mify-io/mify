@@ -33,8 +33,8 @@ func makeClientsContext(conf mifyconfig.ServiceConfig, basePath string) ([]OpenA
 		}
 
 		packageName := generate.MakePackageName(clientName)
-		fieldName := generate.SnakeCaseToCamelCase(generate.SanitizeClientName(clientName), false)
-		methodName := generate.SnakeCaseToCamelCase(generate.SanitizeClientName(clientName), true)
+		fieldName := generate.SnakeCaseToCamelCase(generate.SanitizeServiceName(clientName), false)
+		methodName := generate.SnakeCaseToCamelCase(generate.SanitizeServiceName(clientName), true)
 		clientsCtxList = append(clientsCtxList, OpenAPIClientContext{
 			ClientName: clientName,
 			PackageName: packageName,

@@ -448,7 +448,7 @@ func runOpenapiGenerator(
 		"-p", "goModule=" + info.GoModule,
 		"-p", "serviceName=" + info.ServiceName,
 		"-p", "clientName=" + clientName,
-		"-p", "clientEndpointEnv=" + MakeClientEnvName(packageName),
+		"-p", "clientEndpointEnv=" + MakeClientEnvName(clientName),
 		"-p", "serviceEndpointEnv=" + MakeServerEnvName(info.ServiceName),
 		"-p", "serviceEndpoint=:" + strconv.Itoa(servicePort),
 		"--package-name", packageName,
