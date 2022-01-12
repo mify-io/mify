@@ -1,6 +1,6 @@
 package schema
 
-import "github.com/chebykinn/mify/pkg/generator/context"
+import gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
 
 type SchemaStep struct {
 }
@@ -13,7 +13,7 @@ func (s SchemaStep) Name() string {
 	return "Openapi"
 }
 
-func (s SchemaStep) Execute(ctx *context.GenContext) error {
+func (s SchemaStep) Execute(ctx *gencontext.GenContext) error {
 	schemaCtx, err := execute(ctx)
 	if err != nil {
 		return err

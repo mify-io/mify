@@ -15,6 +15,7 @@ import (
 	"github.com/chebykinn/mify/internal/mify/workspace"
 	"github.com/chebykinn/mify/pkg/generator"
 	"github.com/chebykinn/mify/pkg/mifyconfig"
+	workspace2 "github.com/chebykinn/mify/pkg/workspace"
 )
 
 func CreateWorkspace(ctx *core.Context, basePath string, name string) error {
@@ -121,8 +122,13 @@ func RemoveClient(ctx *core.Context, workspacePath string, name string, clientNa
 }
 
 func ServiceGenerate(ctx *core.Context, workspacePath string, name string) error {
+	workspace2, err := workspace2.InitDescription(workspacePath)
+	if err != nil {
+		return err
+	}
+
 	genPipeline := generator.BuildServicePipeline()
-	if err := genPipeline.Execute(); err != nil {
+	if err := genPipeline.Execute(ctx.Ctx, name, workspace2); err != nil {
 		return err
 	}
 

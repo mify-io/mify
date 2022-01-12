@@ -25,7 +25,7 @@ type Description struct {
 	GoServices []GoService
 }
 
-func InitContext(workspacePath string) (Description, error) {
+func InitDescription(workspacePath string) (Description, error) {
 	if len(workspacePath) == 0 {
 		var err error
 		workspacePath, err = mifyconfig.FindWorkspaceConfigPath()

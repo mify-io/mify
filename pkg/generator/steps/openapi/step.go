@@ -1,7 +1,7 @@
 package openapi
 
 import (
-	generator "github.com/chebykinn/mify/pkg/generator/context"
+	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
 )
 
 type OpenapiStep struct {
@@ -15,6 +15,6 @@ func (s OpenapiStep) Name() string {
 	return "Openapi"
 }
 
-func (s OpenapiStep) Execute(ctx *generator.GenContext) error {
+func (s OpenapiStep) Execute(ctx *gencontext.GenContext) error {
 	return nil
 }

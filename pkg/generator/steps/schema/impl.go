@@ -1,13 +1,13 @@
 package schema
 
 import (
-	generator "github.com/chebykinn/mify/pkg/generator/context"
+	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
 	"github.com/chebykinn/mify/pkg/generator/steps/schema/context"
 	"github.com/chebykinn/mify/pkg/workspace"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
-func execute(ctx *generator.GenContext) (*context.SchemaContext, error) {
+func execute(ctx *gencontext.GenContext) (*context.SchemaContext, error) {
 	openapiSchemas, err := collectOpenapiSchemas(ctx.GetWorkspace())
 	if err != nil {
 		return nil, err

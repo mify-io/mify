@@ -1,8 +1,8 @@
 package core
 
-import "github.com/chebykinn/mify/pkg/generator/context"
+import gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
 
 type Step interface {
 	Name() string
-	Execute(*context.GenContext) error
+	Execute(*gencontext.GenContext) error
 }

@@ -1,4 +1,4 @@
-package context
+package gencontext
 
 import (
 	"context"
@@ -12,7 +12,8 @@ import (
 type GenContext struct {
 	goContext context.Context
 
-	workspace workspace.Description
+	serviceName string
+	workspace   workspace.Description
 
 	// Step contexts
 	schema     *schema_context.SchemaContext
@@ -21,12 +22,14 @@ type GenContext struct {
 }
 
 func NewGenContext(
-	workspaceDescription workspace.Description,
-	goContext context.Context) *GenContext {
+	goContext context.Context,
+	serviceName string,
+	workspaceDescription workspace.Description) *GenContext {
 
 	return &GenContext{
-		goContext: goContext,
-		workspace: workspaceDescription,
+		goContext:   goContext,
+		serviceName: serviceName,
+		workspace:   workspaceDescription,
 	}
 }
 
