@@ -1,10 +1,8 @@
 package core
 
-import "context"
-
-type ExecuteFunc func(*context.Context) *context.Context
+import "github.com/chebykinn/mify/pkg/generator/context"
 
 type Step interface {
 	Name() string
-	ExecuteFunc() ExecuteFunc
+	Execute(*context.GenContext) error
 }

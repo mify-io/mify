@@ -1,9 +1,7 @@
 package apigateway
 
 import (
-	"context"
-
-	"github.com/chebykinn/mify/pkg/generator/core"
+	generator "github.com/chebykinn/mify/pkg/generator/context"
 )
 
 type ApiGatewayStep struct {
@@ -17,8 +15,6 @@ func (s ApiGatewayStep) Name() string {
 	return "ApiGateway"
 }
 
-func (s ApiGatewayStep) ExecuteFunc() core.ExecuteFunc {
-	return func(c *context.Context) *context.Context {
-		return c
-	}
+func (s ApiGatewayStep) Execute(ctx *generator.GenContext) error {
+	return nil
 }
