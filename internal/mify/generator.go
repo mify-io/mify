@@ -13,6 +13,7 @@ import (
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/util/docker"
 	"github.com/chebykinn/mify/internal/mify/workspace"
+	"github.com/chebykinn/mify/pkg/generator"
 	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
@@ -120,6 +121,11 @@ func RemoveClient(ctx *core.Context, workspacePath string, name string, clientNa
 }
 
 func ServiceGenerate(ctx *core.Context, workspacePath string, name string) error {
+	genPipeline := generator.BuildServicePipeline()
+	if err := genPipeline.Execute(); err != nil {
+		return err
+	}
+
 	workspaceContext, pool, err := makeCmdContext(ctx, workspacePath)
 	if err != nil {
 		return err
