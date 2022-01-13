@@ -1,10 +1,8 @@
 package context
 
 import (
-	"github.com/getkin/kin-openapi/openapi3"
+	"fmt"
 )
-
-type OpenapiSchemas map[string]*openapi3.T
 
 type SchemaContext struct {
 	openapiSchemas OpenapiSchemas // service_name -> schema
@@ -16,6 +14,15 @@ func NewSchemaContext(openapiSchemas OpenapiSchemas) *SchemaContext {
 	}
 }
 
-func (c *SchemaContext) GetOpenapiSchemas() *OpenapiSchemas {
+func (c *SchemaContext) GetOpenapiSchemas(serviceName string) ServiceSchemas {
+	schema, ok := c.openapiSchemas[serviceName]
+	if !ok {
+		panic(fmt.Sprintf("Schema for service '%s' wasn't found", serviceName))
+	}
+
+	return schema
+}
+
+func (c *SchemaContext) GetAllOpenapiSchemas() *OpenapiSchemas {
 	return &c.openapiSchemas
 }

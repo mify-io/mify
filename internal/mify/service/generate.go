@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 
 	"github.com/chebykinn/mify/internal/mify/core"
-	"github.com/chebykinn/mify/internal/mify/service/apigateway"
 	"github.com/chebykinn/mify/internal/mify/service/generate"
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/workspace"
@@ -37,18 +36,6 @@ func Generate(ctx *core.Context, pool *util.JobPool, workspaceContext workspace.
 	serviceConf, tcontext, err := initCtx(workspaceContext, name)
 	if err != nil {
 		return err
-	}
-
-	if name == apigateway.ApiGatewayName {
-		if err := regenerateApiGateway(ctx, pool, tcontext); err != nil {
-			return err
-		}
-
-		// Reload configs. They could have changed.
-		serviceConf, tcontext, err = initCtx(workspaceContext, name)
-		if err != nil {
-			return err
-		}
 	}
 
 	if err := generateServiceOpenAPI(ctx, pool, tcontext, serviceConf, name); err != nil {
@@ -106,40 +93,6 @@ func generateDevRunner(ctx *core.Context, pool *util.JobPool, serviceCtx Context
 	if err := pool.Run(); err != nil {
 		return err
 	}
-	return nil
-}
-
-func regenerateApiGateway(ctx *core.Context, pool *util.JobPool, serviceCtx Context) error {
-	var publicApis apigateway.PublicApis = nil
-	err := pool.RunImmediate(util.Job{
-		Name: "generate:api-gateway-schema",
-		Func: func(ctx *core.Context) error {
-			var err error
-			publicApis, err = apigateway.RegenerateSchema(serviceCtx.Workspace)
-			return err
-		},
-	})
-
-	if err != nil {
-		return err
-	}
-
-	if publicApis == nil {
-		fmt.Println("No public apis were found. Skipping api gateway handlers generation")
-		return nil
-	}
-
-	err = pool.RunImmediate(util.Job{
-		Name: "generate:api-gateway-handlers",
-		Func: func(ctx *core.Context) error {
-			return apigateway.RegenerateHandlers(ctx, serviceCtx.Workspace, publicApis)
-		},
-	})
-
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

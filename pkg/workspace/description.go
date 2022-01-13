@@ -65,8 +65,8 @@ func (c Description) GetApiSchemaDirAbsPath(serviceName string) string {
 	return path.Join(c.BasePath, "schemas", serviceName, "api")
 }
 
-func (c Description) GetApiSchemaAbsPath(serviceName string) string {
-	return path.Join(c.BasePath, "schemas", serviceName, "api/api.yaml")
+func (c Description) GetApiSchemaAbsPath(serviceName string, schemaName string) string {
+	return path.Join(c.BasePath, "schemas", serviceName, "api", schemaName)
 }
 
 // Path to api_generated.yaml

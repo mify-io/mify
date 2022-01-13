@@ -1,6 +1,9 @@
 package schema
 
 import (
+	"io/ioutil"
+	"path"
+
 	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
 	"github.com/chebykinn/mify/pkg/generator/steps/schema/context"
 	"github.com/chebykinn/mify/pkg/workspace"
@@ -20,12 +23,24 @@ func collectOpenapiSchemas(workspace *workspace.Description) (context.OpenapiSch
 	openapiSchemas := make(context.OpenapiSchemas)
 
 	for _, goService := range workspace.GoServices {
-		doc, err := openapi3.NewLoader().LoadFromFile(workspace.GetApiSchemaAbsPath(goService.Name))
+		apiSchmeasDir := workspace.GetApiSchemaDirAbsPath(goService.Name)
+		files, err := ioutil.ReadDir(apiSchmeasDir)
 		if err != nil {
 			return nil, err
 		}
 
-		openapiSchemas[goService.Name] = doc
+		serviceSchemas := make(context.ServiceSchemas)
+		for _, f := range files {
+			schemaAbsPath := path.Join(apiSchmeasDir, f.Name())
+			doc, err := openapi3.NewLoader().LoadFromFile(schemaAbsPath)
+			if err != nil {
+				return nil, err
+			}
+
+			serviceSchemas[f.Name()] = doc
+		}
+
+		openapiSchemas[goService.Name] = serviceSchemas
 	}
 
 	return openapiSchemas, nil

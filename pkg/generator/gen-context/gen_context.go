@@ -3,7 +3,7 @@ package gencontext
 import (
 	"context"
 
-	api_gateway_context "github.com/chebykinn/mify/pkg/generator/steps/api_gateway/context"
+	api_gateway_context "github.com/chebykinn/mify/pkg/generator/steps/api-gateway/context"
 	openapi_context "github.com/chebykinn/mify/pkg/generator/steps/openapi/context"
 	schema_context "github.com/chebykinn/mify/pkg/generator/steps/schema/context"
 	"github.com/chebykinn/mify/pkg/workspace"
@@ -35,6 +35,10 @@ func NewGenContext(
 
 func (c *GenContext) GetGoContext() context.Context {
 	return c.goContext
+}
+
+func (c *GenContext) GetServiceName() string {
+	return c.serviceName
 }
 
 func (c *GenContext) GetWorkspace() *workspace.Description {
