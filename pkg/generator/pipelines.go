@@ -3,6 +3,7 @@ package generator
 import (
 	"github.com/chebykinn/mify/pkg/generator/core"
 	apigateway "github.com/chebykinn/mify/pkg/generator/steps/api-gateway"
+	devrunner "github.com/chebykinn/mify/pkg/generator/steps/dev-runner"
 	openapi "github.com/chebykinn/mify/pkg/generator/steps/openapi"
 	schema "github.com/chebykinn/mify/pkg/generator/steps/schema"
 )
@@ -12,5 +13,6 @@ func BuildServicePipeline() core.Pipeline {
 		Register(schema.NewSchemaStep()).
 		Register(apigateway.NewApiGatewaySchemaStep()).
 		Register(openapi.NewOpenapiStep()).
+		Register(devrunner.NewDevRunnerStep()).
 		Build()
 }

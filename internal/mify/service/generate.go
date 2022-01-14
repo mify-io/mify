@@ -42,21 +42,6 @@ func Generate(ctx *core.Context, pool *util.JobPool, workspaceContext workspace.
 		return err
 	}
 
-	// TODO: suppport dev-runner for all languages?
-	if serviceConf.Language == mifyconfig.ServiceLanguageGo {
-		// Hack. We could generate new services during generateServiceOpenAPI, so reload context.
-		// TODO: create default service stub in "create service". Or track service list
-		// by extra yaml file, without scanning fs.
-		tcontext.Workspace, err = workspace.InitContext(workspaceContext.BasePath)
-		if err != nil {
-			return err
-		}
-
-		if err := generateDevRunner(ctx, pool, tcontext); err != nil {
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -78,22 +63,6 @@ func initCtx(workspaceContext workspace.Context, name string) (mifyconfig.Servic
 		GoModule:    repo + "/" + mifyconfig.GoServicesRoot,
 		Workspace:   workspaceContext,
 	}, nil
-}
-
-func generateDevRunner(ctx *core.Context, pool *util.JobPool, serviceCtx Context) error {
-	pool.AddJob(util.Job{
-		Name: "generate:dev-runner",
-		Func: func(ctx *core.Context) error {
-			if err := RenderTemplateTreeSubPath(ctx, serviceCtx, "go_services/cmd/dev-runner"); err != nil {
-				return err
-			}
-			return nil
-		},
-	})
-	if err := pool.Run(); err != nil {
-		return err
-	}
-	return nil
 }
 
 func generateServiceOpenAPI(ctx *core.Context, pool *util.JobPool, serviceCtx Context, serviceConf mifyconfig.ServiceConfig, name string) error {

@@ -81,6 +81,18 @@ func (c *Description) GetRepository() string {
 		c.Config.GitRepository)
 }
 
+func (c *Description) GetGoServicesPath() string {
+	return path.Join(c.BasePath, "go_services")
+}
+
+func (c *Description) GetCmdPath(serviceName string) string {
+	return path.Join(c.GetGoServicesPath(), "cmd", serviceName)
+}
+
+func (c *Description) GetAppPath(serviceName string) string {
+	return path.Join(c.GetGoServicesPath(), "internal", serviceName, "generated/app")
+}
+
 // Name which can be used in generated go code
 func (c GoService) GetSafeName() string {
 	return util.ToSafeGoVariableName(c.Name)
