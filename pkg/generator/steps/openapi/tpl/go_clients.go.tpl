@@ -1,28 +1,28 @@
-{{- .Workspace.TplHeader}}
+{{- .Header}}
 
 package core
 
 import (
-	{{- range .OpenAPI.Clients}}
-	"{{$.GoModule}}/internal/{{$.ServiceName}}/generated/api/clients/{{.ClientName}}"
+	{{- range .Clients}}
+	"{{.IncludePath}}"
 	{{- end}}
 
-	{{if .OpenAPI.Clients }}"{{$.GoModule}}/internal/pkg/generated/metrics"{{end}}
+	{{if .MetricsIncludePath }}"{{.MetricsIncludePath}}"{{end}}
 )
 
 type MifyServiceClients struct {
-	{{- range .OpenAPI.Clients}}
+	{{- range .Clients}}
 	{{.PrivateFieldName}} *{{.PackageName}}.APIClient
 	{{- end}}
 }
 
 func NewMifyServiceClients(ctx *MifyServiceContext) (*MifyServiceClients, error) {
-	{{- range .OpenAPI.Clients}}
+	{{- range .Clients}}
 	{{.PrivateFieldName}} := {{.PackageName}}.NewAPIClient(metrics.NewClientMetrics(), {{.PackageName}}.NewConfiguration(ctx.StaticConfig()))
 	{{- end}}
 
 	clients := &MifyServiceClients {
-		{{- range .OpenAPI.Clients}}
+		{{- range .Clients}}
 		{{.PrivateFieldName}}: {{.PrivateFieldName}},
 		{{- end}}
 	}
@@ -30,7 +30,7 @@ func NewMifyServiceClients(ctx *MifyServiceContext) (*MifyServiceClients, error)
 	return clients, nil
 }
 
-{{- range .OpenAPI.Clients}}
+{{- range .Clients}}
 func (c *MifyServiceClients) {{.PublicMethodName}}() *{{.PackageName}}.APIClient {
 	return c.{{.PrivateFieldName}}
 }

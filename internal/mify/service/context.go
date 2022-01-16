@@ -1,21 +1,12 @@
 package service
 
 import (
+	"strings"
+	"unicode"
+
 	"github.com/chebykinn/mify/internal/mify/workspace"
-	"github.com/chebykinn/mify/internal/mify/service/generate"
 	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
-
-type OpenAPIClientContext struct {
-	ClientName string
-	PackageName string
-	PrivateFieldName string
-	PublicMethodName string
-}
-
-type OpenAPIContext struct {
-	Clients []OpenAPIClientContext
-}
 
 type Context struct {
 	ServiceName string
@@ -23,11 +14,23 @@ type Context struct {
 	Language    mifyconfig.ServiceLanguage
 	GoModule    string
 	Workspace   workspace.Context
-	OpenAPI     OpenAPIContext
 	ServiceList []string
 }
 
 func (c Context) GetEndpointEnvName() string {
-	return generate.MakeServerEnvName(c.ServiceName)
+	return MakeServerEnvName(c.ServiceName)
 }
 
+func SanitizeServiceName(serviceName string) string {
+	if unicode.IsDigit(rune(serviceName[0])) {
+		serviceName = "service_" + serviceName
+	}
+	serviceName = strings.ReplaceAll(serviceName, "-", "_")
+
+	return serviceName
+}
+
+func MakeServerEnvName(serviceName string) string {
+	sanitizedName := SanitizeServiceName(serviceName)
+	return strings.ToUpper(sanitizedName) + "_SERVER_ENDPOINT"
+}

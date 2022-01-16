@@ -1,4 +1,4 @@
-package generate
+package openapi
 
 import (
 	"fmt"
@@ -7,11 +7,11 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/chebykinn/mify/internal/mify/core"
+	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
 	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
-func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *core.Context, schemaPath string) (string, error) {
+func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *gencontext.GenContext, schemaPath string) (string, error) {
 	doc, err := g.readSchema(ctx, schemaPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
@@ -40,7 +40,7 @@ func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *core.Context, schemaPat
 	return g.saveEnrichedSchema(ctx, doc, schemaPath, CACHE_CLIENT_SUBDIR)
 }
 
-func (g *OpenAPIGenerator) doGenerateClient(ctx *core.Context, assetsPath string, clientName string, schemaPath string, targetPath string) error {
+func (g *OpenAPIGenerator) doGenerateClient(ctx *gencontext.GenContext, assetsPath string, clientName string, schemaPath string, targetPath string) error {
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated", "api", "clients", clientName)
 
 	packageName := MakePackageName(clientName)
@@ -71,7 +71,7 @@ func (g *OpenAPIGenerator) doGenerateClient(ctx *core.Context, assetsPath string
 	return nil
 }
 
-func (g *OpenAPIGenerator) doRemoveClient(ctx *core.Context, clientName string, targetPath string) error {
+func (g *OpenAPIGenerator) doRemoveClient(ctx *gencontext.GenContext, clientName string, targetPath string) error {
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated", "api", "clients", clientName)
 
 	if err := os.RemoveAll(generatedPath); err != nil {
@@ -104,7 +104,6 @@ func MakeServerEnvName(serviceName string) string {
 	sanitizedName := SanitizeServiceName(serviceName)
 	return strings.ToUpper(sanitizedName) + "_SERVER_ENDPOINT"
 }
-
 
 func SnakeCaseToCamelCase(inputUnderScoreStr string, capitalize bool) (camelCase string) {
 	isToUpper := false

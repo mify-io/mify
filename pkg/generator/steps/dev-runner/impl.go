@@ -4,12 +4,11 @@ import (
 	_ "embed"
 	"os"
 	"path"
-	"path/filepath"
-	"text/template"
 
 	"github.com/chebykinn/mify/internal/mify/util"
 	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
 	"github.com/chebykinn/mify/pkg/generator/steps/dev-runner/tpl"
+	"github.com/chebykinn/mify/pkg/generator/templater"
 	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
@@ -36,19 +35,9 @@ func execute(ctx *gencontext.GenContext) error {
 		))
 	}
 
-	// TODO: move to some library. Like Renderer
 	model := tpl.NewModel(ctx.GetWorkspace().TplHeader, services)
-	tmpl := template.New("devRunner")
-	var err error
-	if tmpl, err = tmpl.Parse(devRunnerTemplate); err != nil {
-		return err
-	}
-
-	f, err := createWithPath(buildPathToMainGo(ctx))
+	err := templater.RenderTemplate("devRunner", devRunnerTemplate, model, buildPathToMainGo(ctx))
 	if err != nil {
-		return err
-	}
-	if err = tmpl.Execute(f, model); err != nil {
 		return err
 	}
 
@@ -68,13 +57,4 @@ func execute(ctx *gencontext.GenContext) error {
 func buildPathToMainGo(ctx *gencontext.GenContext) string {
 	cmd := ctx.GetWorkspace().GetCmdPath(DevRunnerName)
 	return path.Join(cmd, "main.go")
-}
-
-// TODO: move to util
-func createWithPath(path string) (*os.File, error) {
-	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
-		return nil, err
-	}
-
-	return os.Create(path)
 }

@@ -1,4 +1,4 @@
-package generate
+package openapi
 
 import (
 	"bufio"
@@ -16,8 +16,8 @@ import (
 	"strings"
 
 	"github.com/chebykinn/mify/internal/mify/config"
-	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/chebykinn/mify/internal/mify/util"
+	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
 )
 
 type serviceGenCache struct {
@@ -25,7 +25,7 @@ type serviceGenCache struct {
 }
 
 func (g *OpenAPIGenerator) doGenerateServer(
-	ctx *core.Context, assetsPath string, schemaPath string, targetPath string, paths []string) error {
+	ctx *gencontext.GenContext, assetsPath string, schemaPath string, targetPath string, paths []string) error {
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated")
 
 	listenPort, err := makeServicePort(g.basePath, g.info.ServiceName)
@@ -124,7 +124,7 @@ func toAPIFilename(name string) string {
 }
 
 // FIXME: go-specific
-func moveServerHandlers(ctx *core.Context, apiPath string, handlersPath string, apiPaths []string) error {
+func moveServerHandlers(ctx *gencontext.GenContext, apiPath string, handlersPath string, apiPaths []string) error {
 	services, err := filepath.Glob(filepath.Join(apiPath, "api_*_service.go"))
 	if err != nil {
 		return err
@@ -181,7 +181,7 @@ type schemaYaml struct {
 	paths map[interface{}]interface{}
 }
 
-func (g *OpenAPIGenerator) loadSchema(ctx *core.Context, schemaPath string) (schemaYaml, error) {
+func (g *OpenAPIGenerator) loadSchema(ctx *gencontext.GenContext, schemaPath string) (schemaYaml, error) {
 	schema, err := g.readSchema(ctx, schemaPath)
 	if err != nil {
 		return schemaYaml{}, fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
@@ -227,7 +227,7 @@ func mergeSchemas(main schemaYaml, generated schemaYaml) (schemaYaml, error) {
 	return parseSchema(newOrigin)
 }
 
-func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *core.Context, schemaDir string) (string, []string, error) {
+func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *gencontext.GenContext, schemaDir string) (string, []string, error) {
 	mainSchemaPath := filepath.Join(g.basePath, schemaDir, "/api.yaml")
 	generatedSchemaPath := filepath.Join(g.basePath, schemaDir, filepath.Join("/", GENERATED_API_FILENAME))
 
@@ -274,7 +274,7 @@ func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *core.Context, schemaDir
 }
 
 // FIXME: go-specific
-func createServerHandlersFile(ctx *core.Context, serviceFile string, targetFile string) error {
+func createServerHandlersFile(ctx *gencontext.GenContext, serviceFile string, targetFile string) error {
 	const (
 		sectionStart = "// service_params_start"
 		sectionEnd   = "// service_params_end"
@@ -370,7 +370,7 @@ func createServerHandlersFile(ctx *core.Context, serviceFile string, targetFile 
 }
 
 // FIXME: go-specific
-func sanitizeServerHandlersImports(ctx *core.Context, apiPath string) error {
+func sanitizeServerHandlersImports(ctx *gencontext.GenContext, apiPath string) error {
 	routesFilePath := filepath.Join(apiPath, "init/routes.go")
 	if _, err := os.Stat(routesFilePath); errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("routes file doesn't exists: %s: %w", routesFilePath, err)

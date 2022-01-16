@@ -15,9 +15,18 @@ func NewSchemaContext(openapiSchemas OpenapiSchemas) *SchemaContext {
 }
 
 func (c *SchemaContext) GetOpenapiSchemas(serviceName string) ServiceSchemas {
+	res := c.TryGetOpenapiSchemas(serviceName)
+	if res == nil {
+		panic(fmt.Sprintf("Schema for service '%s' wasn't found", serviceName))
+	}
+
+	return res
+}
+
+func (c *SchemaContext) TryGetOpenapiSchemas(serviceName string) ServiceSchemas {
 	schema, ok := c.openapiSchemas[serviceName]
 	if !ok {
-		panic(fmt.Sprintf("Schema for service '%s' wasn't found", serviceName))
+		return nil
 	}
 
 	return schema

@@ -1,11 +1,11 @@
-{{- .Workspace.TplHeader}}
+{{- .Header}}
 
-{{- range .OpenAPI.Clients}}
+{{- range .Clients}}
 import {{.PublicMethodName}} from '@/generated/api/clients/{{.ClientName}}'
 {{- end}}
 
 export default {
-{{- range .OpenAPI.Clients}}
+{{- range .Clients}}
 	{{.PublicMethodName}},
 {{- end}}
 }

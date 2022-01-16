@@ -9,7 +9,6 @@ import (
 	"github.com/chebykinn/mify/internal/mify/config"
 	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/chebykinn/mify/internal/mify/service"
-	"github.com/chebykinn/mify/internal/mify/service/client"
 	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/util/docker"
 	"github.com/chebykinn/mify/internal/mify/workspace"
@@ -51,7 +50,7 @@ func CreateService(ctx *core.Context, workspacePath string, language string, nam
 	if err := pool.Run(); err != nil {
 		return handleError(pool, err)
 	}
-	return handleError(pool, service.Generate(ctx, pool, workspaceContext, name))
+	return handleError(pool, ServiceGenerate(ctx, workspacePath, name))
 }
 
 func CreateFrontend(ctx *core.Context, workspacePath string, template string, name string) error {
@@ -71,10 +70,15 @@ func CreateFrontend(ctx *core.Context, workspacePath string, template string, na
 	if err := pool.Run(); err != nil {
 		return handleError(pool, err)
 	}
-	// TODO: skip generation if api gateway already exists
-	err = handleError(pool, service.Generate(ctx, pool, workspaceContext, service.ApiGatewayName))
-	if err != nil {
-		return err
+
+	pool.AddJob(util.Job{
+		Name: "create:" + service.ApiGatewayName,
+		Func: func(c *core.Context) error {
+			return ServiceGenerate(ctx, workspacePath, service.ApiGatewayName)
+		},
+	})
+	if err := pool.Run(); err != nil {
+		return handleError(pool, err)
 	}
 
 	pool.AddJob(util.Job{
@@ -88,37 +92,46 @@ func CreateFrontend(ctx *core.Context, workspacePath string, template string, na
 		return handleError(pool, err)
 	}
 
-	return handleError(pool, service.Generate(ctx, pool, workspaceContext, name))
+	return handleError(pool, ServiceGenerate(ctx, workspacePath, name))
 }
 
 func AddClient(ctx *core.Context, workspacePath string, name string, clientName string) error {
-	workspaceContext, pool, err := makeCmdContext(ctx, workspacePath)
+	_, pool, err := makeCmdContext(ctx, workspacePath)
 	if err != nil {
 		return err
 	}
 	defer pool.ClosePool()
 
-	err = client.AddClient(ctx, workspaceContext, name, clientName)
+	workspace2, err := workspace2.InitDescription(workspacePath)
 	if err != nil {
 		return err
 	}
 
-	return handleError(pool, service.Generate(ctx, pool, workspaceContext, name))
+	err = workspace2.AddClient(ctx, name, clientName)
+	if err != nil {
+		return err
+	}
+
+	return handleError(pool, ServiceGenerate(ctx, workspacePath, name))
 }
 
 func RemoveClient(ctx *core.Context, workspacePath string, name string, clientName string) error {
-	workspaceContext, pool, err := makeCmdContext(ctx, workspacePath)
+	_, pool, err := makeCmdContext(ctx, workspacePath)
 	if err != nil {
 		return err
 	}
 	defer pool.ClosePool()
 
-	err = client.RemoveClient(ctx, workspaceContext, name, clientName)
+	workspace2, err := workspace2.InitDescription(workspacePath)
+	if err != nil {
+		return err
+	}
+	err = workspace2.RemoveClient(ctx, name, clientName)
 	if err != nil {
 		return err
 	}
 
-	return handleError(pool, service.Generate(ctx, pool, workspaceContext, name))
+	return handleError(pool, ServiceGenerate(ctx, workspacePath, name))
 }
 
 func ServiceGenerate(ctx *core.Context, workspacePath string, name string) error {
@@ -132,13 +145,13 @@ func ServiceGenerate(ctx *core.Context, workspacePath string, name string) error
 		return err
 	}
 
-	workspaceContext, pool, err := makeCmdContext(ctx, workspacePath)
+	_, pool, err := makeCmdContext(ctx, workspacePath)
 	if err != nil {
 		return err
 	}
 	defer pool.ClosePool()
 
-	return handleError(pool, service.Generate(ctx, pool, workspaceContext, name))
+	return nil
 }
 
 func Cleanup() error {

@@ -17,5 +17,9 @@ func (s OpenapiStep) Name() string {
 }
 
 func (s OpenapiStep) Execute(ctx *gencontext.GenContext) (core.StepResult, error) {
+	if err := generateServiceOpenAPI(ctx); err != nil {
+		return core.Done, err
+	}
+
 	return core.Done, nil
 }

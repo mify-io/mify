@@ -61,15 +61,19 @@ func (c Description) GetAppIncludePath(serviceName string) string {
 		serviceName)
 }
 
+func (c Description) GetApiSchemaDirRelPath(serviceName string) string {
+	return path.Join("schemas", serviceName, "api")
+}
+
 func (c Description) GetApiSchemaDirAbsPath(serviceName string) string {
-	return path.Join(c.BasePath, "schemas", serviceName, "api")
+	return path.Join(c.BasePath, c.GetApiSchemaDirRelPath(serviceName))
 }
 
 func (c Description) GetApiSchemaAbsPath(serviceName string, schemaName string) string {
 	return path.Join(c.BasePath, "schemas", serviceName, "api", schemaName)
 }
 
-// Path to api_generated.yaml
+// Abs path to api_generated.yaml
 func (c Description) GetApiSchemaGenAbsPath(serviceName string) string {
 	return path.Join(c.BasePath, "schemas", serviceName, "api/api_generated.yaml")
 }
@@ -81,12 +85,26 @@ func (c *Description) GetRepository() string {
 		c.Config.GitRepository)
 }
 
+func (c Description) GetGoModule() string {
+	return fmt.Sprintf("%s/%s",
+		c.GetRepository(),
+		mifyconfig.GoServicesRoot)
+}
+
 func (c *Description) GetGoServicesPath() string {
 	return path.Join(c.BasePath, "go_services")
 }
 
 func (c *Description) GetCmdPath(serviceName string) string {
 	return path.Join(c.GetGoServicesPath(), "cmd", serviceName)
+}
+
+func (c *Description) GetGeneratedRelPath(serviceName string) string {
+	return path.Join(mifyconfig.GoServicesRoot, "internal", serviceName, "generated")
+}
+
+func (c *Description) GetGeneratedAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetGeneratedRelPath(serviceName))
 }
 
 func (c *Description) GetAppPath(serviceName string) string {

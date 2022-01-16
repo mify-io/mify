@@ -23,7 +23,7 @@ func transformPath(context interface{}, path string) (string, error) {
 }
 
 func getLanguageTemplatePath(context Context) (string, error) {
-	switch(context.Language) {
+	switch context.Language {
 	case mifyconfig.ServiceLanguageGo:
 		return "tpl/go_service", nil
 	case mifyconfig.ServiceLanguageJs:

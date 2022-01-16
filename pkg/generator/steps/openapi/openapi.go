@@ -1,4 +1,4 @@
-package generate
+package openapi
 
 import (
 	"bufio"
@@ -17,9 +17,8 @@ import (
 	"strings"
 
 	"github.com/chebykinn/mify/internal/mify/config"
-	"github.com/chebykinn/mify/internal/mify/core"
-	"github.com/chebykinn/mify/internal/mify/util"
 	"github.com/chebykinn/mify/internal/mify/util/docker"
+	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
 	"github.com/chebykinn/mify/pkg/mifyconfig"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/otiai10/copy"
@@ -60,67 +59,66 @@ const (
 	Client
 )
 
-func NewOpenAPIGenerator(basePath string, language mifyconfig.ServiceLanguage, info OpenAPIGeneratorInfo) OpenAPIGenerator {
+func NewOpenAPIGenerator(ctx *gencontext.GenContext) OpenAPIGenerator {
+	info := OpenAPIGeneratorInfo{
+		GitHost:       ctx.GetWorkspace().Config.GitHost,
+		GitNamespace:  ctx.GetWorkspace().Config.GitNamespace,
+		GitRepository: ctx.GetWorkspace().Config.GitRepository,
+		GoModule:      ctx.GetWorkspace().GetGoModule(),
+		ServiceName:   ctx.GetServiceName(),
+	}
+
 	return OpenAPIGenerator{
-		basePath: basePath,
-		language: language,
+		basePath: ctx.GetWorkspace().BasePath,
+		language: ctx.GetServiceConfig().Language,
 		info:     info,
 	}
 }
 
-func (g *OpenAPIGenerator) Prepare(pool *util.JobPool) error {
+func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 	const (
 		image = "openapitools/openapi-generator-cli:v5.3.0"
 	)
 
 	langStr := string(g.language)
-	pool.AddJob(util.Job{
-		Name: "generate:prepare",
-		Func: func(ctx *core.Context) error {
-			if err := docker.Cleanup(ctx.Ctx); err != nil {
-				return err
-			}
-			if err := docker.PullImage(ctx.Ctx, ctx.Logger, image); err != nil {
-				return err
-			}
-			var err error
-			if config.HasAssets("openapi/server-template/" + langStr) {
-				g.serverAssetsPath, err = config.DumpAssets(
-					g.basePath, "openapi/server-template/"+langStr, "openapi/server-template")
-				if err != nil {
-					return fmt.Errorf("failed to dump assets: %w", err)
-				}
-				ctx.Logger.Printf("dumped server path: %s\n", g.serverAssetsPath)
-			}
-
-			if config.HasAssets("openapi/client-template/" + langStr) {
-				g.clientAssetsPath, err = config.DumpAssets(
-					g.basePath, "openapi/client-template/"+langStr, "openapi/client-template")
-				if err != nil {
-					return fmt.Errorf("failed to dump assets: %w", err)
-				}
-				ctx.Logger.Printf("dumped client path: %s\n", g.clientAssetsPath)
-			}
-			return nil
-		},
-	})
-
-	if err := pool.Run(); err != nil {
+	// TODO: pool?
+	if err := docker.Cleanup(ctx.GetGoContext()); err != nil {
 		return err
 	}
+	if err := docker.PullImage(ctx.GetGoContext(), ctx.Logger, image); err != nil {
+		return err
+	}
+	var err error
+	if config.HasAssets("openapi/server-template/" + langStr) {
+		g.serverAssetsPath, err = config.DumpAssets(
+			g.basePath, "openapi/server-template/"+langStr, "openapi/server-template")
+		if err != nil {
+			return fmt.Errorf("failed to dump assets: %w", err)
+		}
+		ctx.Logger.Printf("dumped server path: %s\n", g.serverAssetsPath)
+	}
 
+	if config.HasAssets("openapi/client-template/" + langStr) {
+		g.clientAssetsPath, err = config.DumpAssets(
+			g.basePath, "openapi/client-template/"+langStr, "openapi/client-template")
+		if err != nil {
+			return fmt.Errorf("failed to dump assets: %w", err)
+		}
+		ctx.Logger.Printf("dumped client path: %s\n", g.clientAssetsPath)
+	}
 	return nil
 }
 
-func (g *OpenAPIGenerator) NeedGenerateServer(ctx *core.Context, schemaDir string) (bool, error) {
-	return g.anySchemaChanged(ctx, Server, schemaDir)
+func (g *OpenAPIGenerator) NeedGenerateServer(ctx *gencontext.GenContext, schemaRelDir string) (bool, error) {
+	return g.anySchemaChanged(ctx, Server, schemaRelDir)
 }
 
-func (g *OpenAPIGenerator) NeedGenerateClient(ctx *core.Context, schemaDir string) (bool, error) {
-	return g.anySchemaChanged(ctx, Client, schemaDir)
+func (g *OpenAPIGenerator) NeedGenerateClient(ctx *gencontext.GenContext, schemaRelDir string) (bool, error) {
+	return g.anySchemaChanged(ctx, Client, schemaRelDir)
 }
 
-func (g *OpenAPIGenerator) GenerateServer(ctx *core.Context, schemaDir string, outputDir string) error {
+func (g *OpenAPIGenerator) GenerateServer(ctx *gencontext.GenContext, outputDir string) error {
+	schemaDir := ctx.GetWorkspace().GetApiSchemaDirRelPath(ctx.GetServiceName())
 	if len(g.serverAssetsPath) == 0 {
 		return fmt.Errorf("failed to generate server: no generator available for language: %s", g.language)
 	}
@@ -134,7 +132,7 @@ func (g *OpenAPIGenerator) GenerateServer(ctx *core.Context, schemaDir string, o
 		return fmt.Errorf("failed to generate server: %w", err)
 	}
 
-	err = updateGenerationTime(ctx, g.basePath, schemaDir, filepath.Dir(schemaPath))
+	err = updateGenerationTime(ctx, ctx.GetServiceName(), filepath.Dir(schemaPath))
 	if err != nil {
 		return err
 	}
@@ -143,11 +141,11 @@ func (g *OpenAPIGenerator) GenerateServer(ctx *core.Context, schemaDir string, o
 
 }
 
-func (g *OpenAPIGenerator) GenerateClient(ctx *core.Context, clientName string, schemaDir string, outputDir string) error {
+func (g *OpenAPIGenerator) GenerateClient(ctx *gencontext.GenContext, clientName string, outputDir string) error {
 	if len(g.clientAssetsPath) == 0 {
 		return fmt.Errorf("failed to generate client: no generator available for language: %s", g.language)
 	}
-	inputSchemaPath := filepath.Join(g.basePath, schemaDir, "/api.yaml")
+	inputSchemaPath := ctx.GetWorkspace().GetApiSchemaAbsPath(clientName, "api.yaml")
 	schemaPath, err := g.makeClientEnrichedSchema(ctx, inputSchemaPath)
 	if err != nil {
 		return fmt.Errorf("failed to generate client: %w", err)
@@ -158,7 +156,7 @@ func (g *OpenAPIGenerator) GenerateClient(ctx *core.Context, clientName string, 
 		return fmt.Errorf("failed to generate client: %w", err)
 	}
 
-	err = updateGenerationTime(ctx, g.basePath, schemaDir, filepath.Dir(schemaPath))
+	err = updateGenerationTime(ctx, clientName, filepath.Dir(schemaPath))
 	if err != nil {
 		return err
 	}
@@ -167,19 +165,19 @@ func (g *OpenAPIGenerator) GenerateClient(ctx *core.Context, clientName string, 
 
 }
 
-func (g *OpenAPIGenerator) RemoveClient(ctx *core.Context, clientName string, outputDir string) error {
+func (g *OpenAPIGenerator) RemoveClient(ctx *gencontext.GenContext, clientName string, outputDir string) error {
 	return g.doRemoveClient(ctx, clientName, outputDir)
 }
 
 // private
 
-func (g *OpenAPIGenerator) readSchema(ctx *core.Context, schemaPath string) (map[string]interface{}, error) {
+func (g *OpenAPIGenerator) readSchema(ctx *gencontext.GenContext, schemaPath string) (map[string]interface{}, error) {
 	data, err := ioutil.ReadFile(schemaPath)
 	if err != nil {
 		return nil, err
 	}
 	loader := &openapi3.Loader{
-		Context:               ctx.Ctx,
+		Context:               ctx.GetGoContext(),
 		IsExternalRefsAllowed: true,
 	}
 	url, err := url.Parse(schemaPath)
@@ -191,7 +189,7 @@ func (g *OpenAPIGenerator) readSchema(ctx *core.Context, schemaPath string) (map
 	if err != nil {
 		return nil, err
 	}
-	err = openapiDoc.Validate(ctx.Ctx)
+	err = openapiDoc.Validate(ctx.GetGoContext())
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +208,7 @@ func (g *OpenAPIGenerator) getTempSchemaPath(schemaPath string, cacheSubdir stri
 }
 
 func (g *OpenAPIGenerator) saveEnrichedSchema(
-	ctx *core.Context, doc map[string]interface{}, schemaPath string, cacheSubdir string) (string, error) {
+	ctx *gencontext.GenContext, doc map[string]interface{}, schemaPath string, cacheSubdir string) (string, error) {
 	schemaDir := filepath.Dir(strings.Replace(schemaPath, g.basePath, "", 1))
 	cacheDir := config.GetCacheDirectory(g.basePath)
 	targetDir := filepath.Join(cacheDir, schemaDir, cacheSubdir)
@@ -297,7 +295,9 @@ func formatGenerated(apiPath string, language mifyconfig.ServiceLanguage) error 
 	})
 }
 
-func makeFileUpdateMap(ctx *core.Context, basePath string, schemaDir string, tmpSchemaDir string) (fileTimeMap, error) {
+func makeFileUpdateMap(ctx *gencontext.GenContext, schemaDir string, tmpSchemaDir string) (fileTimeMap, error) {
+	basePath := ctx.GetWorkspace().BasePath
+
 	fileMap := fileTimeMap{}
 	err := filepath.WalkDir(filepath.Join(basePath, schemaDir), func(path string, d fs.DirEntry, err error) error {
 		if d == nil {
@@ -323,10 +323,11 @@ func makeFileUpdateMap(ctx *core.Context, basePath string, schemaDir string, tmp
 	return fileMap, nil
 }
 
-func updateGenerationTime(ctx *core.Context, basePath string, schemaDir string, tmpSchemaDir string) error {
+func updateGenerationTime(ctx *gencontext.GenContext, targetServiceName string, tmpSchemaDir string) error {
+	schemaDir := ctx.GetWorkspace().GetApiSchemaDirRelPath(targetServiceName)
 	ctx.Logger.Printf("updating generation time in: %s", schemaDir)
 
-	fileMap, err := makeFileUpdateMap(ctx, basePath, schemaDir, tmpSchemaDir)
+	fileMap, err := makeFileUpdateMap(ctx, schemaDir, tmpSchemaDir)
 	if err != nil {
 		return fmt.Errorf("failed to write file update times: %w", err)
 	}
@@ -343,8 +344,8 @@ func updateGenerationTime(ctx *core.Context, basePath string, schemaDir string, 
 	return nil
 }
 
-func (g *OpenAPIGenerator) anySchemaChanged(ctx *core.Context, mode OpenAPIGeneratorMode, schemaDir string) (bool, error) {
-	fullPath := filepath.Join(g.basePath, schemaDir)
+func (g *OpenAPIGenerator) anySchemaChanged(ctx *gencontext.GenContext, mode OpenAPIGeneratorMode, schemaRelDir string) (bool, error) {
+	fullPath := filepath.Join(g.basePath, schemaRelDir)
 	files, err := ioutil.ReadDir(fullPath)
 	if err != nil {
 		return false, err
@@ -359,7 +360,7 @@ func (g *OpenAPIGenerator) anySchemaChanged(ctx *core.Context, mode OpenAPIGener
 		schemaFile := filepath.Join(fullPath, f.Name())
 		schemaPath := g.getTempSchemaPath(schemaFile, cache_subdir)
 
-		changed, err := isSchemasChanged(ctx, g.basePath, schemaDir, schemaPath)
+		changed, err := isSchemasChanged(ctx, g.basePath, schemaRelDir, schemaPath)
 		if err != nil {
 			return false, err
 		}
@@ -372,7 +373,7 @@ func (g *OpenAPIGenerator) anySchemaChanged(ctx *core.Context, mode OpenAPIGener
 	return false, nil
 }
 
-func isSchemasChanged(ctx *core.Context, basePath string, schemaDir string, tmpSchemaDir string) (bool, error) {
+func isSchemasChanged(ctx *gencontext.GenContext, basePath string, schemaDir string, tmpSchemaDir string) (bool, error) {
 	f, err := os.Open(filepath.Join(tmpSchemaDir, FILE_TIME_FILENAME))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -387,11 +388,10 @@ func isSchemasChanged(ctx *core.Context, basePath string, schemaDir string, tmpS
 		return false, fmt.Errorf("failed to compare file update times: %w", err)
 	}
 
-	fileMap, err := makeFileUpdateMap(ctx, basePath, schemaDir, tmpSchemaDir)
+	fileMap, err := makeFileUpdateMap(ctx, schemaDir, tmpSchemaDir)
 	if err != nil {
 		return false, fmt.Errorf("failed to compare file update times: %w", err)
 	}
-
 
 	if len(fileMap) != len(oldMap) {
 		return true, nil
@@ -411,7 +411,7 @@ func isSchemasChanged(ctx *core.Context, basePath string, schemaDir string, tmpS
 }
 
 func runOpenapiGenerator(
-	ctx *core.Context, basePath string, schemaPath string, templatePath string, targetDir string,
+	ctx *gencontext.GenContext, basePath string, schemaPath string, templatePath string, targetDir string,
 	packageName string,
 	clientName string,
 	servicePort int,
@@ -461,7 +461,7 @@ func runOpenapiGenerator(
 		Mounts: map[string]string{"/repo": basePath},
 		Cmd:    args,
 	}
-	err = docker.Run(ctx.Ctx, ctx.Logger, image, params)
+	err = docker.Run(ctx.GetGoContext(), ctx.Logger, image, params)
 	if err != nil {
 		return err
 	}
