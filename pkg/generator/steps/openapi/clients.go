@@ -16,6 +16,9 @@ import (
 //go:embed tpl/go_clients.go.tpl
 var goClientsTemplate string
 
+//go:embed tpl/js_clients.js.tpl
+var jsClientsTemplate string
+
 // Update only when new services added or removed or context is not generated yet
 func needGenerateClientsContext(ctx *gencontext.GenContext, clientsDiff clientsDiff) bool {
 	pathToClientsContext := getAbsPathToClientsContext(ctx)
@@ -29,7 +32,7 @@ func getAbsPathToClientsContext(ctx *gencontext.GenContext) string {
 		generatedDirPath := ctx.GetWorkspace().GetGeneratedAbsPath(ctx.GetServiceName())
 		return path.Join(generatedDirPath, "core", "clients.go")
 	case mifyconfig.ServiceLanguageJs:
-		generatedDirPath := ctx.GetWorkspace().GetGeneratedAbsPath(ctx.GetServiceName())
+		generatedDirPath := ctx.GetWorkspace().GetJsGeneratedAbsPath(ctx.GetServiceName())
 		return path.Join(generatedDirPath, "core", "clients.js")
 	}
 
@@ -40,6 +43,8 @@ func getAbsPathToClientsContext(ctx *gencontext.GenContext) string {
 func generateClientsContext(ctx *gencontext.GenContext) error {
 	ctx.Logger.Printf("Generating clients context in service '%s'", ctx.GetServiceName())
 
+	path := getAbsPathToClientsContext(ctx)
+
 	switch ctx.GetServiceConfig().Language {
 	case mifyconfig.ServiceLanguageGo:
 		clientsModel, err := makeGoClientsModel(ctx)
@@ -47,17 +52,20 @@ func generateClientsContext(ctx *gencontext.GenContext) error {
 			return err
 		}
 
-		path := getAbsPathToClientsContext(ctx)
 		templater.RenderTemplate("go_clients", goClientsTemplate, clientsModel, path)
 		if err := templater.RenderTemplate("go_clients", goClientsTemplate, clientsModel, path); err != nil {
 			return err
 		}
 	case mifyconfig.ServiceLanguageJs:
-		// TODO:
-		// subPath := mifyconfig.JsServicesRoot + "/#svc#/generated/core"
-		// if err := RenderTemplateTreeSubPath(ctx, subPath); err != nil {
-		// 	return err
-		// }
+		clientsModel, err := makeJsClientsModel(ctx)
+		if err != nil {
+			return err
+		}
+
+		templater.RenderTemplate("js_clients", jsClientsTemplate, clientsModel, path)
+		if err := templater.RenderTemplate("js_clients", jsClientsTemplate, clientsModel, path); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -101,5 +109,31 @@ func makeGoClientsModel(ctx *gencontext.GenContext) (tpl.GoClientsModel, error) 
 		ctx.GetWorkspace().GoRoot,
 		ctx.GetServiceName(),
 		metricsIncludePath,
+		clientsList), nil
+}
+
+func makeJsClientsModel(ctx *gencontext.GenContext) (tpl.JsClientsModel, error) {
+	targetServices := ctx.GetServiceConfig().OpenAPI.Clients
+	clientsList := make([]tpl.JsClientModel, 0, len(targetServices))
+	for targetServiceName := range targetServices {
+		targetServiceSchemas := ctx.GetSchemaCtx().GetOpenapiSchemas(targetServiceName)
+		if len(targetServiceSchemas) == 0 {
+
+			return tpl.JsClientsModel{}, fmt.Errorf("schema of '%s' wasn't found while generating client in '%s'", targetServiceName, ctx.GetServiceName())
+		}
+
+		methodName := SnakeCaseToCamelCase(SanitizeServiceName(targetServiceName), true)
+		clientsList = append(clientsList, tpl.NewJsClientModel(
+			targetServiceName,
+			methodName,
+		))
+	}
+	sort.Slice(clientsList, func(i, j int) bool {
+		return clientsList[i].ClientName < clientsList[j].ClientName
+	})
+
+	return tpl.NewJsClientsModel(
+		ctx.GetWorkspace().TplHeader,
+		ctx.GetServiceName(),
 		clientsList), nil
 }

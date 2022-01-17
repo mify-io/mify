@@ -107,6 +107,14 @@ func (c *Description) GetGeneratedAbsPath(serviceName string) string {
 	return path.Join(c.BasePath, c.GetGeneratedRelPath(serviceName))
 }
 
+func (c *Description) GetJsGeneratedRelPath(serviceName string) string {
+	return path.Join(mifyconfig.JsServicesRoot, serviceName, "generated")
+}
+
+func (c *Description) GetJsGeneratedAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetJsGeneratedRelPath(serviceName))
+}
+
 func (c *Description) GetAppPath(serviceName string) string {
 	return path.Join(c.GetGoServicesPath(), "internal", serviceName, "generated/app")
 }
