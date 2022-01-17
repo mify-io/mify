@@ -41,7 +41,7 @@ func getAbsPathToClientsContext(ctx *gencontext.GenContext) string {
 
 // Generate struct which will be included in service context (generated part of service)
 func generateClientsContext(ctx *gencontext.GenContext) error {
-	ctx.Logger.Printf("Generating clients context in service '%s'", ctx.GetServiceName())
+	ctx.Logger.Infof("Generating clients context in service '%s'", ctx.GetServiceName())
 
 	path := getAbsPathToClientsContext(ctx)
 

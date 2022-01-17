@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
+	"os"
 	"os/user"
 
 	"github.com/docker/docker/api/types"
@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
+	"go.uber.org/zap"
 )
 
 const (
@@ -19,9 +20,9 @@ const (
 )
 
 type DockerRunParams struct {
-	User *user.User
-	Mounts map[string]string
-	Cmd []string
+	User      *user.User
+	Mounts    map[string]string
+	Cmd       []string
 	PullImage bool
 }
 
@@ -62,23 +63,24 @@ func Cleanup(ctx context.Context) error {
 	return nil
 }
 
-func PullImage(ctx context.Context, logger *log.Logger, image string) error {
+func PullImage(ctx context.Context, logger *zap.SugaredLogger, image string) error {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
 	}
 
-	logger.Printf("pulling image: %s\n", image)
+	logger.Infof("pulling image: %s\n", image)
 	reader, err := cli.ImagePull(ctx, image, types.ImagePullOptions{})
 	if err != nil {
 		return err
 	}
-	io.Copy(logger.Writer(), reader)
+	// TODO: do smth else
+	io.Copy(os.Stdout, reader)
 
 	return nil
 }
 
-func Run(ctx context.Context, logger *log.Logger, image string, params DockerRunParams) error {
+func Run(ctx context.Context, logger *zap.SugaredLogger, image string, params DockerRunParams) error {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
@@ -92,17 +94,17 @@ func Run(ctx context.Context, logger *log.Logger, image string, params DockerRun
 	m := make([]mount.Mount, 0, len(params.Mounts))
 	for target, src := range params.Mounts {
 		m = append(m, mount.Mount{
-			Type: mount.TypeBind,
+			Type:   mount.TypeBind,
 			Source: src,
 			Target: target,
 		})
 	}
 
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		User: params.User.Uid+":"+params.User.Gid,
+		User:  params.User.Uid + ":" + params.User.Gid,
 		Image: image,
-		Cmd: params.Cmd,
-		Tty: false,
+		Cmd:   params.Cmd,
+		Tty:   false,
 		Labels: map[string]string{
 			mifyContainerLabel: "",
 		},
@@ -112,7 +114,7 @@ func Run(ctx context.Context, logger *log.Logger, image string, params DockerRun
 	}
 	defer func() {
 		if err := removeContainer(ctx, cli, resp.ID); err != nil {
-			logger.Printf("unable to remove container: %s", err)
+			logger.Infof("unable to remove container: %s", err)
 		}
 	}()
 
@@ -120,7 +122,7 @@ func Run(ctx context.Context, logger *log.Logger, image string, params DockerRun
 		return err
 	}
 
-	logger.Printf("running image: %s\n", image)
+	logger.Infof("running image: %s\n", image)
 	var exitCode int64
 	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
 	select {
@@ -140,7 +142,8 @@ func Run(ctx context.Context, logger *log.Logger, image string, params DockerRun
 		return err
 	}
 
-	io.Copy(logger.Writer(), out)
+	// TODO: do smth else
+	io.Copy(os.Stdout, out)
 	if exitCode != 0 {
 		return fmt.Errorf("process exited with code: %d", exitCode)
 	}

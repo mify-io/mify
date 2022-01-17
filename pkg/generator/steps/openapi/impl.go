@@ -17,7 +17,7 @@ func generateServiceOpenAPI(ctx *gencontext.GenContext) error {
 	}
 
 	if !serverNeedsRegeneration {
-		ctx.Logger.Printf("Server side of '%s' service is actual. Skipping...", ctx.GetServiceName())
+		ctx.Logger.Infof("Server side of '%s' service is actual. Skipping...", ctx.GetServiceName())
 	}
 
 	clientsDiff, err := calcClientsDiff(ctx, &openapigen)
@@ -26,7 +26,7 @@ func generateServiceOpenAPI(ctx *gencontext.GenContext) error {
 	}
 
 	if clientsDiff.Empty() {
-		ctx.Logger.Printf("Clients included in service '%s' are actual. Skipping...", ctx.GetServiceName())
+		ctx.Logger.Infof("Clients included in service '%s' are actual. Skipping...", ctx.GetServiceName())
 	}
 
 	return doGeneration(ctx, openapigen, serverNeedsRegeneration, clientsDiff)
@@ -77,7 +77,7 @@ func doGeneration(
 }
 
 func generateServerSide(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGenerator) error {
-	ctx.Logger.Printf("Generating server side of service '%s'", ctx.GetServiceName())
+	ctx.Logger.Infof("Generating server side of service '%s'", ctx.GetServiceName())
 
 	targetDir, err := getAPIServicePathByLang(ctx.GetServiceConfig().Language, ctx.GetServiceName())
 	if err != nil {
@@ -105,7 +105,7 @@ func checkServerNeedsRegeneration(ctx *gencontext.GenContext, openapigen OpenAPI
 }
 
 func generateClients(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, clientsDiff clientsDiff) error {
-	ctx.Logger.Printf("Generating clients inside service '%s'", ctx.GetServiceName())
+	ctx.Logger.Infof("Generating clients inside service '%s'", ctx.GetServiceName())
 
 	targetDir, err := getAPIServicePathByLang(ctx.GetServiceConfig().Language, ctx.GetServiceName())
 	if err != nil {

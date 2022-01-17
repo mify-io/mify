@@ -2,19 +2,18 @@ package gencontext
 
 import (
 	"context"
-	"log"
-	"os"
 
 	api_gateway_context "github.com/chebykinn/mify/pkg/generator/steps/api-gateway/context"
 	openapi_context "github.com/chebykinn/mify/pkg/generator/steps/openapi/context"
 	schema_context "github.com/chebykinn/mify/pkg/generator/steps/schema/context"
 	"github.com/chebykinn/mify/pkg/mifyconfig"
 	"github.com/chebykinn/mify/pkg/workspace"
+	"go.uber.org/zap"
 )
 
 type GenContext struct {
 	goContext context.Context
-	Logger    *log.Logger
+	Logger    *zap.SugaredLogger
 
 	serviceName   string
 	workspace     workspace.Description
@@ -32,9 +31,11 @@ func NewGenContext(
 	workspaceDescription workspace.Description,
 	serviceConfig mifyconfig.ServiceConfig) *GenContext {
 
+	logger := initLogger()
+
 	return &GenContext{
 		goContext:     goContext,
-		Logger:        log.New(os.Stdout, "", 0),
+		Logger:        logger.Sugar(),
 		serviceName:   serviceName,
 		workspace:     workspaceDescription,
 		serviceConfig: serviceConfig,

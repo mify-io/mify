@@ -17,7 +17,7 @@ const (
 func updateClientsList(ctx *gencontext.GenContext) error {
 	tmpDir := config.GetServiceCacheDirectory(ctx.GetWorkspace().BasePath, ctx.GetServiceName())
 
-	ctx.Logger.Printf("updating clients list in: %s", tmpDir)
+	ctx.Logger.Infof("updating clients list in: %s", tmpDir)
 
 	err := os.MkdirAll(tmpDir, 0755)
 	if err != nil {

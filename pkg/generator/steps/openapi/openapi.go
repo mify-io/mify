@@ -95,7 +95,7 @@ func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 		if err != nil {
 			return fmt.Errorf("failed to dump assets: %w", err)
 		}
-		ctx.Logger.Printf("dumped server path: %s\n", g.serverAssetsPath)
+		ctx.Logger.Infof("dumped server path: %s\n", g.serverAssetsPath)
 	}
 
 	if config.HasAssets("openapi/client-template/" + langStr) {
@@ -104,7 +104,7 @@ func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 		if err != nil {
 			return fmt.Errorf("failed to dump assets: %w", err)
 		}
-		ctx.Logger.Printf("dumped client path: %s\n", g.clientAssetsPath)
+		ctx.Logger.Infof("dumped client path: %s\n", g.clientAssetsPath)
 	}
 	return nil
 }
@@ -212,7 +212,7 @@ func (g *OpenAPIGenerator) saveEnrichedSchema(
 	schemaDir := filepath.Dir(strings.Replace(schemaPath, g.basePath, "", 1))
 	cacheDir := config.GetCacheDirectory(g.basePath)
 	targetDir := filepath.Join(cacheDir, schemaDir, cacheSubdir)
-	ctx.Logger.Printf("saving schema in: %s\n", targetDir)
+	ctx.Logger.Infof("saving schema in: %s\n", targetDir)
 
 	err := copy.Copy(filepath.Join(g.basePath, schemaDir), targetDir, copy.Options{
 		OnDirExists: func(src, dest string) copy.DirExistsAction {
@@ -325,7 +325,7 @@ func makeFileUpdateMap(ctx *gencontext.GenContext, schemaDir string, tmpSchemaDi
 
 func updateGenerationTime(ctx *gencontext.GenContext, targetServiceName string, tmpSchemaDir string) error {
 	schemaDir := ctx.GetWorkspace().GetApiSchemaDirRelPath(targetServiceName)
-	ctx.Logger.Printf("updating generation time in: %s", schemaDir)
+	ctx.Logger.Infof("updating generation time in: %s", schemaDir)
 
 	fileMap, err := makeFileUpdateMap(ctx, schemaDir, tmpSchemaDir)
 	if err != nil {
@@ -453,9 +453,9 @@ func runOpenapiGenerator(
 		"-p", "serviceEndpoint=:" + strconv.Itoa(servicePort),
 		"--package-name", packageName,
 	}
-	ctx.Logger.Printf("running docker %s\n", args)
+	ctx.Logger.Infof("running docker %s\n", args)
 
-	ctx.Logger.Printf("running openapi-generator\n")
+	ctx.Logger.Infof("running openapi-generator\n")
 	params := docker.DockerRunParams{
 		User:   curUser,
 		Mounts: map[string]string{"/repo": basePath},
@@ -465,7 +465,7 @@ func runOpenapiGenerator(
 	if err != nil {
 		return err
 	}
-	ctx.Logger.Printf("generated openapi\n")
+	ctx.Logger.Infof("generated openapi\n")
 
 	return nil
 }

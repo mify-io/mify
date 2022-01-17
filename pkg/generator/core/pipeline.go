@@ -39,7 +39,7 @@ func (p Pipeline) Execute(
 		genContext := gencontext.NewGenContext(goContext, serviceName, workspaceDescription, serviceCfg)
 
 		for _, step := range p.steps {
-			genContext.Logger.Println(fmt.Sprintf("Starting step '%s'", step.Name()))
+			genContext.Logger.Infof("Starting step '%s'", step.Name())
 			result, err := step.Execute(genContext)
 			if err != nil {
 				return fmt.Errorf("Step '%s' failed with error: '%w'", step.Name(), err)
