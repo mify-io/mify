@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/chebykinn/mify/internal/mify"
-	"github.com/chebykinn/mify/internal/mify/core"
 	"github.com/spf13/cobra"
 
 	"github.com/spf13/viper"
@@ -16,7 +15,7 @@ import (
 var (
 	cfgFile       string
 	workspacePath string
-	appContext    *core.Context
+	appContext    *mify.CliContext
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -62,7 +61,7 @@ func cleanup() {
 }
 
 func init() {
-	appContext = core.NewContext()
+	appContext = mify.NewContext()
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVarP(&workspacePath, "path", "p", "", "Path to workspace")

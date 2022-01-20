@@ -38,25 +38,29 @@ func doGeneration(
 	generateServer bool,
 	clientsDiff clientsDiff) error {
 
+	wrapError := func(err error) error {
+		return fmt.Errorf("error during generation: %w", err)
+	}
+
 	// TODO: server + clients parallelization
 
 	if generateServer || !clientsDiff.Empty() {
 		err := openapigen.Prepare(ctx)
 		if err != nil {
-			return err
+			return wrapError(err)
 		}
 
 		if generateServer {
 			err := generateServerSide(ctx, &openapigen)
 			if err != nil {
-				return err
+				return wrapError(err)
 			}
 		}
 
 		if !clientsDiff.Empty() {
 			err = generateClients(ctx, &openapigen, clientsDiff)
 			if err != nil {
-				return err
+				return wrapError(err)
 			}
 		}
 	}
@@ -64,12 +68,12 @@ func doGeneration(
 	if needGenerateClientsContext(ctx, clientsDiff) {
 		err := generateClientsContext(ctx)
 		if err != nil {
-			return err
+			return wrapError(err)
 		}
 
 		err = updateClientsList(ctx)
 		if err != nil {
-			return err
+			return wrapError(err)
 		}
 	}
 
@@ -79,7 +83,7 @@ func doGeneration(
 func generateServerSide(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGenerator) error {
 	ctx.Logger.Infof("Generating server side of service '%s'", ctx.GetServiceName())
 
-	targetDir, err := getAPIServicePathByLang(ctx.GetServiceConfig().Language, ctx.GetServiceName())
+	targetDir, err := getAPIServicePathByLang(ctx.MustGetMifySchema().Language, ctx.GetServiceName())
 	if err != nil {
 		return err
 	}
@@ -91,6 +95,10 @@ func generateServerSide(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGen
 }
 
 func checkServerNeedsRegeneration(ctx *gencontext.GenContext, openapigen OpenAPIGenerator) (bool, error) {
+	wrapError := func(err error) error {
+		return fmt.Errorf("can't check if server needs regeneration: %w", err)
+	}
+
 	if !hasServerApiSchema(ctx) {
 		return false, nil
 	}
@@ -98,7 +106,7 @@ func checkServerNeedsRegeneration(ctx *gencontext.GenContext, openapigen OpenAPI
 	schemaDirPath := ctx.GetWorkspace().GetApiSchemaDirRelPath(ctx.GetServiceName())
 	needGenerateServer, err := openapigen.NeedGenerateServer(ctx, schemaDirPath)
 	if err != nil {
-		return false, err
+		return false, wrapError(err)
 	}
 
 	return needGenerateServer, nil
@@ -107,7 +115,7 @@ func checkServerNeedsRegeneration(ctx *gencontext.GenContext, openapigen OpenAPI
 func generateClients(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, clientsDiff clientsDiff) error {
 	ctx.Logger.Infof("Generating clients inside service '%s'", ctx.GetServiceName())
 
-	targetDir, err := getAPIServicePathByLang(ctx.GetServiceConfig().Language, ctx.GetServiceName())
+	targetDir, err := getAPIServicePathByLang(ctx.MustGetMifySchema().Language, ctx.GetServiceName())
 	if err != nil {
 		return err
 	}
@@ -152,8 +160,8 @@ func getAPIServicePathByLang(language mifyconfig.ServiceLanguage, serviceName st
 	return "", fmt.Errorf("unknown language: %s", language)
 }
 
-// Some services could don't gave scheme (f.e. frontend)
+// Some services could don't have scheme (f.e. frontend)
 func hasServerApiSchema(ctx *gencontext.GenContext) bool {
-	schemas := ctx.GetSchemaCtx().TryGetOpenapiSchemas(ctx.GetServiceName())
-	return len(schemas) > 0
+	schemas := ctx.GetSchemaCtx().MustGetServiceSchemas(ctx.GetServiceName())
+	return len(schemas.GetOpenapi()) > 0
 }

@@ -13,7 +13,7 @@ func NewSchemaStep() SchemaStep {
 }
 
 func (s SchemaStep) Name() string {
-	return "Openapi"
+	return "schema-collector"
 }
 
 func (s SchemaStep) Execute(ctx *gencontext.GenContext) (core.StepResult, error) {

@@ -21,7 +21,8 @@ func scanPublicApis(ctx *gencontext.GenContext) PublicApis {
 			continue
 		}
 
-		openapiSchema := ctx.GetSchemaCtx().GetOpenapiSchemas(goService.Name).GetMainSchema()
+		serviceSchemas := ctx.GetSchemaCtx().MustGetServiceSchemas(goService.Name)
+		openapiSchema := serviceSchemas.GetOpenapi().GetMainSchema()
 		res[goService.Name] = extractPublicAPI(openapiSchema)
 	}
 

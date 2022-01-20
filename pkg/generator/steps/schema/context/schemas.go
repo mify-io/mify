@@ -1,29 +1,37 @@
 package context
 
-import "github.com/getkin/kin-openapi/openapi3"
+import (
+	"github.com/chebykinn/mify/pkg/mifyconfig"
+)
 
 const (
 	MainSchemaName      = "api.yaml"
 	GeneratedSchemaName = "api_generated.yaml"
 )
 
-type ServiceSchemas map[string]*openapi3.T    // schema name -> schema
-type OpenapiSchemas map[string]ServiceSchemas // service name -> schemas
+type AllSchemas map[string]*ServiceSchemas // service name -> schemas
 
-func (s ServiceSchemas) GetMainSchema() *openapi3.T {
-	res, ok := s[MainSchemaName]
-	if !ok {
-		return nil
-	}
-
-	return res
+type ServiceSchemas struct {
+	openApi OpenapiServiceSchemas
+	mify    *mifyconfig.ServiceConfig
 }
 
-func (s ServiceSchemas) GetGeneratedSchema() *openapi3.T {
-	res, ok := s[GeneratedSchemaName]
-	if !ok {
-		return nil
+func NewServiceSchemas(openApi OpenapiServiceSchemas, mify *mifyconfig.ServiceConfig) *ServiceSchemas {
+	if mify == nil {
+		panic("mify schema is required")
 	}
 
-	return res
+	return &ServiceSchemas{
+		openApi: openApi,
+		mify:    mify,
+	}
+}
+
+// Can be nill for some services
+func (s ServiceSchemas) GetOpenapi() OpenapiServiceSchemas {
+	return s.openApi
+}
+
+func (s ServiceSchemas) GetMify() *mifyconfig.ServiceConfig {
+	return s.mify
 }

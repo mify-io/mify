@@ -13,7 +13,9 @@ import (
 )
 
 func updateApiGatewayOpenapiSchema(genContex *gencontext.GenContext, publicApis PublicApis) (bool, error) {
-	currentGeneratedSchema := genContex.GetSchemaCtx().GetOpenapiSchemas(genContex.GetServiceName()).GetGeneratedSchema()
+	serviceName := genContex.GetServiceName()
+	serviceSchemas := genContex.GetSchemaCtx().MustGetServiceSchemas(serviceName)
+	currentGeneratedSchema := serviceSchemas.GetOpenapi().GetGeneratedSchema()
 
 	if len(publicApis) == 0 {
 		if currentGeneratedSchema == nil {

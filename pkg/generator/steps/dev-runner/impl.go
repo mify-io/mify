@@ -21,7 +21,7 @@ var devRunnerTemplate string
 
 func execute(ctx *gencontext.GenContext) error {
 	services := make([]tpl.TargetService, 0)
-	for serviceName := range *ctx.GetSchemaCtx().GetAllOpenapiSchemas() {
+	for serviceName := range *ctx.GetSchemaCtx().GetAllSchemas() {
 		// TODO: temporary check if service is already generated. Remove in future
 		path := ctx.GetWorkspace().GetAppPath(serviceName)
 		if _, err := os.Stat(path); os.IsNotExist(err) {

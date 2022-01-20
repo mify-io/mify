@@ -29,8 +29,8 @@ func updateClientsList(ctx *gencontext.GenContext) error {
 		return fmt.Errorf("failed to write clients list file: %w", err)
 	}
 
-	list := make([]string, 0, len(ctx.GetServiceConfig().OpenAPI.Clients))
-	for client := range ctx.GetServiceConfig().OpenAPI.Clients {
+	list := make([]string, 0, len(ctx.MustGetMifySchema().OpenAPI.Clients))
+	for client := range ctx.MustGetMifySchema().OpenAPI.Clients {
 		list = append(list, client)
 	}
 

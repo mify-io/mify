@@ -28,12 +28,11 @@ var LanguagesList = []ServiceLanguage{
 }
 
 type Service struct {
-	Name string
-	Language ServiceLanguage
-	Directory string
+	Name       string
+	Language   ServiceLanguage
+	Directory  string
 	ConfigPath string
 }
-
 
 func NewService(workspace Workspace, serviceName string) (Service, error) {
 	serviceDir, lang, err := locateServiceDirectory(workspace.Directory, serviceName)
@@ -45,13 +44,14 @@ func NewService(workspace Workspace, serviceName string) (Service, error) {
 		return Service{}, fmt.Errorf("failed to read service %s: %s: not found", serviceName, configFile)
 	}
 	return Service{
-		Name: filepath.Base(serviceName),
-		Language: lang,
-		Directory: serviceDir,
+		Name:       filepath.Base(serviceName),
+		Language:   lang,
+		Directory:  serviceDir,
 		ConfigPath: configFile,
 	}, nil
 }
 
+// TODO: remove
 func (s Service) ReadConfig() (ServiceConfig, error) {
 	rawData, err := ioutil.ReadFile(s.ConfigPath)
 	if err != nil {
@@ -92,7 +92,7 @@ func locateServiceDirectory(workspaceDir string, serviceName string) (string, Se
 	for _, l := range LanguagesList {
 		subDir, _ := getServiceConfigPathByLang(l)
 		dir := filepath.Join(workspaceDir, subDir, serviceName)
-		d, err := os.Stat(dir);
+		d, err := os.Stat(dir)
 		if err == nil && d.IsDir() {
 			return dir, l, nil
 		}
@@ -103,4 +103,3 @@ func locateServiceDirectory(workspaceDir string, serviceName string) (string, Se
 	}
 	return "", ServiceLanguageUnknown, fmt.Errorf("service %s not found", serviceName)
 }
-

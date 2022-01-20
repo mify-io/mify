@@ -3,19 +3,21 @@ package mifyconfig
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path"
 	"path/filepath"
 
 	"gopkg.in/yaml.v2"
 )
 
-type ServiceOpenAPIClientConfig struct {}
+type ServiceOpenAPIClientConfig struct{}
 
 type ServiceOpenAPIConfig struct {
 	Clients map[string]ServiceOpenAPIClientConfig `yaml:"clients,omitempty"`
 }
 
 type ServiceConfig struct {
-	Language ServiceLanguage `yaml:"-"`
+	Language ServiceLanguage `yaml:"language"`
 
 	ServiceName string   `yaml:"service_name"`
 	Maintainers []string `yaml:"maintainers"`
@@ -23,32 +25,67 @@ type ServiceConfig struct {
 	OpenAPI ServiceOpenAPIConfig `yaml:"openapi,omitempty"`
 }
 
-func ReadServiceConfig(workspaceDir string, serviceName string) (ServiceConfig, error) {
-	w, err := NewWorkspace(workspaceDir)
-	if err != nil {
-		return ServiceConfig{}, err
+func ReadServiceCfg(path string) (*ServiceConfig, error) {
+	wrapErr := func(err error) error {
+		return fmt.Errorf("failed to read service config: %w", err)
 	}
-	svc, err := NewService(w, serviceName)
+
+	rawData, err := ioutil.ReadFile(path)
 	if err != nil {
-		return ServiceConfig{}, err
+		return nil, wrapErr(err)
 	}
-	return svc.ReadConfig()
+
+	var data ServiceConfig
+	err = yaml.Unmarshal(rawData, &data)
+	if err != nil {
+		return nil, wrapErr(err)
+	}
+
+	return &data, nil
 }
 
+// TODO: remove (use ReadServiceCfg)
+func ReadServiceConfig(workspaceDir string, serviceName string) (ServiceConfig, error) {
+	schemaDir := path.Join(workspaceDir, "schemas", serviceName)
+	path := filepath.Join(schemaDir, ServiceConfigName)
+
+	cfg, err := ReadServiceCfg(path)
+	if err != nil {
+		return ServiceConfig{}, err
+	}
+
+	return *cfg, nil
+}
+
+// Legacy, try to use Dump instead
 func SaveServiceConfig(workspaceDir string, serviceName string, conf ServiceConfig) error {
-	svcConfigPath, err := getServiceConfigPathByLang(conf.Language)
+	schemaDir := path.Join(workspaceDir, "schemas", serviceName)
+	path := filepath.Join(schemaDir, ServiceConfigName)
+	err := conf.Dump(path)
 	if err != nil {
 		return err
 	}
-	path := filepath.Join(workspaceDir, svcConfigPath, serviceName)
-	data, err := yaml.Marshal(&conf)
-	if err != nil {
-		return fmt.Errorf("failed to create service config: %w", err)
+
+	return nil
+}
+
+func (conf ServiceConfig) Dump(path string) error {
+	wrapErr := func(err error) error {
+		return fmt.Errorf("failed to dump service config: %w", err)
 	}
 
-	err = ioutil.WriteFile(filepath.Join(path, ServiceConfigName), data, 0644)
+	data, err := yaml.Marshal(&conf)
 	if err != nil {
-		return fmt.Errorf("failed to create service config: %w", err)
+		return wrapErr(err)
+	}
+
+	if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
+		return wrapErr(err)
+	}
+
+	err = ioutil.WriteFile(path, data, 0644)
+	if err != nil {
+		return wrapErr(err)
 	}
 	return nil
 }

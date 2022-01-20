@@ -2,36 +2,45 @@ package context
 
 import (
 	"fmt"
+
+	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
 type SchemaContext struct {
-	openapiSchemas OpenapiSchemas // service_name -> schema
+	schemas AllSchemas
 }
 
-func NewSchemaContext(openapiSchemas OpenapiSchemas) *SchemaContext {
+func NewSchemaContext(schemas AllSchemas) *SchemaContext {
 	return &SchemaContext{
-		openapiSchemas: openapiSchemas,
+		schemas: schemas,
 	}
 }
 
-func (c *SchemaContext) GetOpenapiSchemas(serviceName string) ServiceSchemas {
-	res := c.TryGetOpenapiSchemas(serviceName)
+func (c *SchemaContext) MustGetServiceSchemas(serviceName string) *ServiceSchemas {
+	res := c.GetServiceSchemas(serviceName)
 	if res == nil {
-		panic(fmt.Sprintf("Schema for service '%s' wasn't found", serviceName))
+		panic(fmt.Sprintf("Schemas for service '%s' wasn't found", serviceName))
 	}
 
 	return res
 }
 
-func (c *SchemaContext) TryGetOpenapiSchemas(serviceName string) ServiceSchemas {
-	schema, ok := c.openapiSchemas[serviceName]
+func (c *SchemaContext) GetServiceSchemas(serviceName string) *ServiceSchemas {
+	schemas, ok := c.schemas[serviceName]
 	if !ok {
 		return nil
 	}
 
-	return schema
+	return schemas
 }
 
-func (c *SchemaContext) GetAllOpenapiSchemas() *OpenapiSchemas {
-	return &c.openapiSchemas
+func (c *SchemaContext) GetAllSchemas() *AllSchemas {
+	return &c.schemas
+}
+
+// Sugar
+
+func (sc SchemaContext) MustGetMifySchema(serviceName string) *mifyconfig.ServiceConfig {
+	schemas := sc.MustGetServiceSchemas(serviceName)
+	return schemas.mify
 }

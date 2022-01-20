@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -23,6 +24,10 @@ func (c clientsDiff) Empty() bool {
 }
 
 func calcClientsDiff(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGenerator) (clientsDiff, error) {
+	wrapError := func(err error) error {
+		return fmt.Errorf("can't calculate clients diff: %w", err)
+	}
+
 	schemaChanged := make(map[string]struct{})
 	added := make(map[string]struct{})
 	removed := make(map[string]struct{})
@@ -31,7 +36,7 @@ func calcClientsDiff(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGenera
 
 	oldClients, err := getOldClients(ctx)
 	if err != nil {
-		return clientsDiff{}, err
+		return clientsDiff{}, wrapError(err)
 	}
 
 	if oldClients == nil {
@@ -50,7 +55,7 @@ func calcClientsDiff(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGenera
 		schemaDirPath := ctx.GetWorkspace().GetApiSchemaDirRelPath(cl)
 		needGenerate, err := openAPIGenerator.NeedGenerateClient(ctx, schemaDirPath)
 		if err != nil {
-			return clientsDiff{}, err
+			return clientsDiff{}, wrapError(err)
 		}
 
 		if needGenerate {
@@ -69,7 +74,7 @@ func calcClientsDiff(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGenera
 }
 
 func getCurrentClients(ctx *gencontext.GenContext) map[string]struct{} {
-	currentClients := ctx.GetServiceConfig().OpenAPI.Clients
+	currentClients := ctx.MustGetMifySchema().OpenAPI.Clients
 	currentClientsSet := make(map[string]struct{})
 	for cl := range currentClients {
 		currentClientsSet[cl] = struct{}{}

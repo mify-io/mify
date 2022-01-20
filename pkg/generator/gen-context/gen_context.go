@@ -15,9 +15,8 @@ type GenContext struct {
 	goContext context.Context
 	Logger    *zap.SugaredLogger
 
-	serviceName   string
-	workspace     workspace.Description
-	serviceConfig mifyconfig.ServiceConfig
+	serviceName string
+	workspace   workspace.Description
 
 	// Step contexts
 	schema     *schema_context.SchemaContext
@@ -28,17 +27,15 @@ type GenContext struct {
 func NewGenContext(
 	goContext context.Context,
 	serviceName string,
-	workspaceDescription workspace.Description,
-	serviceConfig mifyconfig.ServiceConfig) *GenContext {
+	workspaceDescription workspace.Description) *GenContext {
 
 	logger := initLogger()
 
 	return &GenContext{
-		goContext:     goContext,
-		Logger:        logger.Sugar(),
-		serviceName:   serviceName,
-		workspace:     workspaceDescription,
-		serviceConfig: serviceConfig,
+		goContext:   goContext,
+		Logger:      logger.Sugar(),
+		serviceName: serviceName,
+		workspace:   workspaceDescription,
 	}
 }
 
@@ -52,10 +49,6 @@ func (c *GenContext) GetServiceName() string {
 
 func (c *GenContext) GetWorkspace() *workspace.Description {
 	return &c.workspace
-}
-
-func (c *GenContext) GetServiceConfig() *mifyconfig.ServiceConfig {
-	return &c.serviceConfig
 }
 
 func (c *GenContext) GetSchemaCtx() *schema_context.SchemaContext {
@@ -98,4 +91,10 @@ func (c *GenContext) SetApiGatewayCtx(ctx *api_gateway_context.ApiGatewayContext
 		panic("Api gateway context is not filled")
 	}
 	c.apiGateway = ctx
+}
+
+// Sugar
+
+func (c *GenContext) MustGetMifySchema() *mifyconfig.ServiceConfig {
+	return c.GetSchemaCtx().MustGetMifySchema(c.GetServiceName())
 }

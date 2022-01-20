@@ -27,7 +27,7 @@ func needGenerateClientsContext(ctx *gencontext.GenContext, clientsDiff clientsD
 }
 
 func getAbsPathToClientsContext(ctx *gencontext.GenContext) string {
-	switch ctx.GetServiceConfig().Language {
+	switch ctx.MustGetMifySchema().Language {
 	case mifyconfig.ServiceLanguageGo:
 		generatedDirPath := ctx.GetWorkspace().GetGeneratedAbsPath(ctx.GetServiceName())
 		return path.Join(generatedDirPath, "core", "clients.go")
@@ -45,7 +45,7 @@ func generateClientsContext(ctx *gencontext.GenContext) error {
 
 	path := getAbsPathToClientsContext(ctx)
 
-	switch ctx.GetServiceConfig().Language {
+	switch ctx.MustGetMifySchema().Language {
 	case mifyconfig.ServiceLanguageGo:
 		clientsModel, err := makeGoClientsModel(ctx)
 		if err != nil {
@@ -72,12 +72,11 @@ func generateClientsContext(ctx *gencontext.GenContext) error {
 }
 
 func makeGoClientsModel(ctx *gencontext.GenContext) (tpl.GoClientsModel, error) {
-	targetServices := ctx.GetServiceConfig().OpenAPI.Clients
+	targetServices := ctx.MustGetMifySchema().OpenAPI.Clients
 	clientsList := make([]tpl.GoClientModel, 0, len(targetServices))
 	for targetServiceName := range targetServices {
-		targetServiceSchemas := ctx.GetSchemaCtx().GetOpenapiSchemas(targetServiceName)
-		if len(targetServiceSchemas) == 0 {
-
+		targetServiceSchemas := ctx.GetSchemaCtx().MustGetServiceSchemas(targetServiceName)
+		if len(targetServiceSchemas.GetOpenapi()) == 0 {
 			return tpl.GoClientsModel{}, fmt.Errorf("schema of '%s' wasn't found while generating client in '%s'", targetServiceName, ctx.GetServiceName())
 		}
 
@@ -113,12 +112,11 @@ func makeGoClientsModel(ctx *gencontext.GenContext) (tpl.GoClientsModel, error) 
 }
 
 func makeJsClientsModel(ctx *gencontext.GenContext) (tpl.JsClientsModel, error) {
-	targetServices := ctx.GetServiceConfig().OpenAPI.Clients
+	targetServices := ctx.MustGetMifySchema().OpenAPI.Clients
 	clientsList := make([]tpl.JsClientModel, 0, len(targetServices))
 	for targetServiceName := range targetServices {
-		targetServiceSchemas := ctx.GetSchemaCtx().GetOpenapiSchemas(targetServiceName)
-		if len(targetServiceSchemas) == 0 {
-
+		targetServiceSchemas := ctx.GetSchemaCtx().MustGetServiceSchemas(targetServiceName)
+		if len(targetServiceSchemas.GetOpenapi()) == 0 {
 			return tpl.JsClientsModel{}, fmt.Errorf("schema of '%s' wasn't found while generating client in '%s'", targetServiceName, ctx.GetServiceName())
 		}
 

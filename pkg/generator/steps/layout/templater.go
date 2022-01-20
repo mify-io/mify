@@ -1,4 +1,4 @@
-package core
+package layout
 
 import (
 	"embed"
@@ -10,7 +10,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/chebykinn/mify/internal/mify/config"
+	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
+	"github.com/chebykinn/mify/pkg/generator/steps/layout/tpl"
 )
 
 type PathTransformerFunc func(context interface{}, path string) (string, error)
@@ -73,19 +74,19 @@ func copyFile(fs embed.FS, path string, targetPath string) error {
 	return nil
 }
 
-func RenderTemplateTree(ctx *Context, context interface{}, params RenderParams) error {
-	ctx.Logger.Printf("Template render: starting... TemplatesPath: %s. TargetPath: %s.\n", params.TemplatesPath, params.TargetPath)
+func RenderTemplateTree(ctx *gencontext.GenContext, model interface{}, params RenderParams) error {
+	ctx.Logger.Info("Template render: starting... TemplatesPath: %s. TargetPath: %s.\n", params.TemplatesPath, params.TargetPath)
 
-	assetsFs := config.GetAssets()
+	assetsFs := tpl.GetTplFs()
 	return fs.WalkDir(assetsFs, params.TemplatesPath, func(path string, d fs.DirEntry, err error) error {
-		ctx.Logger.Printf("Template render: visiting %s\n", path)
+		ctx.Logger.Info("Template render: visiting %s\n", path)
 		if err != nil {
 			return err
 		}
 
 		destPath := strings.ReplaceAll(path, params.TemplatesPath, "")
 		if params.PathTransformer != nil {
-			destPath, err = params.PathTransformer(context, destPath)
+			destPath, err = params.PathTransformer(model, destPath)
 			if err != nil {
 				return err
 			}
@@ -93,17 +94,17 @@ func RenderTemplateTree(ctx *Context, context interface{}, params RenderParams) 
 		destPath = filepath.Join(params.TargetPath, destPath)
 
 		if d.IsDir() {
-			ctx.Logger.Printf("Template render: found dir %s. Creating: %s\n", path, destPath)
+			ctx.Logger.Info("Template render: found dir %s. Creating: %s\n", path, destPath)
 			return os.MkdirAll(destPath, 0755)
 		}
 
 		if filepath.Ext(path) == templateExtension {
 			filePath := strings.ReplaceAll(destPath, templateExtension, "")
-			ctx.Logger.Printf("Template render: found tpl %s. Creating: %s\n", path, filePath)
-			return renderTemplate(context, assetsFs, path, filePath, params.FuncMap)
+			ctx.Logger.Info("Template render: found tpl %s. Creating: %s\n", path, filePath)
+			return renderTemplate(model, assetsFs, path, filePath, params.FuncMap)
 		}
 
-		ctx.Logger.Printf("Template render: found file %s. Creating: %s\n", path, destPath)
+		ctx.Logger.Info("Template render: found file %s. Creating: %s\n", path, destPath)
 		copyFile(assetsFs, path, destPath)
 
 		return nil

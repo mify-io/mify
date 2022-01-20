@@ -70,7 +70,7 @@ func NewOpenAPIGenerator(ctx *gencontext.GenContext) OpenAPIGenerator {
 
 	return OpenAPIGenerator{
 		basePath: ctx.GetWorkspace().BasePath,
-		language: ctx.GetServiceConfig().Language,
+		language: ctx.MustGetMifySchema().Language,
 		info:     info,
 	}
 }

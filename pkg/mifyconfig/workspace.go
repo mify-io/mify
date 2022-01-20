@@ -6,8 +6,8 @@ import (
 )
 
 type Workspace struct {
-	Name string
-	Directory string
+	Name       string
+	Directory  string
 	ConfigPath string
 }
 
@@ -18,8 +18,8 @@ func NewWorkspace(workspaceDir string) (Workspace, error) {
 	}
 	name := filepath.Base(workspaceDir)
 	return Workspace{
-		Name: name,
-		Directory: workspaceDir,
+		Name:       name,
+		Directory:  workspaceDir,
 		ConfigPath: confPath,
 	}, nil
 }

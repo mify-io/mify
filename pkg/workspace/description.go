@@ -12,6 +12,12 @@ import (
 	"github.com/chebykinn/mify/pkg/mifyconfig"
 )
 
+const (
+	ApiGatewayName    = "api-gateway"
+	MainApiSchemaName = "api.yaml"
+	MifySchemaName    = "service.mify.yaml"
+)
+
 type GoService struct {
 	Name string
 }
@@ -26,16 +32,21 @@ type Description struct {
 }
 
 func InitDescription(workspacePath string) (Description, error) {
+	wrapError := func(err error) error {
+		return fmt.Errorf("can't initialize description: %w", err)
+	}
+
 	if len(workspacePath) == 0 {
 		var err error
 		workspacePath, err = mifyconfig.FindWorkspaceConfigPath()
 		if err != nil {
-			return Description{}, err
+			return Description{}, wrapError(err)
 		}
 	}
+
 	conf, err := mifyconfig.ReadWorkspaceConfig(workspacePath)
 	if err != nil {
-		return Description{}, err
+		return Description{}, wrapError(err)
 	}
 
 	res := Description{
@@ -47,7 +58,7 @@ func InitDescription(workspacePath string) (Description, error) {
 	}
 
 	if err = fillGoServices(&res); err != nil {
-		return res, err
+		return res, wrapError(err)
 	}
 
 	return res, nil
@@ -59,6 +70,30 @@ func (c Description) GetAppIncludePath(serviceName string) string {
 		"%s/go_services/internal/%s/generated/app",
 		c.GetRepository(),
 		serviceName)
+}
+
+func (c Description) GetSchemasRootRelPath() string {
+	return "schemas"
+}
+
+func (c Description) GetSchemasRootAbsPath() string {
+	return path.Join(c.BasePath, c.GetSchemasRootRelPath())
+}
+
+func (c Description) GetSchemasRelPath(serviceName string) string {
+	return path.Join(c.GetSchemasRootRelPath(), serviceName)
+}
+
+func (c Description) GetSchemasAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetSchemasRelPath(serviceName))
+}
+
+func (c Description) GetMifySchemaRelPath(serviceName string) string {
+	return path.Join(c.GetSchemasRelPath(serviceName), MifySchemaName)
+}
+
+func (c Description) GetMifySchemaAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetMifySchemaRelPath(serviceName))
 }
 
 func (c Description) GetApiSchemaDirRelPath(serviceName string) string {

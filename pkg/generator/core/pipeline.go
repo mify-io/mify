@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
-	"github.com/chebykinn/mify/pkg/mifyconfig"
 	"github.com/chebykinn/mify/pkg/workspace"
 )
 
@@ -32,11 +31,7 @@ func (p Pipeline) Execute(
 
 		shouldRepeat = false
 
-		serviceCfg, err := mifyconfig.ReadServiceConfig(workspaceDescription.BasePath, serviceName)
-		if err != nil {
-			return err
-		}
-		genContext := gencontext.NewGenContext(goContext, serviceName, workspaceDescription, serviceCfg)
+		genContext := gencontext.NewGenContext(goContext, serviceName, workspaceDescription)
 
 		for _, step := range p.steps {
 			genContext.Logger.Infof("Starting step '%s'", step.Name())
