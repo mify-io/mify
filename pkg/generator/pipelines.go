@@ -14,7 +14,7 @@ func BuildServicePipeline() core.Pipeline {
 		Register(schema.NewSchemaStep()).
 		Register(apigateway.NewApiGatewaySchemaStep()).
 		Register(openapi.NewOpenapiStep()).
-		Register(devrunner.NewDevRunnerStep()).
 		Register(layout.NewLayoutStep()).
+		Register(devrunner.NewDevRunnerStep()).
 		Build()
 }

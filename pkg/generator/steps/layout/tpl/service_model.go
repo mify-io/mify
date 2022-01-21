@@ -1,18 +1,20 @@
 package tpl
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 
 	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
 	"github.com/chebykinn/mify/pkg/mifyconfig"
+	"github.com/chebykinn/mify/pkg/workspace"
 )
 
 type ServiceModel struct {
 	ServiceName string
 	Repository  string
 	Language    mifyconfig.ServiceLanguage
-	GoModule    string
+	GoModule    string // first line inside go.mod
 	Workspace   WorkspaceModel
 	ServiceList []string
 }
@@ -22,7 +24,7 @@ func NewServiceModel(ctx *gencontext.GenContext) *ServiceModel {
 		ServiceName: ctx.GetServiceName(),
 		Repository:  ctx.GetWorkspace().GetRepository(),
 		Language:    ctx.MustGetMifySchema().Language,
-		GoModule:    ctx.GetWorkspace().GoRoot,
+		GoModule:    fmt.Sprintf("%s/%s", ctx.GetWorkspace().GetRepository(), workspace.GoServicesDirName),
 		Workspace:   *NewWorkspaceModel(ctx),
 		ServiceList: getServiceList(ctx), // Js only
 	}

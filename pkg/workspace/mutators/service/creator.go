@@ -16,35 +16,16 @@ import (
 var apiSchemaTemplate string
 
 func CreateService(mutContext *mutators.MutatorContext, language mifyconfig.ServiceLanguage, serviceName string) error {
-	fmt.Printf("Creating service: %s\n", serviceName)
+	mutContext.GetLogger().Printf("Creating service '%s' ...", serviceName)
 
-	openapiSchemaPath := mutContext.GetDescription().GetApiSchemaAbsPath(serviceName, workspace.MainApiSchemaName)
-	err := templater.RenderTemplate(
-		"openapiSchema",
-		apiSchemaTemplate,
-		tpl.NewApiSchemaModel(serviceName),
-		openapiSchemaPath)
-	if err != nil {
-		return err
-	}
-
-	conf := mifyconfig.ServiceConfig{
-		ServiceName: serviceName,
-		Language:    language,
-	}
-
-	err = conf.Dump(mutContext.GetDescription().GetMifySchemaAbsPath(serviceName))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return createServiceImpl(mutContext, language, serviceName, true)
 }
 
 func CreateFrontend(mutContext *mutators.MutatorContext, template string, name string) error {
+	mutContext.GetLogger().Printf("Creating frontend '%s' ...", name)
+
 	if template == "vue_js" {
-		CreateService(mutContext, mifyconfig.ServiceLanguageJs, name)
-		return nil
+		return createServiceImpl(mutContext, mifyconfig.ServiceLanguageJs, name, false)
 	}
 
 	return fmt.Errorf("unknown template %s", template)
@@ -67,6 +48,37 @@ func TryCreateApiGateway(mutContext *mutators.MutatorContext) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func createServiceImpl(
+	mutContext *mutators.MutatorContext,
+	language mifyconfig.ServiceLanguage,
+	serviceName string,
+	addOpenApi bool) error {
+
+	conf := mifyconfig.ServiceConfig{
+		ServiceName: serviceName,
+		Language:    language,
+	}
+
+	err := conf.Dump(mutContext.GetDescription().GetMifySchemaAbsPath(serviceName))
+	if err != nil {
+		return err
+	}
+
+	if addOpenApi {
+		openapiSchemaPath := mutContext.GetDescription().GetApiSchemaAbsPath(serviceName, workspace.MainApiSchemaName)
+		err := templater.RenderTemplate(
+			"openapiSchema",
+			apiSchemaTemplate,
+			tpl.NewApiSchemaModel(serviceName),
+			openapiSchemaPath)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func checkServiceExists(mutContext *mutators.MutatorContext) (bool, error) {

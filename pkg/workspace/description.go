@@ -16,6 +16,7 @@ const (
 	ApiGatewayName    = "api-gateway"
 	MainApiSchemaName = "api.yaml"
 	MifySchemaName    = "service.mify.yaml"
+	GoServicesDirName = "go_services"
 )
 
 type GoService struct {

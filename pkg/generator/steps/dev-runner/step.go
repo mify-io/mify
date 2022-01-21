@@ -15,7 +15,7 @@ func NewDevRunnerStep() DevRunnerStep {
 }
 
 func (s DevRunnerStep) Name() string {
-	return "DevRunner"
+	return "dev-runner"
 }
 
 func (s DevRunnerStep) Execute(ctx *gencontext.GenContext) (core.StepResult, error) {
