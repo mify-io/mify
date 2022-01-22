@@ -3,9 +3,9 @@ package mify
 import (
 	"context"
 
-	"github.com/chebykinn/mify/internal/mify/util/docker"
-	"github.com/chebykinn/mify/pkg/generator"
-	"github.com/chebykinn/mify/pkg/workspace"
+	"github.com/mify-io/mify/internal/mify/util/docker"
+	"github.com/mify-io/mify/pkg/generator"
+	"github.com/mify-io/mify/pkg/workspace"
 )
 
 func ServiceGenerate(ctx *CliContext, basePath string, name string) error {

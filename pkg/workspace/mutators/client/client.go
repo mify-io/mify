@@ -3,8 +3,8 @@ package client
 import (
 	"fmt"
 
-	"github.com/chebykinn/mify/pkg/mifyconfig"
-	"github.com/chebykinn/mify/pkg/workspace/mutators"
+	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/workspace/mutators"
 )
 
 func AddClient(mutContext *mutators.MutatorContext, name string, clientName string) error {

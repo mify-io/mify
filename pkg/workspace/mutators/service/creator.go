@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/chebykinn/mify/pkg/generator/templater"
-	"github.com/chebykinn/mify/pkg/mifyconfig"
-	"github.com/chebykinn/mify/pkg/workspace"
-	"github.com/chebykinn/mify/pkg/workspace/mutators"
-	"github.com/chebykinn/mify/pkg/workspace/mutators/service/tpl"
+	"github.com/mify-io/mify/pkg/generator/templater"
+	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/workspace"
+	"github.com/mify-io/mify/pkg/workspace/mutators"
+	"github.com/mify-io/mify/pkg/workspace/mutators/service/tpl"
 )
 
 //go:embed tpl/api.yaml.tpl

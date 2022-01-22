@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"sync"
 
-	"github.com/chebykinn/mify/internal/mify"
+	"github.com/mify-io/mify/internal/mify"
 	"github.com/spf13/cobra"
 
 	"github.com/spf13/viper"

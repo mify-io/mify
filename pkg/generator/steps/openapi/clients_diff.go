@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/chebykinn/mify/internal/mify/config"
-	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/internal/mify/config"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"gopkg.in/yaml.v2"
 )
 

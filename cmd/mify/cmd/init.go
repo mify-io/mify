@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/chebykinn/mify/internal/mify"
+	"github.com/mify-io/mify/internal/mify"
 	"github.com/spf13/cobra"
 )
 

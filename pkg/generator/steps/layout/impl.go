@@ -6,9 +6,9 @@ import (
 	"strings"
 	"text/template"
 
-	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
-	"github.com/chebykinn/mify/pkg/generator/steps/layout/tpl"
-	"github.com/chebykinn/mify/pkg/mifyconfig"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl"
+	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
 const (

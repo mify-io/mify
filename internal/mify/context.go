@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/chebykinn/mify/pkg/workspace"
-	"github.com/chebykinn/mify/pkg/workspace/mutators"
+	"github.com/mify-io/mify/pkg/workspace"
+	"github.com/mify-io/mify/pkg/workspace/mutators"
 )
 
 type CliContext struct {

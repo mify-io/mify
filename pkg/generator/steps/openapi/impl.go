@@ -3,8 +3,8 @@ package openapi
 import (
 	"fmt"
 
-	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
-	"github.com/chebykinn/mify/pkg/mifyconfig"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/containerd/containerd/log"
 )
 

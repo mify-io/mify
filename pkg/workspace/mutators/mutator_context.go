@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/chebykinn/mify/pkg/workspace"
+	"github.com/mify-io/mify/pkg/workspace"
 )
 
 type MutatorContext struct {

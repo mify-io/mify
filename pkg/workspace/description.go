@@ -8,8 +8,8 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/chebykinn/mify/internal/mify/util"
-	"github.com/chebykinn/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/internal/mify/util"
+	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
 const (

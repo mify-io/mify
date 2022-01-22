@@ -5,11 +5,11 @@ import (
 	"os"
 	"path"
 
-	"github.com/chebykinn/mify/internal/mify/util"
-	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
-	"github.com/chebykinn/mify/pkg/generator/steps/dev-runner/tpl"
-	"github.com/chebykinn/mify/pkg/generator/templater"
-	"github.com/chebykinn/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/internal/mify/util"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/generator/steps/dev-runner/tpl"
+	"github.com/mify-io/mify/pkg/generator/templater"
+	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
 const (

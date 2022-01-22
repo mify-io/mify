@@ -3,7 +3,7 @@ package context
 import (
 	"fmt"
 
-	"github.com/chebykinn/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
 type SchemaContext struct {

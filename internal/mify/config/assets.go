@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/chebykinn/mify/assets"
+	"github.com/mify-io/mify/assets"
 )
 
 func GetAssets() embed.FS {

@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/chebykinn/mify/pkg/mifyconfig"
-	"github.com/chebykinn/mify/pkg/workspace/mutators"
+	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/workspace/mutators"
 )
 
 const (

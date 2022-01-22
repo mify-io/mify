@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/chebykinn/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
 const (

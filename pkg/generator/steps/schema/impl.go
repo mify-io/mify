@@ -6,9 +6,9 @@ import (
 	"os"
 	"path"
 
-	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
-	"github.com/chebykinn/mify/pkg/generator/steps/schema/context"
-	"github.com/chebykinn/mify/pkg/mifyconfig"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/generator/steps/schema/context"
+	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 

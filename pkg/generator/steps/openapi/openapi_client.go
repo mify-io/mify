@@ -7,8 +7,8 @@ import (
 	"strings"
 	"unicode"
 
-	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
-	"github.com/chebykinn/mify/pkg/mifyconfig"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
 func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *gencontext.GenContext, schemaPath string) (string, error) {

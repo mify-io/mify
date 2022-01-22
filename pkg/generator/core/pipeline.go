@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
-	"github.com/chebykinn/mify/pkg/workspace"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/workspace"
 )
 
 const (

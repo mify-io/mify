@@ -1,7 +1,7 @@
 package mify
 
 import (
-	"github.com/chebykinn/mify/pkg/workspace/mutators/client"
+	"github.com/mify-io/mify/pkg/workspace/mutators/client"
 )
 
 func AddClient(ctx *CliContext, basePath string, name string, clientName string) error {

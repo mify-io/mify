@@ -5,9 +5,9 @@ import (
 	"strings"
 	"unicode"
 
-	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
-	"github.com/chebykinn/mify/pkg/mifyconfig"
-	"github.com/chebykinn/mify/pkg/workspace"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/workspace"
 )
 
 type ServiceModel struct {

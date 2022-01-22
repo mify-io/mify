@@ -1,8 +1,8 @@
 package mify
 
 import (
-	"github.com/chebykinn/mify/pkg/mifyconfig"
-	"github.com/chebykinn/mify/pkg/workspace/mutators/service"
+	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/workspace/mutators/service"
 )
 
 func CreateService(ctx *CliContext, basePath string, language string, name string) error {

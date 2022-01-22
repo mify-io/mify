@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
-	"github.com/chebykinn/mify/pkg/generator/steps/schema/context"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/generator/steps/schema/context"
 	"github.com/getkin/kin-openapi/openapi3"
 	"gopkg.in/yaml.v2"
 )

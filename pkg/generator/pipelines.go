@@ -1,12 +1,12 @@
 package generator
 
 import (
-	"github.com/chebykinn/mify/pkg/generator/core"
-	apigateway "github.com/chebykinn/mify/pkg/generator/steps/api-gateway"
-	devrunner "github.com/chebykinn/mify/pkg/generator/steps/dev-runner"
-	layout "github.com/chebykinn/mify/pkg/generator/steps/layout"
-	openapi "github.com/chebykinn/mify/pkg/generator/steps/openapi"
-	schema "github.com/chebykinn/mify/pkg/generator/steps/schema"
+	"github.com/mify-io/mify/pkg/generator/core"
+	apigateway "github.com/mify-io/mify/pkg/generator/steps/api-gateway"
+	devrunner "github.com/mify-io/mify/pkg/generator/steps/dev-runner"
+	layout "github.com/mify-io/mify/pkg/generator/steps/layout"
+	openapi "github.com/mify-io/mify/pkg/generator/steps/openapi"
+	schema "github.com/mify-io/mify/pkg/generator/steps/schema"
 )
 
 func BuildServicePipeline() core.Pipeline {

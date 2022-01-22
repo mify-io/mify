@@ -1,7 +1,7 @@
 package apigateway
 
 import (
-	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/getkin/kin-openapi/openapi3"
 )
 

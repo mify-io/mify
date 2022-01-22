@@ -1,8 +1,8 @@
 package mify
 
 import (
-	"github.com/chebykinn/mify/pkg/workspace/mutators"
-	"github.com/chebykinn/mify/pkg/workspace/mutators/workspace"
+	"github.com/mify-io/mify/pkg/workspace/mutators"
+	"github.com/mify-io/mify/pkg/workspace/mutators/workspace"
 )
 
 func CreateWorkspace(ctx *CliContext, basePath string, name string) error {

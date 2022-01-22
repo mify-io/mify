@@ -15,9 +15,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/chebykinn/mify/internal/mify/config"
-	"github.com/chebykinn/mify/internal/mify/util"
-	gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/internal/mify/config"
+	"github.com/mify-io/mify/internal/mify/util"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 )
 
 type serviceGenCache struct {

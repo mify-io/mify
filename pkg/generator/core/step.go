@@ -1,6 +1,6 @@
 package core
 
-import gencontext "github.com/chebykinn/mify/pkg/generator/gen-context"
+import gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 
 type StepResult int
 
