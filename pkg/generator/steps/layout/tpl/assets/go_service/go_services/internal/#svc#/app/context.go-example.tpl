@@ -3,7 +3,7 @@ package app
 import (
 	"net/http"
 
-	"github.com/chebykinn/mify-deploy/go_services/internal/k8s-control/generated/core"
+	"{{.GoModule}}/internal/{{.ServiceName}}/generated/core"
 )
 
 type routerConfig struct {

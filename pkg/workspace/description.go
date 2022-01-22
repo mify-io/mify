@@ -3,6 +3,7 @@
 package workspace
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path"
@@ -19,6 +20,11 @@ const (
 	GoServicesDirName = "go_services"
 )
 
+var (
+	ErrUnsupportedLanguage = errors.New("unknown or unsupported language")
+	ErrNoSuchService = errors.New("no such service")
+)
+
 type GoService struct {
 	Name string
 }
@@ -29,6 +35,7 @@ type Description struct {
 	GoRoot     string // Path to go_services
 	Config     mifyconfig.WorkspaceConfig
 	TplHeader  string
+	// legacy
 	GoServices []GoService
 }
 
@@ -63,6 +70,32 @@ func InitDescription(workspacePath string) (Description, error) {
 	}
 
 	return res, nil
+}
+
+func (c Description) GetServices() []string {
+	services := []string{}
+	files, err := ioutil.ReadDir(c.GetSchemasRootAbsPath())
+	if err != nil {
+		return nil
+	}
+
+	for _, f := range files {
+		if !f.IsDir() {
+			continue
+		}
+		services = append(services, f.Name())
+	}
+	return services
+}
+
+func (c Description) HasService(serviceName string) bool {
+	services := c.GetServices()
+	for _, svc := range services {
+		if serviceName == svc {
+			return true
+		}
+	}
+	return false
 }
 
 // Path to include app.go
@@ -129,6 +162,33 @@ func (c Description) GetGoModule() string {
 
 func (c *Description) GetGoServicesPath() string {
 	return path.Join(c.BasePath, "go_services")
+}
+
+func (c *Description) GetJsServicesPath() string {
+	return path.Join(c.BasePath, "js_services")
+}
+
+func (c *Description) GetServicesAbsPath(lang mifyconfig.ServiceLanguage) (string, error) {
+	switch lang {
+	case mifyconfig.ServiceLanguageGo:
+		return c.GetGoServicesPath(), nil
+	case mifyconfig.ServiceLanguageJs:
+		return c.GetJsServicesPath(), nil
+	}
+	return "", ErrUnsupportedLanguage
+}
+
+func (c *Description) GetDockerfileAbsPath(serviceName string, lang mifyconfig.ServiceLanguage) (string, error) {
+	if !c.HasService(serviceName) {
+		return "", ErrNoSuchService
+	}
+	switch lang {
+	case mifyconfig.ServiceLanguageGo:
+		return path.Join(c.GetCmdPath(serviceName), "Dockerfile"), nil
+	case mifyconfig.ServiceLanguageJs:
+		return path.Join(c.GetJsServicesPath(), serviceName, "Dockerfile"), nil
+	}
+	return "", ErrUnsupportedLanguage
 }
 
 func (c *Description) GetCmdPath(serviceName string) string {
