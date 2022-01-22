@@ -1,4 +1,4 @@
-module github.com/chebykinn/mify
+module github.com/mify-io/mify
 
 go 1.17
 
