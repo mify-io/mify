@@ -225,7 +225,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/allParams}}
 	builder := r.Context().Value(MifyContextField).(*core.MifyRequestContextBuilder)
 
-	reqCtx, err := builder.Build(r.Context())
+	reqCtx, err := builder.Build(r, w)
 	if err != nil {
 		resp := Response(http.StatusInternalServerError, nil)
 		c.errorHandler(w, r, err, &resp)

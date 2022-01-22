@@ -60,5 +60,8 @@ func getLanguageTemplatePath(ctx *gencontext.GenContext) (string, error) {
 	case mifyconfig.ServiceLanguageJs:
 		return "assets/js_service", nil
 	}
+	if len(mifySchema.Language) == 0 {
+		return "", fmt.Errorf("missing language in service.mify.yaml")
+	}
 	return "", fmt.Errorf("no such language: %s", mifySchema.Language)
 }

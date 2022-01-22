@@ -3,6 +3,7 @@
 package app
 
 import (
+	"net/http"
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -12,18 +13,34 @@ import (
 	"{{.GoModule}}/internal/{{.ServiceName}}/generated/core"
 )
 
+type routerConfig struct {
+	middlewares []func(http.Handler) http.Handler
+}
+
+func newRouterConfig() *routerConfig {
+	conf := app.NewRouterConfig()
+	return &routerConfig {
+		middlewares: conf.Middlewares,
+	}
+}
+
+func (r *routerConfig) Middlewares() []func(http.Handler) http.Handler {
+	return r.middlewares
+}
+
 type MifyServiceApp struct {
 	context *core.MifyServiceContext
 	router  chi.Router
 }
 
 func NewMifyServiceApp(goGontext context.Context) *MifyServiceApp {
-	serviceContext, _ := core.NewMifyServiceContext(goGontext, "{{.ServiceName}}")
-	router := openapi_init.Routes(serviceContext)
+	serviceContext, _ := core.NewMifyServiceContext(
+		goGontext, "{{.ServiceName}}",
+		func(ctx *core.MifyServiceContext) (interface{}, error) {
+			return app.NewServiceContext(ctx)
+		})
+	router := openapi_init.Routes(serviceContext, newRouterConfig())
 
-	for _, middleware := range app.MiddlewareList {
-		router.Use(middleware)
-	}
 	router.Handle("/metrics", promhttp.Handler())
 
 	return &MifyServiceApp{

@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 
 	"context"
+	"net/http"
 	"time"
 
 	"{{.GoModule}}/internal/pkg/generated/metrics"
@@ -64,13 +65,14 @@ func (b *MifyRequestContextBuilder) ServiceContext() *MifyServiceContext {
 	return b.serviceContext
 }
 
-func (b *MifyRequestContextBuilder) Build(ctx context.Context) (*MifyRequestContext, error) {
+func (b *MifyRequestContextBuilder) Build(r *http.Request, rw http.ResponseWriter) (*MifyRequestContext, error) {
 	return &MifyRequestContext{
 		MifyServiceContext: b.serviceContext,
 
 		requestId:      b.requestId,
 		logger:         b.Logger(),
-		requestCtx:     ctx,
+		request:        r,
+		responseWriter: rw,
 	}, nil
 }
 
@@ -78,32 +80,41 @@ type MifyRequestContext struct {
 	*MifyServiceContext
 
 	requestId      string
-	logger     *zap.Logger
-	requestCtx context.Context
+	logger         *zap.Logger
+	request        *http.Request
+	responseWriter http.ResponseWriter
 }
 
 func (c *MifyRequestContext) Logger() *zap.Logger {
 	return c.logger
 }
 
+func (c *MifyRequestContext) Request() *http.Request {
+	return c.request
+}
+
 func (c *MifyRequestContext) RequestContext() context.Context {
-	return c.requestCtx
+	return c.request.Context()
+}
+
+func (c *MifyRequestContext) ResponseWriter() http.ResponseWriter {
+	return c.responseWriter
 }
 
 // context.Context
 
 func (c *MifyRequestContext) Deadline() (deadline time.Time, ok bool) {
-	return c.requestCtx.Deadline()
+	return c.request.Context().Deadline()
 }
 
 func (c *MifyRequestContext) Done() <-chan struct{} {
-	return c.requestCtx.Done()
+	return c.request.Context().Done()
 }
 
 func (c *MifyRequestContext) Err() error {
-	return c.requestCtx.Err()
+	return c.request.Context().Err()
 }
 
 func (c *MifyRequestContext) Value(key interface{}) interface{} {
-	return c.requestCtx.Value(key)
+	return c.request.Context().Value(key)
 }

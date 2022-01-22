@@ -7,9 +7,6 @@ import (
 {{#routers}}
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	{{#featureCORS}}
-	"github.com/go-chi/cors"
-	{{/featureCORS}}
 {{/routers}}
 	"io/ioutil"
 	"mime/multipart"
@@ -20,6 +17,10 @@ import (
 
 	"{{goModule}}/internal/{{serviceName}}/generated/core"
 )
+
+type RouterConfig interface {
+	Middlewares() []func(http.Handler) http.Handler
+}
 
 // A Route defines the parameters for an api endpoint
 type Route struct {
@@ -40,16 +41,16 @@ type Router interface {
 const errMsgRequiredMissing = "required parameter is missing"
 
 // NewRouter creates a new router for any number of api routers
-func NewRouter(mifyCtx *core.MifyServiceContext, routers ...Router) {{#routers}}chi.Router{{/routers}} {
+func NewRouter(mifyCtx *core.MifyServiceContext, routerConfig RouterConfig, routers ...Router) {{#routers}}chi.Router{{/routers}} {
 {{#routers}}
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(RequestContext(mifyCtx))
 	router.Use(Logger())
 	router.Use(Metrics())
-	{{#featureCORS}}
-	router.Use(cors.Handler(cors.Options{}))
-	{{/featureCORS}}
+	for _, middleware := range routerConfig.Middlewares() {
+		router.Use(middleware)
+	}
 {{/routers}}
 	for _, api := range routers {
 		for _, route := range api.Routes() {

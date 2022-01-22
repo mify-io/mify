@@ -2,6 +2,7 @@ package openapi
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -21,29 +22,35 @@ var jsClientsTemplate string
 
 // Update only when new services added or removed or context is not generated yet
 func needGenerateClientsContext(ctx *gencontext.GenContext, clientsDiff clientsDiff) bool {
-	pathToClientsContext := getAbsPathToClientsContext(ctx)
-	_, err := os.Stat(pathToClientsContext)
+	pathToClientsContext, err := getAbsPathToClientsContext(ctx)
+	if err != nil {
+		return false
+	}
+	_, err = os.Stat(pathToClientsContext)
 	return os.IsNotExist(err) || len(clientsDiff.added) > 0 || len(clientsDiff.removed) > 0
 }
 
-func getAbsPathToClientsContext(ctx *gencontext.GenContext) string {
+func getAbsPathToClientsContext(ctx *gencontext.GenContext) (string, error) {
 	switch ctx.MustGetMifySchema().Language {
 	case mifyconfig.ServiceLanguageGo:
 		generatedDirPath := ctx.GetWorkspace().GetGeneratedAbsPath(ctx.GetServiceName())
-		return path.Join(generatedDirPath, "core", "clients.go")
+		return path.Join(generatedDirPath, "core", "clients.go"), nil
 	case mifyconfig.ServiceLanguageJs:
 		generatedDirPath := ctx.GetWorkspace().GetJsGeneratedAbsPath(ctx.GetServiceName())
-		return path.Join(generatedDirPath, "core", "clients.js")
+		return path.Join(generatedDirPath, "core", "clients.js"), nil
 	}
 
-	panic("not supported language")
+	return "", errors.New("unknown or not supported language")
 }
 
 // Generate struct which will be included in service context (generated part of service)
 func generateClientsContext(ctx *gencontext.GenContext) error {
 	ctx.Logger.Infof("Generating clients context in service '%s'", ctx.GetServiceName())
 
-	path := getAbsPathToClientsContext(ctx)
+	path, err := getAbsPathToClientsContext(ctx)
+	if err != nil {
+		return err
+	}
 
 	switch ctx.MustGetMifySchema().Language {
 	case mifyconfig.ServiceLanguageGo:

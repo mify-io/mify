@@ -24,13 +24,13 @@ func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *gencontext.GenContext, 
 	// TODO mapstructure
 	paths := pathsIface.(map[interface{}]interface{})
 	for path, v := range paths {
-		ctx.Logger.Infof("processing path: %s\n", path)
+		ctx.Logger.Infof("processing path: %s", path)
 		methods := v.(map[interface{}]interface{})
 		if _, ok := methods["$ref"]; ok {
 			return "", fmt.Errorf("paths with $ref are not supported yet")
 		}
 		for m, vv := range methods {
-			ctx.Logger.Infof("processing method: %s\n", m)
+			ctx.Logger.Infof("processing method: %s", m)
 			method := vv.(map[interface{}]interface{})
 			method["tags"] = []string{"api"}
 			methods[m] = method

@@ -129,9 +129,9 @@ func moveServerHandlers(ctx *gencontext.GenContext, apiPath string, handlersPath
 	if err != nil {
 		return err
 	}
-	ctx.Logger.Infof("services: %v\n", services)
+	ctx.Logger.Infof("services: %v", services)
 	if len(services) == 0 {
-		ctx.Logger.Infof("no handlers to move\n")
+		ctx.Logger.Infof("no handlers to move")
 		return nil
 	}
 	pathsSet := map[string]string{}
@@ -140,7 +140,7 @@ func moveServerHandlers(ctx *gencontext.GenContext, apiPath string, handlersPath
 		path = strings.ReplaceAll(path, "}", "")
 		pathsSet[toAPIFilename(path)] = path
 	}
-	ctx.Logger.Infof("paths: %v\n", pathsSet)
+	ctx.Logger.Infof("paths: %v", pathsSet)
 	for _, service := range services {
 		serviceFileName := filepath.Base(service)
 		serviceFileName = strings.TrimSuffix(serviceFileName, "_service.go")
@@ -149,14 +149,14 @@ func moveServerHandlers(ctx *gencontext.GenContext, apiPath string, handlersPath
 			return fmt.Errorf("failed to find path for service file: %s", serviceFileName)
 		}
 
-		ctx.Logger.Infof("processing handler for: %v\n", path)
+		ctx.Logger.Infof("processing handler for: %v", path)
 		targetFile := filepath.Join(handlersPath, path, "service.go")
 		defer func(svc string) {
 			if err := os.Remove(svc); err != nil {
-				ctx.Logger.Infof("failed to remove service file: %s: %s\n", svc, err)
+				ctx.Logger.Infof("failed to remove service file: %s: %s", svc, err)
 				return
 			}
-			ctx.Logger.Infof("cleaned generated service file: %s\n", svc)
+			ctx.Logger.Infof("cleaned generated service file: %s", svc)
 		}(service)
 
 		if _, err := os.Stat(targetFile); err == nil {
@@ -169,7 +169,7 @@ func moveServerHandlers(ctx *gencontext.GenContext, apiPath string, handlersPath
 		if err := createServerHandlersFile(ctx, service, targetFile); err != nil {
 			return err
 		}
-		ctx.Logger.Infof("created handler for: %v\n", path)
+		ctx.Logger.Infof("created handler for: %v", path)
 	}
 	return nil
 }
@@ -252,14 +252,14 @@ func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *gencontext.GenContext, 
 	// TODO mapstructure
 	pathsList := []string{}
 	for path, v := range mergedSchema.paths {
-		ctx.Logger.Infof("processing path: %s\n", path)
+		ctx.Logger.Infof("processing path: %s", path)
 		methods := v.(map[interface{}]interface{})
 		if _, ok := methods["$ref"]; ok {
 			return "", nil, fmt.Errorf("paths with $ref are not supported yet")
 		}
 		pathsList = append(pathsList, path.(string))
 		for m, vv := range methods {
-			ctx.Logger.Infof("processing method: %s\n", m)
+			ctx.Logger.Infof("processing method: %s", m)
 			method := vv.(map[interface{}]interface{})
 			method["tags"] = []string{path.(string)}
 			methods[m] = method
@@ -347,7 +347,7 @@ func createServerHandlersFile(ctx *gencontext.GenContext, serviceFile string, ta
 		if _, ok := primitivesList[innermostType]; !ok {
 			decl.Type = strings.ReplaceAll(decl.Type, innermostType, "openapi."+innermostType)
 		}
-		ctx.Logger.Infof("writing param %s %s\n", decl.Name, decl.Type)
+		ctx.Logger.Infof("writing param %s %s", decl.Name, decl.Type)
 		fmt.Fprintf(w, ", %s %s", decl.Name, decl.Type)
 	}
 
@@ -424,7 +424,7 @@ func sanitizeServerHandlersImports(ctx *gencontext.GenContext, apiPath string) e
 		return err
 	}
 
-	ctx.Logger.Infof("sanitized routes imports\n")
+	ctx.Logger.Infof("sanitized routes imports")
 	return nil
 }
 

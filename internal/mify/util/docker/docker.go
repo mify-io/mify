@@ -69,7 +69,7 @@ func PullImage(ctx context.Context, logger *zap.SugaredLogger, image string) err
 		return err
 	}
 
-	logger.Infof("pulling image: %s\n", image)
+	logger.Infof("pulling image: %s", image)
 	reader, err := cli.ImagePull(ctx, image, types.ImagePullOptions{})
 	if err != nil {
 		return err
@@ -122,7 +122,7 @@ func Run(ctx context.Context, logger *zap.SugaredLogger, image string, params Do
 		return err
 	}
 
-	logger.Infof("running image: %s\n", image)
+	logger.Infof("running image: %s", image)
 	var exitCode int64
 	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
 	select {

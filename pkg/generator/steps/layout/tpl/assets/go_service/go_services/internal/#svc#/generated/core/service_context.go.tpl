@@ -12,7 +12,6 @@ import (
 	"{{.GoModule}}/internal/pkg/generated/logs"
 	"{{.GoModule}}/internal/pkg/generated/metrics"
 	"{{.GoModule}}/internal/pkg/generated/consul"
-	"{{.GoModule}}/internal/{{.ServiceName}}/app"
 )
 
 type MifyServiceContext struct {
@@ -26,10 +25,12 @@ type MifyServiceContext struct {
 	dynamicConfig  *configs.MifyDynamicConfig
 	clients        *MifyServiceClients
 
-	serviceContext *app.ServiceContext
+	serviceContext interface{}
 }
 
-func NewMifyServiceContext(goContext context.Context, serviceName string) (*MifyServiceContext, error) {
+type ContextCreateFunc = func(ctx *MifyServiceContext) (interface{}, error)
+
+func NewMifyServiceContext(goContext context.Context, serviceName string, ctxFunc ContextCreateFunc) (*MifyServiceContext, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return &MifyServiceContext{}, err
@@ -69,7 +70,7 @@ func NewMifyServiceContext(goContext context.Context, serviceName string) (*Mify
 	}
 	context.clients = clients
 
-	svcCtx, err := app.NewServiceContext()
+	svcCtx, err := ctxFunc(context)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +111,6 @@ func (c *MifyServiceContext) Clients() *MifyServiceClients {
 	return c.clients
 }
 
-func (c *MifyServiceContext) ServiceContext() *app.ServiceContext {
+func (c *MifyServiceContext) ServiceContext() interface{} {
 	return c.serviceContext
 }
