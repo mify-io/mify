@@ -11,16 +11,18 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"sync"
 
 	"os/user"
 	"path/filepath"
 	"strings"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/mify-io/mify/internal/mify/config"
 	"github.com/mify-io/mify/internal/mify/util/docker"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/mifyconfig"
-	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/mify-io/mify/pkg/util/threading"
 	"github.com/otiai10/copy"
 	"gopkg.in/yaml.v2"
 )
@@ -50,6 +52,9 @@ type OpenAPIGenerator struct {
 	info             OpenAPIGeneratorInfo
 	serverAssetsPath string
 	clientAssetsPath string
+
+	prepareMutex sync.Mutex
+	prepared     bool
 }
 
 type OpenAPIGeneratorMode int16
@@ -73,6 +78,20 @@ func NewOpenAPIGenerator(ctx *gencontext.GenContext) OpenAPIGenerator {
 		language: ctx.MustGetMifySchema().Language,
 		info:     info,
 	}
+}
+
+func (g *OpenAPIGenerator) PrepareSync(ctx *gencontext.GenContext) error {
+	if g.prepared {
+		return nil
+	}
+
+	return threading.DoUnderLock(&g.prepareMutex, func() error {
+		if g.prepared {
+			return nil
+		}
+
+		return g.Prepare(ctx)
+	})
 }
 
 func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
@@ -106,6 +125,8 @@ func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 		}
 		ctx.Logger.Infof("dumped client path: %s", g.clientAssetsPath)
 	}
+
+	g.prepared = true
 	return nil
 }
 

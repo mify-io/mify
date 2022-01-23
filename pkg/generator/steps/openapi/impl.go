@@ -3,15 +3,15 @@ package openapi
 import (
 	"fmt"
 
+	"github.com/containerd/containerd/log"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/mifyconfig"
-	"github.com/containerd/containerd/log"
 )
 
 func generateServiceOpenAPI(ctx *gencontext.GenContext) error {
 	openapigen := NewOpenAPIGenerator(ctx)
 
-	serverNeedsRegeneration, err := checkServerNeedsRegeneration(ctx, openapigen)
+	serverNeedsRegeneration, err := checkServerNeedsRegeneration(ctx, &openapigen)
 	if err != nil {
 		return err
 	}
@@ -29,52 +29,77 @@ func generateServiceOpenAPI(ctx *gencontext.GenContext) error {
 		ctx.Logger.Infof("Clients included in service '%s' are actual. Skipping...", ctx.GetServiceName())
 	}
 
-	return doGeneration(ctx, openapigen, serverNeedsRegeneration, clientsDiff)
+	return doGeneration(ctx, &openapigen, serverNeedsRegeneration, clientsDiff)
 }
 
 func doGeneration(
 	ctx *gencontext.GenContext,
-	openapigen OpenAPIGenerator,
+	openapigen *OpenAPIGenerator,
 	generateServer bool,
 	clientsDiff clientsDiff) error {
 
-	wrapError := func(err error) error {
-		return fmt.Errorf("error during generation: %w", err)
+	executePool := ctx.GetExecutePoolFactory().NewPool()
+
+	executePool.EnqueExecution(func() error {
+		if !generateServer {
+			return nil
+		}
+
+		if err := tryPrepareOpenApi(ctx, openapigen); err != nil {
+			return err
+		}
+
+		if err := generateServerSide(ctx, openapigen); err != nil {
+			return fmt.Errorf("failed while generating server side: %w", err)
+		}
+
+		return nil
+	})
+
+	executePool.EnqueExecution(func() error {
+		if clientsDiff.Empty() {
+			return nil
+		}
+
+		if err := tryPrepareOpenApi(ctx, openapigen); err != nil {
+			return err
+		}
+
+		if err := generateClients(ctx, openapigen, clientsDiff); err != nil {
+			return fmt.Errorf("failed while generating clients: %w", err)
+		}
+
+		return nil
+	})
+
+	executePool.EnqueExecution(func() error {
+		if !needGenerateClientsContext(ctx, clientsDiff) {
+			return nil
+		}
+
+		if err := generateClientsContext(ctx); err != nil {
+			return fmt.Errorf("failed while generating clients context: %w", err)
+		}
+
+		return nil
+	})
+
+	errs := executePool.WaitAll()
+	if errs != nil {
+		return errs[0]
 	}
 
-	// TODO: server + clients parallelization
-
-	if generateServer || !clientsDiff.Empty() {
-		err := openapigen.Prepare(ctx)
-		if err != nil {
-			return wrapError(err)
-		}
-
-		if generateServer {
-			err := generateServerSide(ctx, &openapigen)
-			if err != nil {
-				return wrapError(err)
-			}
-		}
-
-		if !clientsDiff.Empty() {
-			err = generateClients(ctx, &openapigen, clientsDiff)
-			if err != nil {
-				return wrapError(err)
-			}
-		}
+	if err := updateClientsList(ctx); err != nil {
+		return fmt.Errorf("failed while updating mify schema: %w", err)
 	}
 
-	if needGenerateClientsContext(ctx, clientsDiff) {
-		err := generateClientsContext(ctx)
-		if err != nil {
-			return wrapError(err)
-		}
+	return nil
+}
 
-		err = updateClientsList(ctx)
-		if err != nil {
-			return wrapError(err)
-		}
+func tryPrepareOpenApi(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator) error {
+	err := openapigen.PrepareSync(ctx)
+	if err != nil {
+		return fmt.Errorf("failed while preparing openapi: %w", err)
 	}
 
 	return nil
@@ -94,7 +119,7 @@ func generateServerSide(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGen
 	return nil
 }
 
-func checkServerNeedsRegeneration(ctx *gencontext.GenContext, openapigen OpenAPIGenerator) (bool, error) {
+func checkServerNeedsRegeneration(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator) (bool, error) {
 	wrapError := func(err error) error {
 		return fmt.Errorf("can't check if server needs regeneration: %w", err)
 	}
@@ -120,31 +145,48 @@ func generateClients(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, c
 		return err
 	}
 
-	// TODO: parallel
+	executePool := ctx.GetExecutePoolFactory().NewPool()
 
 	for clientName := range clientsDiff.removed {
-		log.L.Trace("Removing client '%s' from service '%s' ...", clientName, ctx.GetServiceName())
+		executePool.EnqueExecution(func() error {
+			log.L.Trace("Removing client '%s' from service '%s' ...", clientName, ctx.GetServiceName())
 
-		err := openapigen.RemoveClient(ctx, clientName, targetDir)
-		if err != nil {
-			return err
-		}
+			err := openapigen.RemoveClient(ctx, clientName, targetDir)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
 	}
 
 	for clientName := range clientsDiff.added {
-		log.L.Trace("Adding client '%s' to service '%s' ...", clientName, ctx.GetServiceName())
+		executePool.EnqueExecution(func() error {
+			log.L.Trace("Adding client '%s' to service '%s' ...", clientName, ctx.GetServiceName())
 
-		if err := openapigen.GenerateClient(ctx, clientName, targetDir); err != nil {
-			return fmt.Errorf("failed to generate client for: %s: %w", clientName, err)
-		}
+			if err := openapigen.GenerateClient(ctx, clientName, targetDir); err != nil {
+				return fmt.Errorf("failed to generate client for: %s: %w", clientName, err)
+			}
+
+			return nil
+		})
 	}
 
 	for clientName := range clientsDiff.schemaChanged {
-		log.L.Trace("Regenerating client '%s' in service '%s' ...", clientName, ctx.GetServiceName())
+		executePool.EnqueExecution(func() error {
+			log.L.Trace("Regenerating client '%s' in service '%s' ...", clientName, ctx.GetServiceName())
 
-		if err := openapigen.GenerateClient(ctx, clientName, targetDir); err != nil {
-			return fmt.Errorf("failed to generate client for: %s: %w", clientName, err)
-		}
+			if err := openapigen.GenerateClient(ctx, clientName, targetDir); err != nil {
+				return fmt.Errorf("failed to generate client for: %s: %w", clientName, err)
+			}
+
+			return nil
+		})
+	}
+
+	errs := executePool.WaitAll()
+	if errs != nil {
+		return errs[0]
 	}
 
 	return nil

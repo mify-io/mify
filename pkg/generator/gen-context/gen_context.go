@@ -12,8 +12,9 @@ import (
 )
 
 type GenContext struct {
-	goContext context.Context
-	Logger    *zap.SugaredLogger
+	goContext          context.Context
+	Logger             *zap.SugaredLogger
+	executePoolFactory *ExecutePoolFactory
 
 	serviceName string
 	workspace   workspace.Description
@@ -41,6 +42,10 @@ func NewGenContext(
 
 func (c *GenContext) GetGoContext() context.Context {
 	return c.goContext
+}
+
+func (c *GenContext) GetExecutePoolFactory() *ExecutePoolFactory {
+	return c.executePoolFactory
 }
 
 func (c *GenContext) GetServiceName() string {
