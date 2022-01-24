@@ -8,8 +8,8 @@ import (
 	"github.com/mify-io/mify/internal/mify/util"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/generator/steps/dev-runner/tpl"
-	"github.com/mify-io/mify/pkg/generator/templater"
 	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/util/render"
 )
 
 const (
@@ -23,7 +23,7 @@ func execute(ctx *gencontext.GenContext) error {
 	services := make([]tpl.TargetService, 0)
 	for serviceName := range *ctx.GetSchemaCtx().GetAllSchemas() {
 		// TODO: temporary check if service is already generated. Remove in future
-		path := ctx.GetWorkspace().GetAppPath(serviceName)
+		path := ctx.GetWorkspace().GetGeneratedAppPath(serviceName)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			continue
 		}
@@ -36,7 +36,7 @@ func execute(ctx *gencontext.GenContext) error {
 	}
 
 	model := tpl.NewModel(ctx.GetWorkspace().TplHeader, services)
-	err := templater.RenderTemplate("devRunner", devRunnerTemplate, model, buildPathToMainGo(ctx))
+	err := render.RenderTemplate(devRunnerTemplate, model, buildPathToMainGo(ctx))
 	if err != nil {
 		return err
 	}

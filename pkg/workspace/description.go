@@ -22,7 +22,7 @@ const (
 
 var (
 	ErrUnsupportedLanguage = errors.New("unknown or unsupported language")
-	ErrNoSuchService = errors.New("no such service")
+	ErrNoSuchService       = errors.New("no such service")
 )
 
 type GoService struct {
@@ -30,11 +30,11 @@ type GoService struct {
 }
 
 type Description struct {
-	Name       string
-	BasePath   string
-	GoRoot     string // Path to go_services
-	Config     mifyconfig.WorkspaceConfig
-	TplHeader  string
+	Name      string
+	BasePath  string
+	GoRoot    string // Path to go_services
+	Config    mifyconfig.WorkspaceConfig
+	TplHeader string
 	// legacy
 	GoServices []GoService
 }
@@ -98,11 +98,19 @@ func (c Description) HasService(serviceName string) bool {
 	return false
 }
 
-// Path to include app.go
+// Path to include 'app' package
 func (c Description) GetAppIncludePath(serviceName string) string {
 	return fmt.Sprintf(
-		"%s/go_services/internal/%s/generated/app",
-		c.GetRepository(),
+		"%s/internal/%s/generated/app",
+		c.GetGoModule(),
+		serviceName)
+}
+
+// Path to include 'core' package
+func (c *Description) GetCoreIncludePath(serviceName string) string {
+	return fmt.Sprintf(
+		"%s/internal/%s/generated/core",
+		c.GetGoModule(),
 		serviceName)
 }
 
@@ -160,8 +168,28 @@ func (c Description) GetGoModule() string {
 		mifyconfig.GoServicesRoot)
 }
 
+func (c *Description) GetGoServicesRelPath() string {
+	return "go_services"
+}
+
 func (c *Description) GetGoServicesPath() string {
-	return path.Join(c.BasePath, "go_services")
+	return path.Join(c.BasePath, c.GetGoServicesRelPath())
+}
+
+func (c *Description) GetGoModRelPath() string {
+	return path.Join(c.GetGoServicesRelPath(), "go.mod")
+}
+
+func (c *Description) GetGoModAbsPath() string {
+	return path.Join(c.BasePath, c.GetGoModRelPath())
+}
+
+func (c *Description) GetGoSumRelPath() string {
+	return path.Join(c.GetGoServicesRelPath(), "go.sum")
+}
+
+func (c *Description) GetGoSumAbsPath() string {
+	return path.Join(c.BasePath, c.GetGoSumRelPath())
 }
 
 func (c *Description) GetJsServicesPath() string {
@@ -211,8 +239,21 @@ func (c *Description) GetJsGeneratedAbsPath(serviceName string) string {
 	return path.Join(c.BasePath, c.GetJsGeneratedRelPath(serviceName))
 }
 
-func (c *Description) GetAppPath(serviceName string) string {
+func (c *Description) GetGeneratedAppPath(serviceName string) string {
 	return path.Join(c.GetGoServicesPath(), "internal", serviceName, "generated/app")
+}
+
+func (c *Description) GetAppRelPath(serviceName string) string {
+	return path.Join(c.GetGoServicesRelPath(), "internal", serviceName, "app")
+}
+
+// User app
+func (c *Description) GetAppSubRelPath(serviceName string, fileName string) string {
+	return path.Join(c.GetAppRelPath(serviceName), fileName)
+}
+
+func (c *Description) GetAppSubAbsPath(serviceName string, fileName string) string {
+	return path.Join(c.BasePath, c.GetAppSubRelPath(serviceName, fileName))
 }
 
 // Name which can be used in generated go code

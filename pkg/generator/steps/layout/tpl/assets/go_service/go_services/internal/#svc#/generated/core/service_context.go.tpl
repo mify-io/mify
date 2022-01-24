@@ -25,12 +25,12 @@ type MifyServiceContext struct {
 	dynamicConfig  *configs.MifyDynamicConfig
 	clients        *MifyServiceClients
 
-	serviceContext interface{}
+	serviceExtra interface{}
 }
 
-type ContextCreateFunc = func(ctx *MifyServiceContext) (interface{}, error)
+type ServiceExtraCreateFunc = func(ctx *MifyServiceContext) (interface{}, error)
 
-func NewMifyServiceContext(goContext context.Context, serviceName string, ctxFunc ContextCreateFunc) (*MifyServiceContext, error) {
+func NewMifyServiceContext(goContext context.Context, serviceName string, extraCreate ServiceExtraCreateFunc) (*MifyServiceContext, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		return &MifyServiceContext{}, err
@@ -70,11 +70,11 @@ func NewMifyServiceContext(goContext context.Context, serviceName string, ctxFun
 	}
 	context.clients = clients
 
-	svcCtx, err := ctxFunc(context)
+	extra, err := extraCreate(context)
 	if err != nil {
 		return nil, err
 	}
-	context.serviceContext = svcCtx
+	context.serviceExtra = extra
 
 	return context, nil
 }
@@ -111,6 +111,6 @@ func (c *MifyServiceContext) Clients() *MifyServiceClients {
 	return c.clients
 }
 
-func (c *MifyServiceContext) ServiceContext() interface{} {
-	return c.serviceContext
+func (c *MifyServiceContext) ServiceExtra() interface{} {
+	return c.serviceExtra
 }

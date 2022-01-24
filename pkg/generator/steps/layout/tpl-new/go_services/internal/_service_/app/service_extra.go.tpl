@@ -3,7 +3,7 @@ package app
 import (
 	"net/http"
 
-	"{{.GoModule}}/internal/{{.ServiceName}}/generated/core"
+	"{{.CoreInclude}}"
 )
 
 type routerConfig struct {
@@ -18,14 +18,14 @@ func NewRouterConfig() *routerConfig {
 	}
 }
 
-type ServiceContext struct {
+type ServiceExtra struct {
 	// Append your dependencies here
 }
 
-func NewServiceContext(ctx *core.MifyServiceContext) (*ServiceContext, error) {
+func NewServiceExtra(ctx *core.MifyServiceContext) (*ServiceExtra, error) {
 	// Here you can do your custom service initialization, prepare dependencies
-	context := &ServiceContext{
+	extra := &ServiceExtra{
 		// Here you can initialize your dependencies
 	}
-	return context, nil
+	return extra, nil
 }

@@ -10,8 +10,8 @@ import (
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/generator/steps/openapi/tpl"
-	"github.com/mify-io/mify/pkg/generator/templater"
 	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/util/render"
 )
 
 //go:embed tpl/go_clients.go.tpl
@@ -59,8 +59,8 @@ func generateClientsContext(ctx *gencontext.GenContext) error {
 			return err
 		}
 
-		templater.RenderTemplate("go_clients", goClientsTemplate, clientsModel, path)
-		if err := templater.RenderTemplate("go_clients", goClientsTemplate, clientsModel, path); err != nil {
+		render.RenderTemplate(goClientsTemplate, clientsModel, path)
+		if err := render.RenderTemplate(goClientsTemplate, clientsModel, path); err != nil {
 			return err
 		}
 	case mifyconfig.ServiceLanguageJs:
@@ -69,8 +69,8 @@ func generateClientsContext(ctx *gencontext.GenContext) error {
 			return err
 		}
 
-		templater.RenderTemplate("js_clients", jsClientsTemplate, clientsModel, path)
-		if err := templater.RenderTemplate("js_clients", jsClientsTemplate, clientsModel, path); err != nil {
+		render.RenderTemplate(jsClientsTemplate, clientsModel, path)
+		if err := render.RenderTemplate(jsClientsTemplate, clientsModel, path); err != nil {
 			return err
 		}
 	}

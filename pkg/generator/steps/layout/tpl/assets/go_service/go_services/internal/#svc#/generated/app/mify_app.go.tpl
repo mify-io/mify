@@ -37,7 +37,7 @@ func NewMifyServiceApp(goGontext context.Context) *MifyServiceApp {
 	serviceContext, _ := core.NewMifyServiceContext(
 		goGontext, "{{.ServiceName}}",
 		func(ctx *core.MifyServiceContext) (interface{}, error) {
-			return app.NewServiceContext(ctx)
+			return app.NewServiceExtra(ctx)
 		})
 	router := openapi_init.Routes(serviceContext, newRouterConfig())
 

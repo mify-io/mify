@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/mify-io/mify/pkg/generator/templater"
 	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/util/render"
 	"github.com/mify-io/mify/pkg/workspace"
 	"github.com/mify-io/mify/pkg/workspace/mutators"
 	"github.com/mify-io/mify/pkg/workspace/mutators/service/tpl"
@@ -68,8 +68,7 @@ func createServiceImpl(
 
 	if addOpenApi {
 		openapiSchemaPath := mutContext.GetDescription().GetApiSchemaAbsPath(serviceName, workspace.MainApiSchemaName)
-		err := templater.RenderTemplate(
-			"openapiSchema",
+		err := render.RenderTemplate(
 			apiSchemaTemplate,
 			tpl.NewApiSchemaModel(serviceName),
 			openapiSchemaPath)

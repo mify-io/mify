@@ -8,6 +8,7 @@ import (
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl"
+	tplnew "github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
@@ -18,6 +19,10 @@ const (
 func execute(ctx *gencontext.GenContext) error {
 	if err := renderServiceTemplateTree(ctx, tpl.NewServiceModel(ctx)); err != nil {
 		return fmt.Errorf("error while rendering service: %w", err)
+	}
+
+	if err := renderNew(ctx); err != nil {
+		return err
 	}
 
 	return nil
@@ -64,4 +69,14 @@ func getLanguageTemplatePath(ctx *gencontext.GenContext) (string, error) {
 		return "", fmt.Errorf("missing language in service.mify.yaml")
 	}
 	return "", fmt.Errorf("no such language: %s", mifySchema.Language)
+}
+
+func renderNew(ctx *gencontext.GenContext) error {
+	if ctx.MustGetMifySchema().Language == mifyconfig.ServiceLanguageGo {
+		if err := tplnew.RenderGo(ctx); err != nil {
+			return fmt.Errorf("can't render go files: %w", err)
+		}
+	}
+
+	return nil
 }
