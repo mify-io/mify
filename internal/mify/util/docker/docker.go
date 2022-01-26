@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"os/user"
 
 	"github.com/docker/docker/api/types"
@@ -63,7 +62,7 @@ func Cleanup(ctx context.Context) error {
 	return nil
 }
 
-func PullImage(ctx context.Context, logger *zap.SugaredLogger, image string) error {
+func PullImage(ctx context.Context, logger *zap.SugaredLogger, dockerLogs io.Writer, image string) error {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
@@ -74,19 +73,27 @@ func PullImage(ctx context.Context, logger *zap.SugaredLogger, image string) err
 	if err != nil {
 		return err
 	}
-	// TODO: do smth else
-	io.Copy(os.Stdout, reader)
+
+	_, err = io.Copy(dockerLogs, reader)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func Run(ctx context.Context, logger *zap.SugaredLogger, image string, params DockerRunParams) error {
+func Run(
+	ctx context.Context,
+	logger *zap.SugaredLogger,
+	dockerLogs io.Writer,
+	image string,
+	params DockerRunParams) error {
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return err
 	}
 	if params.PullImage {
-		if err := PullImage(ctx, logger, image); err != nil {
+		if err := PullImage(ctx, logger, dockerLogs, image); err != nil {
 			return err
 		}
 	}
@@ -142,8 +149,11 @@ func Run(ctx context.Context, logger *zap.SugaredLogger, image string, params Do
 		return err
 	}
 
-	// TODO: do smth else
-	io.Copy(os.Stdout, out)
+	_, err = io.Copy(dockerLogs, out)
+	if err != nil {
+		return err
+	}
+
 	if exitCode != 0 {
 		return fmt.Errorf("process exited with code: %d", exitCode)
 	}

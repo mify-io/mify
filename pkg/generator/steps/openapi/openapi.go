@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path"
 	"strconv"
 	"sync"
 
@@ -104,10 +105,17 @@ func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 	if err := docker.Cleanup(ctx.GetGoContext()); err != nil {
 		return err
 	}
-	if err := docker.PullImage(ctx.GetGoContext(), ctx.Logger, image); err != nil {
+
+	logFile, err := createLogFile(ctx, "docker-pull.logs")
+	if err != nil {
 		return err
 	}
-	var err error
+	defer logFile.Close()
+
+	if err := docker.PullImage(ctx.GetGoContext(), ctx.Logger, logFile, image); err != nil {
+		return err
+	}
+
 	if config.HasAssets("openapi/server-template/" + langStr) {
 		g.serverAssetsPath, err = config.DumpAssets(
 			g.basePath, "openapi/server-template/"+langStr, "openapi/server-template")
@@ -482,7 +490,14 @@ func runOpenapiGenerator(
 		Mounts: map[string]string{"/repo": basePath},
 		Cmd:    args,
 	}
-	err = docker.Run(ctx.GetGoContext(), ctx.Logger, image, params)
+
+	logFile, err := createLogFile(ctx, "docker-run.logs")
+	if err != nil {
+		return err
+	}
+	defer logFile.Close()
+
+	err = docker.Run(ctx.GetGoContext(), ctx.Logger, logFile, image, params)
 	if err != nil {
 		return err
 	}
@@ -498,4 +513,22 @@ func copyFile(from string, to string) error {
 	}
 
 	return ioutil.WriteFile(to, data, 0644)
+}
+
+func createLogFile(ctx *gencontext.GenContext, fileName string) (*os.File, error) {
+	// TODO: library for creating log files + clear before run
+	logsDir := path.Join(ctx.GetWorkspace().BasePath, "logs")
+	err := os.MkdirAll(logsDir, os.ModePerm)
+	if err != nil {
+		return nil, err
+	}
+
+	logFile := path.Join(ctx.GetWorkspace().BasePath, "logs", fmt.Sprintf("%s-%s", ctx.GetServiceName(), fileName))
+
+	f, err := os.OpenFile(logFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	return f, nil
 }

@@ -16,6 +16,7 @@ func initLogger() *zap.Logger {
 	cfg.EncoderConfig.EncodeTime = SyslogTimeEncoder
 	cfg.EncoderConfig.EncodeCaller = nil
 	cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	cfg.Level.SetLevel(zap.ErrorLevel) // TODO: log to file
 
 	logger, err := cfg.Build()
 	if err != nil {
