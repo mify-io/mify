@@ -18,6 +18,7 @@ const (
 	MainApiSchemaName = "api.yaml"
 	MifySchemaName    = "service.mify.yaml"
 	GoServicesDirName = "go_services"
+	DevRunnerName     = "dev-runner"
 )
 
 var (
@@ -170,6 +171,22 @@ func (c Description) GetGoModule() string {
 
 func (c *Description) GetGoServicesRelPath() string {
 	return "go_services"
+}
+
+func (c *Description) GetJsServicesRelPath() string {
+	return "js_services"
+}
+
+func (c *Description) GetJsServicesAbsPath() string {
+	return path.Join(c.BasePath, c.GetJsServicesRelPath())
+}
+
+func (c *Description) GetJsPackageJsonRelPath() string {
+	return path.Join(c.GetJsServicesRelPath(), "package.json")
+}
+
+func (c *Description) GetJsPackageJsonAbsPath() string {
+	return path.Join(c.BasePath, c.GetJsPackageJsonRelPath())
 }
 
 func (c *Description) GetGoServicesPath() string {

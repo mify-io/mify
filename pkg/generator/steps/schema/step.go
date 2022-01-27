@@ -21,7 +21,11 @@ func (s SchemaStep) Execute(ctx *gencontext.GenContext) (core.StepResult, error)
 	if err != nil {
 		return core.Done, err
 	}
-
 	ctx.SetSchemaCtx(schemaCtx)
+
+	if err = validateCtx(ctx); err != nil {
+		return core.Done, err
+	}
+
 	return core.Done, nil
 }

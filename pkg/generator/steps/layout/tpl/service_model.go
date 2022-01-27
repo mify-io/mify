@@ -16,7 +16,6 @@ type ServiceModel struct {
 	Language    mifyconfig.ServiceLanguage
 	GoModule    string // first line inside go.mod
 	Workspace   WorkspaceModel
-	ServiceList []string
 }
 
 func NewServiceModel(ctx *gencontext.GenContext) *ServiceModel {
@@ -26,19 +25,7 @@ func NewServiceModel(ctx *gencontext.GenContext) *ServiceModel {
 		Language:    ctx.MustGetMifySchema().Language,
 		GoModule:    fmt.Sprintf("%s/%s", ctx.GetWorkspace().GetRepository(), workspace.GoServicesDirName),
 		Workspace:   *NewWorkspaceModel(ctx),
-		ServiceList: getServiceList(ctx), // Js only
 	}
-}
-
-func getServiceList(ctx *gencontext.GenContext) []string {
-	schemas := ctx.GetSchemaCtx().GetAllSchemas()
-	res := make([]string, 0)
-	for serviceName, schemas := range *schemas {
-		if schemas.GetMify().Language == mifyconfig.ServiceLanguageJs {
-			res = append(res, MakeServerEnvName(serviceName))
-		}
-	}
-	return res
 }
 
 func (c ServiceModel) GetEndpointEnvName() string {

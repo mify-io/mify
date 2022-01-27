@@ -26,9 +26,9 @@ type WorkspaceModel struct {
 
 func NewWorkspaceModel(context *gencontext.GenContext) *WorkspaceModel {
 	allSchemas := context.GetSchemaCtx().GetAllSchemas()
-	goServices := make([]GoServiceModel, 0, len(*allSchemas))
+	goServices := make([]GoServiceModel, 0, len(allSchemas))
 
-	for serviceName, schemas := range *allSchemas {
+	for serviceName, schemas := range allSchemas {
 		hasApi := schemas.GetOpenapi() != nil
 		if hasApi && schemas.GetMify().Language == mifyconfig.ServiceLanguageGo {
 			goServices = append(goServices, GoServiceModel{Name: serviceName})

@@ -23,7 +23,7 @@ var genCmd = &cobra.Command{
 				if errors.Is(err, context.Canceled) {
 					return
 				}
-				fmt.Fprintf(os.Stderr, "failed to generate in service: %s\n", err)
+				fmt.Fprintf(os.Stderr, "service '%s' generation failed: %s", ival, err)
 				os.Exit(2)
 			}
 		}

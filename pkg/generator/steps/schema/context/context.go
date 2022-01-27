@@ -34,8 +34,8 @@ func (c *SchemaContext) GetServiceSchemas(serviceName string) *ServiceSchemas {
 	return schemas
 }
 
-func (c *SchemaContext) GetAllSchemas() *AllSchemas {
-	return &c.schemas
+func (c *SchemaContext) GetAllSchemas() AllSchemas {
+	return c.schemas
 }
 
 // Sugar

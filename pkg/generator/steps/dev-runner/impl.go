@@ -10,10 +10,7 @@ import (
 	"github.com/mify-io/mify/pkg/generator/steps/dev-runner/tpl"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/util/render"
-)
-
-const (
-	DevRunnerName = "dev-runner"
+	"github.com/mify-io/mify/pkg/workspace"
 )
 
 //go:embed tpl/main.go.tpl
@@ -21,8 +18,12 @@ var devRunnerTemplate string
 
 func execute(ctx *gencontext.GenContext) error {
 	services := make([]tpl.TargetService, 0)
-	for serviceName := range *ctx.GetSchemaCtx().GetAllSchemas() {
-		// TODO: temporary check if service is already generated. Remove in future
+	for serviceName, schemas := range ctx.GetSchemaCtx().GetAllSchemas() {
+		if schemas.GetMify().Language != mifyconfig.ServiceLanguageGo {
+			continue
+		}
+
+		// TODO: temporary check if service is already generated. Force regenerate in future
 		path := ctx.GetWorkspace().GetGeneratedAppPath(serviceName)
 		if _, err := os.Stat(path); os.IsNotExist(err) {
 			continue
@@ -43,10 +44,10 @@ func execute(ctx *gencontext.GenContext) error {
 
 	// TODO: move to service creation
 	config := mifyconfig.ServiceConfig{
-		ServiceName: DevRunnerName,
+		ServiceName: workspace.DevRunnerName,
 		Language:    mifyconfig.ServiceLanguageGo,
 	}
-	err = mifyconfig.SaveServiceConfig(ctx.GetWorkspace().BasePath, DevRunnerName, config)
+	err = mifyconfig.SaveServiceConfig(ctx.GetWorkspace().BasePath, workspace.DevRunnerName, config)
 	if err != nil {
 		return err
 	}
@@ -55,6 +56,6 @@ func execute(ctx *gencontext.GenContext) error {
 }
 
 func buildPathToMainGo(ctx *gencontext.GenContext) string {
-	cmd := ctx.GetWorkspace().GetCmdPath(DevRunnerName)
+	cmd := ctx.GetWorkspace().GetCmdPath(workspace.DevRunnerName)
 	return path.Join(cmd, "main.go")
 }

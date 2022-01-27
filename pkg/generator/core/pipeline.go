@@ -56,7 +56,7 @@ func (p Pipeline) Execute(
 			}
 
 			if err != nil {
-				execRes.Error = fmt.Errorf("Step '%s' failed with error: '%w'", step.Name(), err)
+				execRes.Error = fmt.Errorf("step '%s' failed with error: %w", step.Name(), err)
 			}
 
 			outChan <- execRes

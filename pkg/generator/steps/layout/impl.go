@@ -72,9 +72,15 @@ func getLanguageTemplatePath(ctx *gencontext.GenContext) (string, error) {
 }
 
 func renderNew(ctx *gencontext.GenContext) error {
-	if ctx.MustGetMifySchema().Language == mifyconfig.ServiceLanguageGo {
+
+	switch ctx.MustGetMifySchema().Language {
+	case mifyconfig.ServiceLanguageGo:
 		if err := tplnew.RenderGo(ctx); err != nil {
 			return fmt.Errorf("can't render go files: %w", err)
+		}
+	case mifyconfig.ServiceLanguageJs:
+		if err := tplnew.RenderJs(ctx); err != nil {
+			return fmt.Errorf("can't render js files: %w", err)
 		}
 	}
 

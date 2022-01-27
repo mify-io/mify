@@ -6,10 +6,10 @@ import (
 	"os"
 	"path"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/generator/steps/schema/context"
 	"github.com/mify-io/mify/pkg/mifyconfig"
-	"github.com/getkin/kin-openapi/openapi3"
 )
 
 func execute(ctx *gencontext.GenContext) (*context.SchemaContext, error) {
