@@ -64,7 +64,7 @@ func getLanguageTemplatePath(ctx *gencontext.GenContext) (string, error) {
 
 	switch mifySchema.Language {
 	case mifyconfig.ServiceLanguageGo:
-		return "assets/go_service", nil
+		return "assets/go-service", nil
 	case mifyconfig.ServiceLanguageJs:
 		return "assets/js_service", nil
 	}

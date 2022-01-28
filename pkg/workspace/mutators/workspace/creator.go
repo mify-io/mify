@@ -11,7 +11,7 @@ import (
 
 const (
 	SchemasDirName    = "schemas"
-	GoServicesDirName = "go_services"
+	GoServicesDirName = "go-services"
 	JsServicesDirName = "js_services"
 )
 

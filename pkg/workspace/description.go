@@ -17,7 +17,7 @@ const (
 	ApiGatewayName    = "api-gateway"
 	MainApiSchemaName = "api.yaml"
 	MifySchemaName    = "service.mify.yaml"
-	GoServicesDirName = "go_services"
+	GoServicesDirName = "go-services"
 	DevRunnerName     = "dev-runner"
 )
 
@@ -33,7 +33,7 @@ type GoService struct {
 type Description struct {
 	Name      string
 	BasePath  string
-	GoRoot    string // Path to go_services
+	GoRoot    string // Path to go-services
 	Config    mifyconfig.WorkspaceConfig
 	TplHeader string
 	// legacy
@@ -170,7 +170,7 @@ func (c Description) GetGoModule() string {
 }
 
 func (c *Description) GetGoServicesRelPath() string {
-	return "go_services"
+	return "go-services"
 }
 
 func (c *Description) GetJsServicesRelPath() string {

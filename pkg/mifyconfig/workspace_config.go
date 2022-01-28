@@ -13,8 +13,8 @@ import (
 const (
 	WorkspaceConfigName = "workspace.mify.yaml"
 
-	GoServicesRoot      = "go_services"
-	JsServicesRoot      = "js_services"
+	GoServicesRoot = "go-services"
+	JsServicesRoot = "js_services"
 )
 
 type WorkspaceConfig struct {

@@ -18,7 +18,7 @@ type GoServiceModel struct {
 type WorkspaceModel struct {
 	Name       string
 	BasePath   string
-	GoRoot     string // Path to go_services
+	GoRoot     string // Path to go-services
 	Config     mifyconfig.WorkspaceConfig
 	TplHeader  string
 	GoServices []GoServiceModel
@@ -48,7 +48,7 @@ func NewWorkspaceModel(context *gencontext.GenContext) *WorkspaceModel {
 // Path to include app.go
 func (c WorkspaceModel) GetAppIncludePath(serviceName string) string {
 	return fmt.Sprintf(
-		"%s/go_services/internal/%s/generated/app",
+		"%s/go-services/internal/%s/generated/app",
 		c.GetRepository(),
 		serviceName)
 }
