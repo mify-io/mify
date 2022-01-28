@@ -4,7 +4,7 @@ import (
 	_ "embed"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
-	service "github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js_services/_service_"
+	service "github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js-services/_service_"
 	"github.com/mify-io/mify/pkg/util/render"
 )
 

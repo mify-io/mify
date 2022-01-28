@@ -4,8 +4,8 @@ import (
 	_ "embed"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
-	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js_services/_service_/components"
-	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js_services/_service_/pages"
+	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js-services/_service_/components"
+	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js-services/_service_/pages"
 	"github.com/mify-io/mify/pkg/util/render"
 )
 

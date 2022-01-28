@@ -12,7 +12,7 @@ import (
 const (
 	SchemasDirName    = "schemas"
 	GoServicesDirName = "go-services"
-	JsServicesDirName = "js_services"
+	JsServicesDirName = "js-services"
 )
 
 func CreateWorkspace(mutContext *mutators.MutatorContext, dirAbsPath string, name string) error {

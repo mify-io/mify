@@ -3,7 +3,7 @@ package tplnew
 import (
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	goservices "github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/go-services"
-	jsservices "github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js_services"
+	jsservices "github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js-services"
 )
 
 func RenderGo(ctx *gencontext.GenContext) error {
