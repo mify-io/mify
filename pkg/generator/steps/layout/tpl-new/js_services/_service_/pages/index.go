@@ -2,9 +2,9 @@ package pages
 
 import gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 
-type IndexModel struct {
+type indexModel struct {
 }
 
-func newIndexModel(_ *gencontext.GenContext) IndexModel {
-	return IndexModel{}
+func newIndexModel(_ *gencontext.GenContext) indexModel {
+	return indexModel{}
 }

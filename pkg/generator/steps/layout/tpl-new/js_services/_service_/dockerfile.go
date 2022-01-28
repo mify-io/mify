@@ -2,12 +2,12 @@ package service
 
 import gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 
-type DockerfileModel struct {
+type dockerfileModel struct {
 	ServiceName string
 }
 
-func newDockerfileModel(ctx *gencontext.GenContext) DockerfileModel {
-	return DockerfileModel{
+func newDockerfileModel(ctx *gencontext.GenContext) dockerfileModel {
+	return dockerfileModel{
 		ServiceName: ctx.GetServiceName(),
 	}
 }

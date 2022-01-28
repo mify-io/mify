@@ -1,8 +1,8 @@
 package goservices
 
-type GoSumModel struct {
+type goSumModel struct {
 }
 
-func NewGoSumModel() GoSumModel {
-	return GoSumModel{}
+func newGoSumModel() goSumModel {
+	return goSumModel{}
 }

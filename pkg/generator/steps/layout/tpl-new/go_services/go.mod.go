@@ -1,11 +1,11 @@
 package goservices
 
-type GoModModel struct {
+type goModModel struct {
 	ModuleName string
 }
 
-func NewGoModModel(moduleName string) GoModModel {
-	return GoModModel{
+func newGoModModel(moduleName string) goModModel {
+	return goModModel{
 		ModuleName: moduleName,
 	}
 }

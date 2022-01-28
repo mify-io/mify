@@ -6,12 +6,12 @@ import (
 	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
-type PackageJsonModel struct {
+type packageJsonModel struct {
 	ServiceList []string
 }
 
-func NewPackageJsonModel(ctx *gencontext.GenContext) PackageJsonModel {
-	return PackageJsonModel{
+func newPackageJsonModel(ctx *gencontext.GenContext) packageJsonModel {
+	return packageJsonModel{
 		ServiceList: getServiceList(ctx),
 	}
 }

@@ -2,9 +2,9 @@ package components
 
 import gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 
-type SampleVueModel struct {
+type sampleVueModel struct {
 }
 
-func newSampleVueModel(ctx *gencontext.GenContext) SampleVueModel {
-	return SampleVueModel{}
+func newSampleVueModel(ctx *gencontext.GenContext) sampleVueModel {
+	return sampleVueModel{}
 }

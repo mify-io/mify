@@ -15,13 +15,13 @@ var goModTemplate string
 var goSumTemplate string
 
 func Render(ctx *gencontext.GenContext) error {
-	goModModel := NewGoModModel(ctx.GetWorkspace().GetGoModule())
+	goModModel := newGoModModel(ctx.GetWorkspace().GetGoModule())
 	goModPath := ctx.GetWorkspace().GetGoModAbsPath()
 	if err := render.RenderOrSkipTemplate(goModTemplate, goModModel, goModPath); err != nil {
 		return render.WrapError("go.mod", err)
 	}
 
-	goSumModel := NewGoSumModel()
+	goSumModel := newGoSumModel()
 	goSumPath := ctx.GetWorkspace().GetGoSumAbsPath()
 	if err := render.RenderOrSkipTemplate(goSumTemplate, goSumModel, goSumPath); err != nil {
 		return render.WrapError("go.sum", err)

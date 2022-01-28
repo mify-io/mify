@@ -2,12 +2,12 @@ package app
 
 import gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 
-type ServiceExtraModel struct {
+type serviceExtraModel struct {
 	CoreInclude string // Include path to core package
 }
 
-func newServiceExtraModel(ctx *gencontext.GenContext) ServiceExtraModel {
-	return ServiceExtraModel{
+func newServiceExtraModel(ctx *gencontext.GenContext) serviceExtraModel {
+	return serviceExtraModel{
 		CoreInclude: ctx.GetWorkspace().GetCoreIncludePath(ctx.MustGetMifySchema().ServiceName),
 	}
 }

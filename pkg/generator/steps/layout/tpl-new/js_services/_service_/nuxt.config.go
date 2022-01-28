@@ -2,12 +2,12 @@ package service
 
 import gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 
-type NuxtConfigModel struct {
+type nuxtConfigModel struct {
 	ServiceName string
 }
 
-func newNuxtConfigModel(ctx *gencontext.GenContext) NuxtConfigModel {
-	return NuxtConfigModel{
+func newNuxtConfigModel(ctx *gencontext.GenContext) nuxtConfigModel {
+	return nuxtConfigModel{
 		ServiceName: ctx.GetServiceName(),
 	}
 }
