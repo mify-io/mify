@@ -181,12 +181,76 @@ func (c *Description) GetJsServicesAbsPath() string {
 	return path.Join(c.BasePath, c.GetJsServicesRelPath())
 }
 
+func (c *Description) GetJsServiceRelPath(serviceName string) string {
+	return path.Join(c.GetJsServicesRelPath(), serviceName)
+}
+
+func (c *Description) GetJsServiceAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetJsServiceRelPath(serviceName))
+}
+
 func (c *Description) GetJsPackageJsonRelPath() string {
 	return path.Join(c.GetJsServicesRelPath(), "package.json")
 }
 
 func (c *Description) GetJsPackageJsonAbsPath() string {
 	return path.Join(c.BasePath, c.GetJsPackageJsonRelPath())
+}
+
+func (c *Description) GetJsServicePackageJsonRelPath(serviceName string) string {
+	return path.Join(c.GetJsServiceRelPath(serviceName), "package.json")
+}
+
+func (c *Description) GetJsServicePackageJsonAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetJsServicePackageJsonRelPath(serviceName))
+}
+
+func (c *Description) GetJsServiceNuxtConfigRelPath(serviceName string) string {
+	return path.Join(c.GetJsServiceRelPath(serviceName), "nuxt.config.js")
+}
+
+func (c *Description) GetJsServiceNuxtConfigAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetJsServiceNuxtConfigRelPath(serviceName))
+}
+
+func (c *Description) GetJsDockerfileRelPath(serviceName string) string {
+	return path.Join(c.GetJsServiceRelPath(serviceName), "Dockerfile")
+}
+
+func (c *Description) GetJsDockerfileAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetJsDockerfileRelPath(serviceName))
+}
+
+func (c *Description) GetJsPagesRelPath(serviceName string) string {
+	return path.Join(c.GetJsServiceRelPath(serviceName), "pages")
+}
+
+func (c *Description) GetJsPagesAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetJsPagesRelPath(serviceName))
+}
+
+func (c *Description) GetJsIndexRelPath(serviceName string) string {
+	return path.Join(c.GetJsPagesRelPath(serviceName), "index.vue")
+}
+
+func (c *Description) GetJsIndexAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetJsIndexRelPath(serviceName))
+}
+
+func (c *Description) GetJsComponentsRelPath(serviceName string) string {
+	return path.Join(c.GetJsServiceRelPath(serviceName), "components")
+}
+
+func (c *Description) GetJsComponentsAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetJsComponentsRelPath(serviceName))
+}
+
+func (c *Description) GetJsSampleVueRelPath(serviceName string) string {
+	return path.Join(c.GetJsComponentsRelPath(serviceName), "sample.vue")
+}
+
+func (c *Description) GetJsSampleVueAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetJsSampleVueRelPath(serviceName))
 }
 
 func (c *Description) GetGoServicesPath() string {

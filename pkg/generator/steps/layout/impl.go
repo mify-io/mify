@@ -34,6 +34,10 @@ func renderServiceTemplateTree(ctx *gencontext.GenContext, model *tpl.ServiceMod
 			return fmt.Sprintf("%s%s", strings.Title(ctx.GetServiceName()), "Context")
 		},
 	}
+	if ctx.MustGetMifySchema().Language != mifyconfig.ServiceLanguageGo {
+		return nil
+	}
+
 	templatesPath, err := getLanguageTemplatePath(ctx)
 	if err != nil {
 		return err
