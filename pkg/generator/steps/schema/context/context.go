@@ -40,7 +40,20 @@ func (c *SchemaContext) GetAllSchemas() AllSchemas {
 
 // Sugar
 
+func (sc SchemaContext) GetMifySchema(serviceName string) *mifyconfig.ServiceConfig {
+	schemas := sc.GetServiceSchemas(serviceName)
+	if schemas == nil {
+		return nil
+	}
+
+	return schemas.mify
+}
+
 func (sc SchemaContext) MustGetMifySchema(serviceName string) *mifyconfig.ServiceConfig {
 	schemas := sc.MustGetServiceSchemas(serviceName)
+	if schemas.mify == nil {
+		panic(fmt.Sprintf("mify schema is missing for service '%s'", serviceName))
+	}
+
 	return schemas.mify
 }

@@ -277,6 +277,22 @@ func (c *Description) GetJsServicesPath() string {
 	return path.Join(c.BasePath, "js_services")
 }
 
+func (c *Description) GetDevRunnerRelPath() string {
+	return c.GetCmdRelPath(DevRunnerName)
+}
+
+func (c *Description) GetDevRunnerAbsPath() string {
+	return path.Join(c.GetCmdAbsPath(DevRunnerName))
+}
+
+func (c *Description) GetDevRunnerMainRelPath() string {
+	return path.Join(c.GetDevRunnerRelPath(), "main.go")
+}
+
+func (c *Description) GetDevRunnerMainAbsPath() string {
+	return path.Join(c.BasePath, c.GetDevRunnerMainRelPath())
+}
+
 func (c *Description) GetServicesAbsPath(lang mifyconfig.ServiceLanguage) (string, error) {
 	switch lang {
 	case mifyconfig.ServiceLanguageGo:
@@ -293,15 +309,19 @@ func (c *Description) GetDockerfileAbsPath(serviceName string, lang mifyconfig.S
 	}
 	switch lang {
 	case mifyconfig.ServiceLanguageGo:
-		return path.Join(c.GetCmdPath(serviceName), "Dockerfile"), nil
+		return path.Join(c.GetCmdAbsPath(serviceName), "Dockerfile"), nil
 	case mifyconfig.ServiceLanguageJs:
 		return path.Join(c.GetJsServicesPath(), serviceName, "Dockerfile"), nil
 	}
 	return "", ErrUnsupportedLanguage
 }
 
-func (c *Description) GetCmdPath(serviceName string) string {
+func (c *Description) GetCmdAbsPath(serviceName string) string {
 	return path.Join(c.GetGoServicesPath(), "cmd", serviceName)
+}
+
+func (c *Description) GetCmdRelPath(serviceName string) string {
+	return path.Join(c.GetGoServicesRelPath(), "cmd", serviceName)
 }
 
 func (c *Description) GetGeneratedRelPath(serviceName string) string {

@@ -56,6 +56,6 @@ func execute(ctx *gencontext.GenContext) error {
 }
 
 func buildPathToMainGo(ctx *gencontext.GenContext) string {
-	cmd := ctx.GetWorkspace().GetCmdPath(workspace.DevRunnerName)
+	cmd := ctx.GetWorkspace().GetCmdAbsPath(workspace.DevRunnerName)
 	return path.Join(cmd, "main.go")
 }

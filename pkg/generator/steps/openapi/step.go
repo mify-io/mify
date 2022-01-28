@@ -17,6 +17,10 @@ func (s OpenapiStep) Name() string {
 }
 
 func (s OpenapiStep) Execute(ctx *gencontext.GenContext) (core.StepResult, error) {
+	if ctx.GetMifySchema() == nil {
+		return core.Done, nil // Some services (like dev-runner) could not have any scheme
+	}
+
 	if err := generateServiceOpenAPI(ctx); err != nil {
 		return core.Done, err
 	}

@@ -100,6 +100,10 @@ func (c *GenContext) SetApiGatewayCtx(ctx *api_gateway_context.ApiGatewayContext
 
 // Sugar
 
+func (c *GenContext) GetMifySchema() *mifyconfig.ServiceConfig {
+	return c.GetSchemaCtx().GetMifySchema(c.GetServiceName())
+}
+
 func (c *GenContext) MustGetMifySchema() *mifyconfig.ServiceConfig {
 	return c.GetSchemaCtx().MustGetMifySchema(c.GetServiceName())
 }

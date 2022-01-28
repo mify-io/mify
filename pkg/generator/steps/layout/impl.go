@@ -17,8 +17,10 @@ const (
 )
 
 func execute(ctx *gencontext.GenContext) error {
-	if err := renderServiceTemplateTree(ctx, tpl.NewServiceModel(ctx)); err != nil {
-		return fmt.Errorf("error while rendering service: %w", err)
+	if ctx.GetMifySchema() != nil && ctx.MustGetMifySchema().Language == mifyconfig.ServiceLanguageGo {
+		if err := renderServiceTemplateTree(ctx, tpl.NewServiceModel(ctx)); err != nil {
+			return fmt.Errorf("error while rendering service: %w", err)
+		}
 	}
 
 	if err := renderNew(ctx); err != nil {
@@ -33,9 +35,6 @@ func renderServiceTemplateTree(ctx *gencontext.GenContext, model *tpl.ServiceMod
 		"svcUserCtxName": func(model tpl.ServiceModel) string {
 			return fmt.Sprintf("%s%s", strings.Title(ctx.GetServiceName()), "Context")
 		},
-	}
-	if ctx.MustGetMifySchema().Language != mifyconfig.ServiceLanguageGo {
-		return nil
 	}
 
 	templatesPath, err := getLanguageTemplatePath(ctx)
@@ -77,7 +76,12 @@ func getLanguageTemplatePath(ctx *gencontext.GenContext) (string, error) {
 
 func renderNew(ctx *gencontext.GenContext) error {
 
-	switch ctx.MustGetMifySchema().Language {
+	mifySchema := ctx.GetMifySchema()
+	if mifySchema == nil {
+		return nil
+	}
+
+	switch mifySchema.Language {
 	case mifyconfig.ServiceLanguageGo:
 		if err := tplnew.RenderGo(ctx); err != nil {
 			return fmt.Errorf("can't render go files: %w", err)
