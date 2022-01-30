@@ -18,7 +18,7 @@ import querystring from "querystring";
 class ApiClient {
     static defaultConfig() {
         return {
-            basePath: process.env.{{clientEndpointEnv}} || 'localhost:{{servicePort}}'
+            basePath: process.env.{{clientEndpointEnv}} || '{{serviceEndpoint}}'
         }
     }
     /**

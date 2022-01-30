@@ -8,6 +8,7 @@
     "start": "nuxt start"
   },
   "dependencies": {
-    "nuxt": "^2.15.8"
+    "nuxt": "^2.15.8",
+    "superagent": "^7.1.1"
   }
 }

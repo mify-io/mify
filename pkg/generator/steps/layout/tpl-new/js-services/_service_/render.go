@@ -12,6 +12,9 @@ import (
 //go:embed package.json.tpl
 var packageJsonTemplate string
 
+//go:embed yarn.lock.tpl
+var yarnLockTemplate string
+
 //go:embed nuxt.config.js.tpl
 var nuxtConfigTemplate string
 
@@ -35,6 +38,12 @@ func Render(ctx *gencontext.GenContext) error {
 	dockerfilePath := ctx.GetWorkspace().GetJsDockerfileAbsPath(ctx.GetServiceName())
 	if err := render.RenderOrSkipTemplate(dockerfileTemplate, dockerfileModel, dockerfilePath); err != nil {
 		return render.WrapError("Dockerfile.go", err)
+	}
+
+	yarnLockModel := newYarnLockModel(ctx)
+	yarnLockPath := ctx.GetWorkspace().GetJsServiceYarnLockAbsPath(ctx.GetServiceName())
+	if err := render.RenderOrSkipTemplate(yarnLockTemplate, yarnLockModel, yarnLockPath); err != nil {
+		return render.WrapError("yarn.lock", err)
 	}
 
 	if err := pages.Render(ctx); err != nil {
