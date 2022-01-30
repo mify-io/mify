@@ -12,9 +12,9 @@ import (
 
 // genCmd represents the gen command
 var genCmd = &cobra.Command{
-	Use:   "generate [service]",
-	Short: "generate",
-	Long:  `generate`,
+	Use:   "generate [service]...",
+	Short: "Generate code in workspace",
+	Long:  `Generate code for given list of services after schema changes.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		// TODO: make service name as optional
