@@ -205,6 +205,14 @@ func (c *Description) GetJsServicePackageJsonAbsPath(serviceName string) string 
 	return path.Join(c.BasePath, c.GetJsServicePackageJsonRelPath(serviceName))
 }
 
+func (c *Description) GetJsServiceYarnLockRelPath(serviceName string) string {
+	return path.Join(c.GetJsServiceRelPath(serviceName), "yarn.lock")
+}
+
+func (c *Description) GetJsServiceYarnLockAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetJsServiceYarnLockRelPath(serviceName))
+}
+
 func (c *Description) GetJsServiceNuxtConfigRelPath(serviceName string) string {
 	return path.Join(c.GetJsServiceRelPath(serviceName), "nuxt.config.js")
 }
