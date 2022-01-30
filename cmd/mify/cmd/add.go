@@ -16,7 +16,7 @@ var (
 var addServiceCmd = &cobra.Command{
 	Use:   "service",
 	Short: "Add service",
-	Long:  `Add service`,
+	Long:  `Add a new service in workspace`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {
@@ -31,7 +31,7 @@ var addServiceCmd = &cobra.Command{
 var addClientCmd = &cobra.Command{
 	Use:   "client",
 	Short: "Add client",
-	Long:  `Add client`,
+	Long:  `Add a client from one service or frontend to another`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {
@@ -46,7 +46,7 @@ var addClientCmd = &cobra.Command{
 var addFrontendCmd = &cobra.Command{
 	Use:   "frontend",
 	Short: "Add frontend",
-	Long:  `Add frontend`,
+	Long:  `Add a frontend to workspace`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {
@@ -61,8 +61,8 @@ var addFrontendCmd = &cobra.Command{
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
-	Short: "add",
-	Long:  `add`,
+	Short: "Add <service|client|frontend>",
+	Long:  `Add a service, frontend or clients`,
 }
 
 func init() {

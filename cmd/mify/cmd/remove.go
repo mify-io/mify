@@ -15,7 +15,7 @@ var (
 var removeClientCmd = &cobra.Command{
 	Use:   "client",
 	Short: "Remove client",
-	Long:  `Remove client`,
+	Long:  `Remove client from service`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {
@@ -30,8 +30,8 @@ var removeClientCmd = &cobra.Command{
 // addCmd represents the add command
 var removeCmd = &cobra.Command{
 	Use:   "remove",
-	Short: "remove",
-	Long:  `remove`,
+	Short: "Remove client",
+	Long:  `Remove client from service`,
 }
 
 func init() {
