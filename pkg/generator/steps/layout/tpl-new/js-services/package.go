@@ -2,7 +2,6 @@ package jsservices
 
 import (
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
-	"github.com/mify-io/mify/pkg/generator/steps/layout/helpers/js"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
@@ -21,7 +20,7 @@ func getServiceList(ctx *gencontext.GenContext) []string {
 	res := make([]string, 0)
 	for serviceName, schemas := range schemas {
 		if schemas.GetMify().Language == mifyconfig.ServiceLanguageJs {
-			res = append(res, js.MakeServerEnvName(serviceName))
+			res = append(res, serviceName)
 		}
 	}
 	return res

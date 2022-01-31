@@ -23,9 +23,8 @@ func HasAssets(assetPath string) bool {
 	return true
 }
 
-func DumpAssets(basePath string, assetPath string, targetDir string) (string, error) {
+func DumpAssets(cacheDir string, assetPath string, targetDir string) (string, error) {
 	assetsFs := GetAssets()
-	cacheDir := GetCacheDirectory(basePath)
 	targetDir = filepath.Join(cacheDir, "assets", targetDir)
 
 	err := os.MkdirAll(targetDir, 0755)

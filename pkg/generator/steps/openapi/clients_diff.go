@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mify-io/mify/internal/mify/config"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"gopkg.in/yaml.v2"
 )
@@ -85,7 +84,7 @@ func getCurrentClients(ctx *gencontext.GenContext) map[string]struct{} {
 
 // Loads old clients set from cache dir
 func getOldClients(ctx *gencontext.GenContext) (map[string]struct{}, error) {
-	tmpDir := config.GetServiceCacheDirectory(ctx.GetWorkspace().BasePath, ctx.GetServiceName())
+	tmpDir := ctx.GetWorkspace().GetServiceCacheDirectory(ctx.GetServiceName())
 	f, err := os.Open(filepath.Join(tmpDir, CLIENTS_FILENAME))
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {

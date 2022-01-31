@@ -15,7 +15,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mify-io/mify/internal/mify/config"
 	"github.com/mify-io/mify/internal/mify/util"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 )
@@ -28,7 +27,7 @@ func (g *OpenAPIGenerator) doGenerateServer(
 	ctx *gencontext.GenContext, assetsPath string, schemaPath string, targetPath string, paths []string) error {
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated")
 
-	listenPort, err := makeServicePort(g.basePath, g.info.ServiceName)
+	listenPort, err := makeServicePort(ctx.GetWorkspace().GetServiceCacheDirectory(ctx.GetServiceName()))
 	if err != nil {
 		return fmt.Errorf("failed to get service port: %w", err)
 	}
@@ -428,8 +427,7 @@ func sanitizeServerHandlersImports(ctx *gencontext.GenContext, apiPath string) e
 	return nil
 }
 
-func makeServicePort(basePath, serviceName string) (int, error) {
-	tmpDir := config.GetServiceCacheDirectory(basePath, serviceName)
+func makeServicePort(tmpDir string) (int, error) {
 	cacheFilePath := filepath.Join(tmpDir, ".service-cache.yaml")
 
 	err := os.MkdirAll(tmpDir, 0755)
@@ -461,8 +459,7 @@ func makeServicePort(basePath, serviceName string) (int, error) {
 	return cache.ListenPort, nil
 }
 
-func getServicePort(basePath, serviceName string) (int, error) {
-	tmpDir := config.GetServiceCacheDirectory(basePath, serviceName)
+func getServicePort(tmpDir string) (int, error) {
 	cacheFilePath := filepath.Join(tmpDir, ".service-cache.yaml")
 
 	var cache serviceGenCache

@@ -14,7 +14,7 @@ const (
 	WorkspaceConfigName = "workspace.mify.yaml"
 
 	GoServicesRoot = "go-services"
-	JsServicesRoot = "js_services"
+	JsServicesRoot = "js-services"
 )
 
 type WorkspaceConfig struct {

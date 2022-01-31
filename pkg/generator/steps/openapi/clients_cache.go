@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mify-io/mify/internal/mify/config"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"gopkg.in/yaml.v2"
 )
@@ -15,7 +14,7 @@ const (
 )
 
 func updateClientsList(ctx *gencontext.GenContext) error {
-	tmpDir := config.GetServiceCacheDirectory(ctx.GetWorkspace().BasePath, ctx.GetServiceName())
+	tmpDir := ctx.GetWorkspace().GetServiceCacheDirectory(ctx.GetServiceName())
 
 	ctx.Logger.Infof("updating clients list in: %s", tmpDir)
 
