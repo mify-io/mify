@@ -16,13 +16,18 @@ type ServiceOpenAPIConfig struct {
 	Clients map[string]ServiceOpenAPIClientConfig `yaml:"clients,omitempty"`
 }
 
+type PostgresConfig struct {
+	Enabled bool `yaml:"enabled"`
+}
+
 type ServiceConfig struct {
 	Language ServiceLanguage `yaml:"language"`
 
 	ServiceName string   `yaml:"service_name"`
 	Maintainers []string `yaml:"maintainers"`
 
-	OpenAPI ServiceOpenAPIConfig `yaml:"openapi,omitempty"`
+	OpenAPI  ServiceOpenAPIConfig `yaml:"openapi,omitempty"`
+	Postgres PostgresConfig       `yaml:"postgres,omitempty"`
 }
 
 func ReadServiceCfg(path string) (*ServiceConfig, error) {

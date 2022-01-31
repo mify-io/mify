@@ -1,4 +1,4 @@
-{{- .Workspace.TplHeader}}
+{{- .TplHeader}}
 
 package core
 
@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"{{.GoModule}}/internal/pkg/generated/metrics"
+	"{{.MetricsImportPath}}"
 )
 
 type MifyRequestContextBuilder struct {

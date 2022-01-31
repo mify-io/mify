@@ -23,7 +23,7 @@ func Run(ctx *CliContext, basePath string) error {
 	goServicesPath := workspace.GetGoServicesRelPath()
 
 	devRunnerCmd := exec.Command("go", "run", "."+strings.TrimLeft(devRunnerMainPath, goServicesPath))
-	devRunnerCmd.Dir = workspace.GetGoServicesPath()
+	devRunnerCmd.Dir = workspace.GetGoServicesAbsPath()
 	devRunnerCmd.Stderr = os.Stderr
 	devRunnerCmd.Stdout = os.Stdout
 

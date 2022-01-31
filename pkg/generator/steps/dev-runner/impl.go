@@ -42,16 +42,6 @@ func execute(ctx *gencontext.GenContext) error {
 		return err
 	}
 
-	// TODO: move to service creation
-	config := mifyconfig.ServiceConfig{
-		ServiceName: workspace.DevRunnerName,
-		Language:    mifyconfig.ServiceLanguageGo,
-	}
-	err = mifyconfig.SaveServiceConfig(ctx.GetWorkspace().BasePath, workspace.DevRunnerName, config)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 

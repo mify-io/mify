@@ -1,4 +1,4 @@
-{{- .Workspace.TplHeader}}
+{{- .TplHeader}}
 
 package core
 
@@ -8,10 +8,14 @@ import (
 
 	"go.uber.org/zap"
 	"github.com/hashicorp/consul/api"
-	"{{.GoModule}}/internal/pkg/generated/configs"
-	"{{.GoModule}}/internal/pkg/generated/logs"
-	"{{.GoModule}}/internal/pkg/generated/metrics"
-	"{{.GoModule}}/internal/pkg/generated/consul"
+	"{{.ConfigsImportPath}}"
+	"{{.LogsImportPath}}"
+	"{{.MetricsImportPath}}"
+	"{{.ConsulImportPath}}"
+{{- if .PostgresImportPath}}
+	"github.com/jackc/pgx/v4/pgxpool"
+	"{{.PostgresImportPath}}"
+{{- end}}
 )
 
 type MifyServiceContext struct {
@@ -24,6 +28,7 @@ type MifyServiceContext struct {
 	staticConfig   *configs.MifyStaticConfig
 	dynamicConfig  *configs.MifyDynamicConfig
 	clients        *MifyServiceClients
+	{{if .PostgresImportPath}}postgres       *pgxpool.Pool{{end}}
 
 	serviceExtra interface{}
 }
@@ -69,6 +74,15 @@ func NewMifyServiceContext(goContext context.Context, serviceName string, extraC
 		return nil, err
 	}
 	context.clients = clients
+
+{{if .PostgresImportPath}}
+	pgConnString := postgres.GetPostgresConfig(staticConfig).DatabaseUrl
+	dbpool, err := pgxpool.Connect(goContext, pgConnString)
+	if err != nil {
+		return nil, err
+	}
+	context.postgres = dbpool
+{{end}}
 
 	extra, err := extraCreate(context)
 	if err != nil {

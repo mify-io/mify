@@ -34,11 +34,14 @@ type MifyServiceApp struct {
 }
 
 func NewMifyServiceApp(goGontext context.Context) *MifyServiceApp {
-	serviceContext, _ := core.NewMifyServiceContext(
+	serviceContext, err := core.NewMifyServiceContext(
 		goGontext, "{{.ServiceName}}",
 		func(ctx *core.MifyServiceContext) (interface{}, error) {
 			return app.NewServiceExtra(ctx)
 		})
+	if err != nil {
+		panic(err)
+	}
 	router := openapi_init.Routes(serviceContext, newRouterConfig())
 
 	router.Handle("/metrics", promhttp.Handler())

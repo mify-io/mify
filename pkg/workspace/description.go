@@ -169,12 +169,18 @@ func (c Description) GetGoModule() string {
 		mifyconfig.GoServicesRoot)
 }
 
+func (c Description) GetGoConfigsImportPath() string {
+	return fmt.Sprintf("%s/%s",
+		c.GetGoModule(),
+		"internal/pkg/generated/configs")
+}
+
 func (c *Description) GetGoServicesRelPath() string {
 	return "go-services"
 }
 
 func (c *Description) GetJsServicesRelPath() string {
-	return "js_services"
+	return "js-services"
 }
 
 func (c *Description) GetJsServicesAbsPath() string {
@@ -261,7 +267,11 @@ func (c *Description) GetJsSampleVueAbsPath(serviceName string) string {
 	return path.Join(c.BasePath, c.GetJsSampleVueRelPath(serviceName))
 }
 
-func (c *Description) GetGoServicesPath() string {
+func (c *Description) GetGoServiceGeneratedCoreRelPath(serviceName string) string {
+	return path.Join(c.GetGoServicesRelPath(), "internal", serviceName, "generated/core")
+}
+
+func (c *Description) GetGoServicesAbsPath() string {
 	return path.Join(c.BasePath, c.GetGoServicesRelPath())
 }
 
@@ -282,7 +292,7 @@ func (c *Description) GetGoSumAbsPath() string {
 }
 
 func (c *Description) GetJsServicesPath() string {
-	return path.Join(c.BasePath, "js_services")
+	return path.Join(c.BasePath, "js-services")
 }
 
 func (c *Description) GetDevRunnerRelPath() string {
@@ -304,7 +314,7 @@ func (c *Description) GetDevRunnerMainAbsPath() string {
 func (c *Description) GetServicesAbsPath(lang mifyconfig.ServiceLanguage) (string, error) {
 	switch lang {
 	case mifyconfig.ServiceLanguageGo:
-		return c.GetGoServicesPath(), nil
+		return c.GetGoServicesAbsPath(), nil
 	case mifyconfig.ServiceLanguageJs:
 		return c.GetJsServicesPath(), nil
 	}
@@ -325,7 +335,7 @@ func (c *Description) GetDockerfileAbsPath(serviceName string, lang mifyconfig.S
 }
 
 func (c *Description) GetCmdAbsPath(serviceName string) string {
-	return path.Join(c.GetGoServicesPath(), "cmd", serviceName)
+	return path.Join(c.GetGoServicesAbsPath(), "cmd", serviceName)
 }
 
 func (c *Description) GetCmdRelPath(serviceName string) string {
@@ -349,11 +359,19 @@ func (c *Description) GetJsGeneratedAbsPath(serviceName string) string {
 }
 
 func (c *Description) GetGeneratedAppPath(serviceName string) string {
-	return path.Join(c.GetGoServicesPath(), "internal", serviceName, "generated/app")
+	return path.Join(c.GetGoServicesAbsPath(), "internal", serviceName, "generated/app")
 }
 
 func (c *Description) GetAppRelPath(serviceName string) string {
 	return path.Join(c.GetGoServicesRelPath(), "internal", serviceName, "app")
+}
+
+func (c Description) GetGoPostgresConfigRelPath() string {
+	return path.Join(c.GetGoServicesRelPath(), "internal/pkg/generated/postgres")
+}
+
+func (c Description) GetGoPostgresConfigAbsPath() string {
+	return path.Join(c.BasePath, c.GetGoPostgresConfigRelPath())
 }
 
 // User app
