@@ -17,7 +17,7 @@ func NewApiGatewaySchemaStep() ApiGatewaySchemaStep {
 }
 
 func (s ApiGatewaySchemaStep) Name() string {
-	return "ApiGatewaySchema"
+	return "api-gateway-schema"
 }
 
 func (s ApiGatewaySchemaStep) Execute(ctx *gencontext.GenContext) (core.StepResult, error) {

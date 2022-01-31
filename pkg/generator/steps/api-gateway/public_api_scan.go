@@ -15,15 +15,12 @@ type apiPaths map[string]*openapi3.PathItem
 
 func scanPublicApis(ctx *gencontext.GenContext) PublicApis {
 	res := make(PublicApis)
-
-	for _, goService := range ctx.GetWorkspace().GoServices {
-		if goService.Name == ApiGatewayName {
+	for _, schema := range ctx.GetSchemaCtx().GetAllSchemas() {
+		if schema.GetOpenapi() == nil {
 			continue
 		}
-
-		serviceSchemas := ctx.GetSchemaCtx().MustGetServiceSchemas(goService.Name)
-		openapiSchema := serviceSchemas.GetOpenapi().GetMainSchema()
-		res[goService.Name] = extractPublicAPI(openapiSchema)
+		openapiSchema := schema.GetOpenapi().GetMainSchema()
+		res[schema.GetMify().ServiceName] = extractPublicAPI(openapiSchema)
 	}
 
 	return res

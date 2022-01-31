@@ -13,7 +13,7 @@ func NewOpenapiStep() OpenapiStep {
 }
 
 func (s OpenapiStep) Name() string {
-	return "Openapi"
+	return "openapi"
 }
 
 func (s OpenapiStep) Execute(ctx *gencontext.GenContext) (core.StepResult, error) {

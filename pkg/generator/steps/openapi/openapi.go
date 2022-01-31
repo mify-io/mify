@@ -106,7 +106,7 @@ func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 		return err
 	}
 
-	logFile, err := createLogFile(ctx, "docker-pull.logs")
+	logFile, err := createLogFile(ctx, "docker-pull.log")
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,8 @@ func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 
 	if config.HasAssets("openapi/server-template/" + langStr) {
 		g.serverAssetsPath, err = config.DumpAssets(
-			g.basePath, "openapi/server-template/"+langStr, "openapi/server-template")
+			ctx.GetWorkspace().GetCacheDirectory(),
+			"openapi/server-template/"+langStr, "openapi/server-template")
 		if err != nil {
 			return fmt.Errorf("failed to dump assets: %w", err)
 		}
@@ -127,7 +128,8 @@ func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 
 	if config.HasAssets("openapi/client-template/" + langStr) {
 		g.clientAssetsPath, err = config.DumpAssets(
-			g.basePath, "openapi/client-template/"+langStr, "openapi/client-template")
+			ctx.GetWorkspace().GetCacheDirectory(),
+			"openapi/client-template/"+langStr, "openapi/client-template")
 		if err != nil {
 			return fmt.Errorf("failed to dump assets: %w", err)
 		}
@@ -230,16 +232,15 @@ func (g *OpenAPIGenerator) readSchema(ctx *gencontext.GenContext, schemaPath str
 	return doc, nil
 }
 
-func (g *OpenAPIGenerator) getTempSchemaPath(schemaPath string, cacheSubdir string) string {
+func (g *OpenAPIGenerator) getTempSchemaPath(cacheDir string, schemaPath string, cacheSubdir string) string {
 	schemaDir := filepath.Dir(strings.Replace(schemaPath, g.basePath, "", 1))
-	cacheDir := config.GetCacheDirectory(g.basePath)
 	return filepath.Join(cacheDir, schemaDir, cacheSubdir)
 }
 
 func (g *OpenAPIGenerator) saveEnrichedSchema(
 	ctx *gencontext.GenContext, doc map[string]interface{}, schemaPath string, cacheSubdir string) (string, error) {
 	schemaDir := filepath.Dir(strings.Replace(schemaPath, g.basePath, "", 1))
-	cacheDir := config.GetCacheDirectory(g.basePath)
+	cacheDir := ctx.GetWorkspace().GetCacheDirectory()
 	targetDir := filepath.Join(cacheDir, schemaDir, cacheSubdir)
 	ctx.Logger.Infof("saving schema in: %s", targetDir)
 
@@ -387,7 +388,7 @@ func (g *OpenAPIGenerator) anySchemaChanged(ctx *gencontext.GenContext, mode Ope
 		}
 
 		schemaFile := filepath.Join(fullPath, f.Name())
-		schemaPath := g.getTempSchemaPath(schemaFile, cache_subdir)
+		schemaPath := g.getTempSchemaPath(ctx.GetWorkspace().GetCacheDirectory(), schemaFile, cache_subdir)
 
 		changed, err := isSchemasChanged(ctx, g.basePath, schemaRelDir, schemaPath)
 		if err != nil {
@@ -439,6 +440,7 @@ func isSchemasChanged(ctx *gencontext.GenContext, basePath string, schemaDir str
 	return false, nil
 }
 
+// TODO: refactor mixed client/service generation
 func runOpenapiGenerator(
 	ctx *gencontext.GenContext, basePath string, schemaPath string, templatePath string, targetDir string,
 	packageName string,
@@ -491,11 +493,33 @@ func runOpenapiGenerator(
 		Cmd:    args,
 	}
 
-	logFile, err := createLogFile(ctx, "docker-run.logs")
+	logFileName := fmt.Sprintf("openapi-generator-run-%s.log", clientName)
+	logFile, err := createLogFile(ctx, logFileName)
 	if err != nil {
 		return err
 	}
-	defer logFile.Close()
+	// TODO: move globally
+	defer func() {
+		logFile.Close()
+		if err == nil {
+			return
+		}
+		ctx.Logger.Errorf("openapi-generator task failed, dumping last errors, see full logs in: %s", logFile.Name())
+		file, err := os.Open(logFile.Name())
+		if err != nil {
+			return
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			fmt.Println(scanner.Text())
+		}
+
+		if err := scanner.Err(); err != nil {
+			return
+		}
+	}()
 
 	err = docker.Run(ctx.GetGoContext(), ctx.Logger, logFile, image, params)
 	if err != nil {
@@ -516,16 +540,11 @@ func copyFile(from string, to string) error {
 }
 
 func createLogFile(ctx *gencontext.GenContext, fileName string) (*os.File, error) {
-	// TODO: library for creating log files + clear before run
-	logsDir := path.Join(ctx.GetWorkspace().BasePath, "logs")
-	err := os.MkdirAll(logsDir, os.ModePerm)
-	if err != nil {
-		return nil, err
-	}
+	// TODO: library for creating log files
+	logsDir := ctx.GetWorkspace().GetLogsDirectory()
+	logFile := path.Join(logsDir, fmt.Sprintf("%s-%s", ctx.GetServiceName(), fileName))
 
-	logFile := path.Join(ctx.GetWorkspace().BasePath, "logs", fmt.Sprintf("%s-%s", ctx.GetServiceName(), fileName))
-
-	f, err := os.OpenFile(logFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	f, err := os.OpenFile(logFile, os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}

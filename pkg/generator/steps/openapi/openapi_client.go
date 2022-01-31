@@ -44,7 +44,7 @@ func (g *OpenAPIGenerator) doGenerateClient(ctx *gencontext.GenContext, assetsPa
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated", "api", "clients", clientName)
 
 	packageName := MakePackageName(clientName)
-	clientPort, err := getServicePort(g.basePath, clientName)
+	clientPort, err := getServicePort(ctx.GetWorkspace().GetServiceCacheDirectory(clientName))
 	if err != nil {
 		return fmt.Errorf("failed to get client port: %w", err)
 	}
