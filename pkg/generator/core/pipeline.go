@@ -58,6 +58,7 @@ func (p Pipeline) Execute(
 			if err != nil {
 				execRes.Error = fmt.Errorf("step '%s' failed with error: %w", step.Name(), err)
 			}
+			genContext.Logger.Infof("Finished step '%s'", step.Name())
 
 			outChan <- execRes
 

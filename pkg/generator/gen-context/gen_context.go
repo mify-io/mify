@@ -30,7 +30,7 @@ func NewGenContext(
 	serviceName string,
 	workspaceDescription workspace.Description) *GenContext {
 
-	logger := initLogger()
+	logger := initLogger(workspaceDescription.GetLogsDirectory())
 
 	return &GenContext{
 		goContext:   goContext,
