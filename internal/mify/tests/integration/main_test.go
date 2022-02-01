@@ -8,7 +8,9 @@ import (
 )
 
 func TestMain(t *testing.T) {
-	basePath := t.TempDir()
+	basePath := CreateReceivedDir(t)
 	ctx := mify.NewContext()
 	require.NoError(t, mify.CreateWorkspace(ctx, basePath, "workspace1"))
+
+	VerifyWithApproved(t)
 }
