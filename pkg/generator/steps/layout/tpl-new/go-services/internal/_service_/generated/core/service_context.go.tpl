@@ -125,6 +125,13 @@ func (c *MifyServiceContext) Clients() *MifyServiceClients {
 	return c.clients
 }
 
+{{- if .PostgresImportPath}}
+
+func (c *MifyServiceContext) Postgres() *pgxpool.Pool {
+	return c.postgres
+}
+{{- end}}
+
 func (c *MifyServiceContext) ServiceExtra() interface{} {
 	return c.serviceExtra
 }
