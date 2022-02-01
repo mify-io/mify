@@ -3,6 +3,7 @@ package integration
 import (
 	"fmt"
 	"io/fs"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -51,12 +52,19 @@ func verifyDir(t *testing.T, approvedDirPath string, receivedDirPath string) {
 }
 
 func verifyDirTree(t *testing.T, approvedDirPath string, receivedDirPath string) {
-	approvedDirTree := buildDirTree(approvedDirPath)
+	approvedDirTree, err := buildDirTree(approvedDirPath)
+	if err != nil {
+		t.Fatalf("can't get approved directory tree: %s", err)
+	}
+
 	if _, err := os.Stat(approvedDirPath); os.IsNotExist(err) {
 		t.Fatalf("Approved dir data wasn't found. Rename .received to .approved to make directory approved")
 	}
 
-	receivedDirTree := buildDirTree(receivedDirPath)
+	receivedDirTree, err := buildDirTree(receivedDirPath)
+	if err != nil {
+		t.Fatalf("can't get received directory tree: %s", err)
+	}
 
 	diff := difflib.UnifiedDiff{
 		A: difflib.SplitLines(approvedDirTree),
@@ -68,12 +76,28 @@ func verifyDirTree(t *testing.T, approvedDirPath string, receivedDirPath string)
 	}
 }
 
-func buildDirTree(path string) string {
+func buildDirTree(path string) (string, error) {
 	res := ""
-	filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			files, err := ioutil.ReadDir(p)
+			if err != nil {
+				return err
+			}
+
+			// Ignore empty dirs, because git removes them from approved
+			if len(files) == 0 {
+				return nil
+			}
+		}
+
 		res += fmt.Sprintf("%s\n", strings.TrimPrefix(p, path))
 		return nil
 	})
 
-	return res
+	if err != nil {
+		return "", err
+	}
+
+	return res, nil
 }
