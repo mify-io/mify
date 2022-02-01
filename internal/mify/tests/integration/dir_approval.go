@@ -71,7 +71,7 @@ func verifyDirTree(t *testing.T, approvedDirPath string, receivedDirPath string)
 func buildDirTree(path string) string {
 	res := ""
 	filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
-		res += fmt.Sprintf("%s\n", strings.TrimLeft(p, path))
+		res += fmt.Sprintf("%s\n", strings.TrimPrefix(p, path))
 		return nil
 	})
 
