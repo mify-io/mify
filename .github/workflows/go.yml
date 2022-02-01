@@ -7,6 +7,13 @@ on:
     branches: [ main ]
 
 jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v2.5.2
+      with:
+        version: latest
 
   build-and-test:
     runs-on: ubuntu-latest
