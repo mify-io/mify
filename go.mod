@@ -7,6 +7,7 @@ require (
 	github.com/docker/docker v20.10.12+incompatible
 	github.com/getkin/kin-openapi v0.88.0
 	github.com/otiai10/copy v1.7.0
+	github.com/pmezard/go-difflib v1.0.0
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/viper v1.10.1
 	github.com/vbauerster/mpb/v7 v7.3.2
@@ -22,7 +23,6 @@ require (
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/afero v1.8.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
