@@ -34,6 +34,8 @@
 <div align="center">
 </div>
 
+[![Go](https://github.com/mify-io/mify/actions/workflows/go.yml/badge.svg)](https://github.com/mify-io/mify/actions/workflows/go.yml)
+
 ## Features
 - OpenAPI http server generation
 - Built-in Prometheus metrics
