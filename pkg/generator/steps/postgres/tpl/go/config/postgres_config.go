@@ -6,10 +6,12 @@ import (
 
 type PostgresConfigModel struct {
 	ConfigsImportPath string
+	DatabaseName string
 }
 
 func NewPostgresConfigModel(ctx *gencontext.GenContext) PostgresConfigModel {
 	return PostgresConfigModel{
 		ctx.GetWorkspace().GetGoConfigsImportPath(),
+		ctx.GetMifySchema().Postgres.DatabaseName,
 	}
 }

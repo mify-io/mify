@@ -6,7 +6,7 @@ package postgres
 import "{{.ConfigsImportPath}}"
 
 type PostgresConfig struct {
-	DatabaseUrl string `yaml:"database_url" envconfig:"DATABASE_URL" default:"127.0.0.1:8500"`
+	DatabaseUrl string `yaml:"database_url" envconfig:"DATABASE_URL" default:"postgres://user:passwd@localhost:5432/{{.DatabaseName}}"`
 }
 
 func GetPostgresConfig(cfg *configs.MifyStaticConfig) *PostgresConfig {

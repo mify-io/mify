@@ -16,6 +16,7 @@ func execute(ctx *gencontext.GenContext) error {
 	}
 
 	if ctx.GetMifySchema().Language == mifyconfig.ServiceLanguageGo {
+		ctx.Logger.Infof("Will generated postgres for service")
 		if err := tpl.RenderGo(ctx); err != nil {
 			return err
 		}
