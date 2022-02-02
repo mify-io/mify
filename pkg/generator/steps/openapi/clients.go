@@ -59,7 +59,6 @@ func generateClientsContext(ctx *gencontext.GenContext) error {
 			return err
 		}
 
-		render.RenderTemplate(goClientsTemplate, clientsModel, path)
 		if err := render.RenderTemplate(goClientsTemplate, clientsModel, path); err != nil {
 			return err
 		}
@@ -69,7 +68,6 @@ func generateClientsContext(ctx *gencontext.GenContext) error {
 			return err
 		}
 
-		render.RenderTemplate(jsClientsTemplate, clientsModel, path)
 		if err := render.RenderTemplate(jsClientsTemplate, clientsModel, path); err != nil {
 			return err
 		}
