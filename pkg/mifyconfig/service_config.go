@@ -10,6 +10,23 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	ServiceConfigName = "service.mify.yaml"
+)
+
+type ServiceLanguage string
+
+const (
+	ServiceLanguageUnknown ServiceLanguage = "unknown"
+	ServiceLanguageGo      ServiceLanguage = "go"
+	ServiceLanguageJs      ServiceLanguage = "js"
+)
+
+var LanguagesList = []ServiceLanguage{
+	ServiceLanguageGo,
+	ServiceLanguageJs,
+}
+
 type ServiceOpenAPIClientConfig struct{}
 
 type ServiceOpenAPIConfig struct {
@@ -18,6 +35,7 @@ type ServiceOpenAPIConfig struct {
 
 type PostgresConfig struct {
 	Enabled bool `yaml:"enabled"`
+	DatabaseName string `yaml:"database_name,omitempty"`
 }
 
 type ServiceConfig struct {

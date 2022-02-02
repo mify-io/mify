@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
+	"unicode"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
@@ -78,11 +80,21 @@ func extractOpenapiSchemas(ctx *gencontext.GenContext, forService string) (conte
 	return serviceSchemas, nil
 }
 
+func makeDefaultDatabaseName(serviceName string) string {
+	if unicode.IsDigit(rune(serviceName[0])) {
+		serviceName = "db_" + serviceName
+	}
+	return strings.ToLower(strings.ReplaceAll(serviceName, "-", "_"))
+}
+
 func extractMifySchema(ctx *gencontext.GenContext, forService string) (*mifyconfig.ServiceConfig, error) {
 	path := ctx.GetWorkspace().GetMifySchemaAbsPath(forService)
 	config, err := mifyconfig.ReadServiceCfg(path)
 	if err != nil {
 		return nil, err
+	}
+	if len(config.Postgres.DatabaseName) == 0 {
+		config.Postgres.DatabaseName = makeDefaultDatabaseName(config.ServiceName)
 	}
 
 	return config, nil

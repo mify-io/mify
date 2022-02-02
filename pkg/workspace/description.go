@@ -396,3 +396,13 @@ func (c *Description) GetLogsDirectory() string {
 func (c *Description) GetServiceCacheDirectory(serviceName string) string {
 	return filepath.Join(c.GetCacheDirectory(), TmpSubdir, serviceName)
 }
+
+// Postgres
+
+func (c *Description) GetMigrationsDirectory(databaseName string, lang mifyconfig.ServiceLanguage) (string, error) {
+	switch lang {
+	case mifyconfig.ServiceLanguageGo:
+		return filepath.Join(c.GetGoServicesAbsPath(), "migrations", databaseName), nil
+	}
+	return "", ErrUnsupportedLanguage
+}
