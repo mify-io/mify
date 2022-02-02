@@ -36,7 +36,9 @@ var removeCmd = &cobra.Command{
 
 func init() {
 	removeClientCmd.PersistentFlags().StringVarP(&removeClientName, "to", "t", "", "Name of client service")
-	removeClientCmd.MarkPersistentFlagRequired("to")
+	if err := removeClientCmd.MarkPersistentFlagRequired("to"); err != nil {
+		panic(err)
+	}
 
 	removeCmd.AddCommand(removeClientCmd)
 }

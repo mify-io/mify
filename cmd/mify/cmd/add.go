@@ -67,7 +67,9 @@ var addCmd = &cobra.Command{
 
 func init() {
 	addClientCmd.PersistentFlags().StringVarP(&addClientName, "to", "t", "", "Name of client service")
-	addClientCmd.MarkPersistentFlagRequired("to")
+	if err := addClientCmd.MarkPersistentFlagRequired("to"); err != nil {
+		panic(err)
+	}
 
 	// TODO: limit witn enum
 	addFrontendCmd.PersistentFlags().StringVarP(

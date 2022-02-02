@@ -330,9 +330,14 @@ func createServerHandlersFile(ctx *gencontext.GenContext, serviceFile string, ta
 			continue
 		}
 		if !isSectionStart {
-			w.WriteString(line)
+			if _, err := w.WriteString(line); err != nil {
+				return err
+			}
+
 			if i+1 < len(lines) && lines[i+1] != sectionStart {
-				w.WriteByte('\n')
+				if err := w.WriteByte('\n'); err != nil {
+					return err
+				}
 			}
 			continue
 		}
@@ -414,8 +419,12 @@ func sanitizeServerHandlersImports(ctx *gencontext.GenContext, apiPath string) e
 
 	w := bufio.NewWriter(f)
 	for _, line := range lines {
-		w.WriteString(line)
-		w.WriteByte('\n')
+		if _, err := w.WriteString(line); err != nil {
+			return err
+		}
+		if err := w.WriteByte('\n'); err != nil {
+			return err
+		}
 	}
 
 	err = w.Flush()
