@@ -105,7 +105,9 @@ func RenderTemplateTree(ctx *gencontext.GenContext, model interface{}, params Re
 		}
 
 		ctx.Logger.Infof("Template render: found file %s. Creating: %s", path, destPath)
-		copyFile(assetsFs, path, destPath)
+		if err := copyFile(assetsFs, path, destPath); err != nil {
+			return err
+		}
 
 		return nil
 	})
