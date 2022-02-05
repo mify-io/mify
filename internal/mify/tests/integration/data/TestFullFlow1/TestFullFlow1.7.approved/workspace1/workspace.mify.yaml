@@ -1,0 +1,3 @@
+workspace_name: workspace1
+git_host: example.com
+git_namespace: namespace

@@ -1,0 +1,5 @@
+.openapi-generator-ignore
+ApiClient.js
+handlers/Api.js
+index.js
+package.json

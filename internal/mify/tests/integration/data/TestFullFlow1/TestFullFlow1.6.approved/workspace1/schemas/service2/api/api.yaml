@@ -1,0 +1,21 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: service2
+  description: Service description
+  contact:
+    name: Maintainer name
+    email: Maintainer email
+servers:
+  - url: service2.company.com
+paths:
+  /path/to/api:
+    get:
+      summary: sample handler
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object

@@ -1,0 +1,13 @@
+.openapi-generator-ignore
+api/api.go
+api/api_path_to_api.go
+api/api_path_to_api_service.go
+api/error.go
+api/helpers.go
+api/impl.go
+api/init/routes.go
+api/init/server.go
+api/logger.go
+api/metrics.go
+api/request_context.go
+api/routers.go

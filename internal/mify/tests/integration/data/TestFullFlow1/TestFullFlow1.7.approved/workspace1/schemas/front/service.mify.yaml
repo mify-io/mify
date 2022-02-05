@@ -1,0 +1,6 @@
+language: js
+service_name: front
+maintainers: []
+openapi:
+  clients:
+    service1: {}

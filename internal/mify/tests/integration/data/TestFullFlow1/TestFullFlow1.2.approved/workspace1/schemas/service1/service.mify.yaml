@@ -1,0 +1,3 @@
+language: go
+service_name: service1
+maintainers: []

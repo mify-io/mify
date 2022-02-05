@@ -1,0 +1,6 @@
+/README.md
+/.travis.yml
+/.gitignore
+/.babelrc
+/git_push.sh
+/mocha.opts
