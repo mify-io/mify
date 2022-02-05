@@ -1,8 +1,0 @@
-/README.md
-/.travis.yml
-/api
-/api/**
-/go.mod
-/go.sum
-/.gitignore
-/git_push.sh

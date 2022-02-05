@@ -1,12 +1,19 @@
 package integration
 
 import (
+	"flag"
 	"path"
 	"testing"
 
 	"github.com/mify-io/mify/internal/mify"
 	"github.com/stretchr/testify/require"
 )
+
+var approve bool
+
+func init() {
+	flag.BoolVar(&approve, "approve", false, "Approve test result")
+}
 
 func TestFullFlow1(t *testing.T) {
 	approval := NewApprovalContext(t)
@@ -46,5 +53,9 @@ func TestFullFlow1(t *testing.T) {
 	require.NoError(t, mify.AddClient(ctx, basePath, "front", "service1"))
 	approval.EndSubtest(tempDir)
 
-	approval.Verify()
+	if approve {
+		approval.Approve()
+	} else {
+		approval.Verify()
+	}
 }

@@ -1,6 +1,0 @@
-.openapi-generator-ignore
-api_api.go
-client.go
-configuration.go
-response.go
-utils.go
