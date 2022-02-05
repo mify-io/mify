@@ -63,6 +63,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.20.0
+	golang.org/x/build v0.0.0-20220204194726-1d09d2e26685
 	golang.org/x/net v0.0.0-20220127074510-2fabfed7e28f // indirect
 	google.golang.org/genproto v0.0.0-20220126215142-9970aeb2e350 // indirect
 	google.golang.org/grpc v1.44.0 // indirect
