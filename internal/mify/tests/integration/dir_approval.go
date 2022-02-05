@@ -181,12 +181,12 @@ func (ac *approvalContext) Verify() {
 
 		if _, err := os.Stat(ac.getApprovedTar(i)); os.IsNotExist(err) {
 			ac.t.Logf("approved tar isn't exists. Validate .received results and run test with --aprove flag to mark results as approved")
-			ac.t.Fail()
+			ac.t.FailNow()
 		}
 
 		if err := ac.unpackApprovedDir(i); err != nil {
 			ac.t.Logf("failed to unpack approved tar: %s", err)
-			ac.t.Fail()
+			ac.t.FailNow()
 		}
 
 		if err := verifyDirTree(ac.t, ac.getApprovedDir(i), ac.getReceivedDir(i)); err != nil {
