@@ -30,11 +30,11 @@ func NewApprovalContext(t *testing.T) approvalContext {
 }
 
 func (ac approvalContext) getReceivedDir(subtestSeqNo int) string {
-	return path.Join(getDataPath(ac.t), fmt.Sprintf("%s.%d.received", ac.t.Name(), subtestSeqNo))
+	return path.Join(getResultsPath(ac.t), fmt.Sprintf("%s.%d.received", ac.t.Name(), subtestSeqNo))
 }
 
 func (ac approvalContext) getApprovedDir(subtestSeqNo int) string {
-	return path.Join(getDataPath(ac.t), fmt.Sprintf("%s.%d.approved", ac.t.Name(), subtestSeqNo))
+	return path.Join(getResultsPath(ac.t), fmt.Sprintf("%s.%d.approved", ac.t.Name(), subtestSeqNo))
 }
 
 func (ac approvalContext) getApprovedTar(subtestSeqNo int) string {
@@ -45,6 +45,10 @@ func (ac approvalContext) getApprovedTar(subtestSeqNo int) string {
 func (ac approvalContext) packApprovedDir(subtestSeqNo int) error {
 	approvedTarPath := ac.getApprovedTar(subtestSeqNo)
 	if err := os.RemoveAll(approvedTarPath); err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(path.Dir(approvedTarPath), os.ModePerm); err != nil {
 		return err
 	}
 
@@ -209,10 +213,12 @@ func (ac *approvalContext) Approve() {
 			ac.t.Logf("approve %d failed: %s", i, err)
 			ac.t.FailNow()
 		}
+
 		if err := copy.Copy(ac.getReceivedDir(i), approvedPath); err != nil {
 			ac.t.Logf("approve %d failed: %s", i, err)
 			ac.t.FailNow()
 		}
+
 		if err := ac.packApprovedDir(i); err != nil {
 			ac.t.Logf("approve pack %d failed: %s", i, err)
 			ac.t.FailNow()
@@ -227,6 +233,15 @@ func getDataPath(t *testing.T) string {
 	}
 
 	return path.Join(wd, "data", t.Name())
+}
+
+func getResultsPath(t *testing.T) string {
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("can't get results dir: %s", err)
+	}
+
+	return path.Join(wd, "results", t.Name())
 }
 
 func verifyDirTree(t *testing.T, approvedDirPath string, receivedDirPath string) error {
