@@ -68,6 +68,7 @@ func init() {
 	rootCmd.AddCommand(genCmd)
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(toolCmd)
+	rootCmd.AddCommand(deployCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.

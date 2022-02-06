@@ -32,3 +32,7 @@ func initMutatorCtx(ctx *CliContext, basePath string) (*mutators.MutatorContext,
 
 	return mutators.NewMutatorContext(ctx.Ctx, ctx.Logger, &descr), nil
 }
+
+func (c CliContext) GetCtx() context.Context {
+	return c.Ctx
+}
