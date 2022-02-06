@@ -22,12 +22,11 @@ func runCommand(cmdname string, args ...string) error {
 }
 
 func installMigrate(ctx *CliContext) (string, error) {
-	toolPath := filepath.Join(build.Default.GOPATH, "bin", "migrate")
+	toolPath := filepath.Join(build.Default.GOPATH, "bin", "dbmate")
 	if _, err := os.Stat(toolPath); errors.Is(err, os.ErrNotExist) {
-		ctx.Logger.Printf("Installing migrate...")
+		ctx.Logger.Printf("Installing migrate tool dbmate...")
 		err := runCommand(
-			"go", "install", "-tags", "postgres",
-			"github.com/golang-migrate/migrate/v4/cmd/migrate@v4.15.1",
+			"go", "install", "github.com/amacneil/dbmate@v1.13.0",
 		)
 		if err != nil {
 			return "", err
@@ -63,21 +62,16 @@ func ToolMigrate(
 		return fmt.Errorf("failed to get migrations directory: %w", err)
 	}
 
-	if command == "create" {
-		extraArgs = append([]string{
-			"-dir", migrationsDir,
-			"-ext", "sql",
-		}, extraArgs...)
-	}
-	if _, err := os.Stat(migrationsDir); errors.Is(err, os.ErrNotExist) && command != "create" {
+	if _, err := os.Stat(migrationsDir); errors.Is(err, os.ErrNotExist) && command != "new" {
 		ctx.Logger.Printf("Migrations directory is not initialized, please create your first migration:")
-		ctx.Logger.Printf("mify tool migrate %s create -- -seq <migration-name>", serviceName)
+		ctx.Logger.Printf("mify tool migrate %s new <migration-name>", serviceName)
 		return nil
 	}
 
 	args := []string{
-		"-database", "postgres://user:passwd@localhost:5432/" + dbName + "?sslmode=disable",
-		"-path", migrationsDir,
+		"--url", "postgres://user:passwd@localhost:5432/" + dbName + "?sslmode=disable",
+		"--no-dump-schema",
+		"--migrations-dir", migrationsDir,
 		command,
 	}
 	args = append(args, extraArgs...)
