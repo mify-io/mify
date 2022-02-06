@@ -2,6 +2,7 @@ package mify
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mify-io/mify/internal/mify/status"
 	"github.com/mify-io/mify/internal/mify/util/docker"
@@ -9,6 +10,25 @@ import (
 	"github.com/mify-io/mify/pkg/generator/core"
 	"github.com/mify-io/mify/pkg/workspace"
 )
+
+func ServiceGenerateMany(ctx *CliContext, basePath string, names []string) error {
+	descr, err := workspace.InitDescription(basePath)
+	if err != nil {
+		return err
+	}
+
+	if len(names) == 0 {
+		names = descr.GetServices()
+	}
+
+	for _, name := range names {
+		if err := ServiceGenerate(ctx, basePath, name); err != nil {
+			return fmt.Errorf("service '%s' generation failed: %w", name, err)
+		}
+	}
+
+	return nil
+}
 
 func ServiceGenerate(ctx *CliContext, basePath string, name string) error {
 	descr, err := workspace.InitDescription(basePath)

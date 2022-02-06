@@ -15,17 +15,13 @@ var genCmd = &cobra.Command{
 	Use:   "generate [service]...",
 	Short: "Generate code in workspace",
 	Long:  `Generate code for given list of services after schema changes.`,
-	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		// TODO: make service name as optional
-		for _, ival := range args {
-			if err := mify.ServiceGenerate(appContext, workspacePath, ival); err != nil {
-				if errors.Is(err, context.Canceled) {
-					return
-				}
-				fmt.Fprintf(os.Stderr, "service '%s' generation failed: %s", ival, err)
-				os.Exit(2)
+		if err := mify.ServiceGenerateMany(appContext, workspacePath, args); err != nil {
+			if errors.Is(err, context.Canceled) {
+				return
 			}
+			fmt.Fprintf(os.Stderr, "%s", err)
+			os.Exit(2)
 		}
 	},
 }
