@@ -1,0 +1,10 @@
+{
+  "name": "name: Mify cloud CI/CD",
+  "description": "Mify cloud CI/CD starter workflow.",
+  "categories": [
+      "Go"
+  ],
+  "filePatterns": [
+      "^workspace.mify.yaml$"
+  ]
+}
