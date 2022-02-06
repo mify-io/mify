@@ -19,6 +19,7 @@ func ServiceGenerateMany(ctx *CliContext, basePath string, names []string) error
 
 	if len(names) == 0 {
 		names = descr.GetServices()
+		names = append(names, workspace.DevRunnerName)
 	}
 
 	for _, name := range names {
