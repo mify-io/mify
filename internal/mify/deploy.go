@@ -22,10 +22,6 @@ func Deploy(ctx *CliContext, basePath string, args []string) error {
 		return err
 	}
 
-	// if err := docker.PullImage(ctx.GetCtx(), logger.Sugar(), os.Stdout, image); err != nil {
-	// 	return err
-	// }
-
 	curUser, err := user.Current()
 	if err != nil {
 		return err
@@ -35,7 +31,7 @@ func Deploy(ctx *CliContext, basePath string, args []string) error {
 	params := docker.DockerRunParams{
 		User:   curUser,
 		Mounts: map[string]string{"/repo": basePath},
-		Cmd:    args,
+		Cmd:    append(args, "-p", "/repo"),
 	}
 
 	err = docker.Run(ctx.GetCtx(), logger.Sugar(), os.Stdout, image, params)
