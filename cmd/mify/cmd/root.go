@@ -57,7 +57,6 @@ func cleanup() {
 }
 
 func init() {
-	appContext = mify.NewContext()
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVarP(&workspacePath, "path", "p", "", "Path to workspace")
@@ -69,6 +68,7 @@ func init() {
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(toolCmd)
 	rootCmd.AddCommand(deployCmd)
+	rootCmd.AddCommand(cloudCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -77,20 +77,20 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
-
-		// Search config in home directory with name ".mify" (without extension).
-		viper.AddConfigPath(home)
+		viper.AddConfigPath(mify.GetConfigDirectory())
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".mify")
+		viper.SetConfigName("config")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	_ = viper.ReadInConfig()
+
+	config := mify.NewDefaultConfig()
+	if err := viper.Unmarshal(&config); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to read config: %s", err)
+		os.Exit(2)
 	}
+	appContext = mify.NewContext(config)
 }
