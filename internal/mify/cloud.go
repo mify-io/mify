@@ -8,10 +8,9 @@ import (
 	"github.com/mify-io/mify/pkg/workspace"
 )
 
-
-func CloudInit(ctx *CliContext, basePath string) error {
+func CloudInit(ctx *CliContext) error {
 	const CLOUD_URL = "https://cloud.mify.io"
-	_, err := workspace.InitDescription(basePath)
+	_, err := workspace.InitDescription(ctx.WorkspacePath)
 	if err != nil {
 		return err
 	}
@@ -32,6 +31,6 @@ func CloudInit(ctx *CliContext, basePath string) error {
 	return nil
 }
 
-func CloudUpdateKubeconfig(ctx *CliContext, basePath string) error {
+func CloudUpdateKubeconfig(ctx *CliContext) error {
 	return nil
 }

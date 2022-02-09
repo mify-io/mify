@@ -13,6 +13,13 @@ var runCmd = &cobra.Command{
 	Use:   "run",
 	Short: "Run all go services",
 	Long:  `Run all go services in one dev-runner process`,
+	PersistentPreRun: func(*cobra.Command, []string) {
+		err := appContext.InitWorkspaceDescription()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to init workspace: %s\n", err)
+			os.Exit(2)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := mify.Run(appContext, workspacePath); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to run app: %s\n", err)

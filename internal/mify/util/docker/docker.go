@@ -23,6 +23,7 @@ type DockerRunParams struct {
 	Mounts    map[string]string
 	Cmd       []string
 	PullImage bool
+	Env       []string
 }
 
 func removeContainer(ctx context.Context, client *client.Client, id string) error {
@@ -115,6 +116,7 @@ func Run(
 		Labels: map[string]string{
 			mifyContainerLabel: "",
 		},
+		Env: params.Env,
 	}, &container.HostConfig{Mounts: m}, nil, nil, "")
 	if err != nil {
 		return err

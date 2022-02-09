@@ -37,31 +37,48 @@ func SaveConfig(config Config) error {
 }
 
 type CliContext struct {
-	Logger *log.Logger
-	Ctx    context.Context
-	Cancel context.CancelFunc
-	Config Config
+	Logger        *log.Logger
+	Ctx           context.Context
+	Cancel        context.CancelFunc
+	Config        Config
+	WorkspacePath string
+
+	workspaceDescription *workspace.Description
 }
 
-func NewContext(config Config) *CliContext {
+func NewContext(config Config, workspacePath string) *CliContext {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &CliContext{
-		Logger: log.New(os.Stdout, "", 0),
-		Ctx:    ctx,
-		Cancel: cancel,
-		Config: config,
+		Logger:        log.New(os.Stdout, "", 0),
+		Ctx:           ctx,
+		Cancel:        cancel,
+		Config:        config,
+		WorkspacePath: workspacePath,
 	}
 }
 
 func initMutatorCtx(ctx *CliContext, basePath string) (*mutators.MutatorContext, error) {
-	descr, err := workspace.InitDescription(basePath)
-	if err != nil {
-		return nil, err
-	}
-
-	return mutators.NewMutatorContext(ctx.Ctx, ctx.Logger, &descr), nil
+	return mutators.NewMutatorContext(ctx.Ctx, ctx.Logger, ctx.workspaceDescription), nil
 }
 
 func (c CliContext) GetCtx() context.Context {
 	return c.Ctx
+}
+
+func (c *CliContext) InitWorkspaceDescription() error {
+	res, err := workspace.InitDescription(c.WorkspacePath)
+	if err != nil {
+		return err
+	}
+
+	c.workspaceDescription = &res
+	return nil
+}
+
+func (c *CliContext) MustGetWorkspaceDescription() *workspace.Description {
+	if c.workspaceDescription == nil {
+		panic("missed workspaceDescription")
+	}
+
+	return c.workspaceDescription
 }

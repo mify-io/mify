@@ -92,5 +92,5 @@ func initConfig() {
 		fmt.Fprintf(os.Stderr, "failed to read config: %s", err)
 		os.Exit(2)
 	}
-	appContext = mify.NewContext(config)
+	appContext = mify.NewContext(config, workspacePath)
 }
