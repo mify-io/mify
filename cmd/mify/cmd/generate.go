@@ -15,6 +15,13 @@ var genCmd = &cobra.Command{
 	Use:   "generate [service]...",
 	Short: "Generate code in workspace",
 	Long:  `Generate code for given list of services after schema changes.`,
+	PersistentPreRun: func(*cobra.Command, []string) {
+		err := appContext.InitWorkspaceDescription()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to init workspace: %s\n", err)
+			os.Exit(2)
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := mify.ServiceGenerateMany(appContext, workspacePath, args); err != nil {
 			if errors.Is(err, context.Canceled) {

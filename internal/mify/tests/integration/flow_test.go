@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/mify-io/mify/internal/mify"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,11 +20,13 @@ func TestFullFlow1(t *testing.T) {
 	approval := NewApprovalContext(t)
 	tempDir := t.TempDir()
 	basePath := path.Join(tempDir, "workspace1")
-	ctx := mify.NewContext(mify.Config{})
+	ctx := mify.NewContext(mify.Config{}, basePath)
 
 	approval.NewSubtest()
 	require.NoError(t, mify.CreateWorkspace(ctx, tempDir, "workspace1"))
 	approval.EndSubtest(tempDir)
+
+	assert.NoError(t, ctx.InitWorkspaceDescription())
 
 	approval.NewSubtest()
 	require.NoError(t, mify.CreateService(ctx, basePath, "go", "service1"))

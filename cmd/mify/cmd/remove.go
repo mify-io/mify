@@ -32,6 +32,13 @@ var removeCmd = &cobra.Command{
 	Use:   "remove",
 	Short: "Remove client",
 	Long:  `Remove client from service`,
+	PersistentPreRun: func(*cobra.Command, []string) {
+		err := appContext.InitWorkspaceDescription()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to init workspace: %s\n", err)
+			os.Exit(2)
+		}
+	},
 }
 
 func init() {
