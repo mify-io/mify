@@ -58,6 +58,18 @@ var addFrontendCmd = &cobra.Command{
 	},
 }
 
+var addApiGatewayCmd = &cobra.Command{
+	Use:   "api-gateway",
+	Short: "Add api gateway",
+	Long:  `Add an api gateway to workspace`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := mify.CreateApiGateway(appContext); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to create api gateway: %s\n", err)
+			os.Exit(2)
+		}
+	},
+}
+
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
@@ -90,4 +102,5 @@ func init() {
 	addCmd.AddCommand(addServiceCmd)
 	addCmd.AddCommand(addClientCmd)
 	addCmd.AddCommand(addFrontendCmd)
+	addCmd.AddCommand(addApiGatewayCmd)
 }

@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/util/render"
@@ -31,23 +32,22 @@ func CreateFrontend(mutContext *mutators.MutatorContext, template string, name s
 	return fmt.Errorf("unknown template %s", template)
 }
 
-func TryCreateApiGateway(mutContext *mutators.MutatorContext) (bool, error) {
-	exists, err := checkServiceExists(mutContext)
+func CreateApiGateway(mutContext *mutators.MutatorContext) error {
+	exists, err := checkServiceExists(mutContext, workspace.ApiGatewayName)
 	if err != nil {
-		return false, err
+		return fmt.Errorf("can't check if service exists: %w", err)
 	}
 
 	if exists {
-		fmt.Printf("Api gateway already exists. Skipping creation... \n")
-		return false, nil
+		return fmt.Errorf("Api gateway already exists. Skipping creation... \n")
 	}
 
 	err = CreateService(mutContext, mifyconfig.ServiceLanguageGo, workspace.ApiGatewayName)
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return false, nil
+	return nil
 }
 
 func createServiceImpl(
@@ -80,8 +80,12 @@ func createServiceImpl(
 	return nil
 }
 
-func checkServiceExists(mutContext *mutators.MutatorContext) (bool, error) {
-	schemasDirAbsPath := mutContext.GetDescription().GetApiSchemaDirAbsPath(workspace.ApiGatewayName)
+func checkServiceExists(mutContext *mutators.MutatorContext, serviceName string) (bool, error) {
+	schemasDirAbsPath := mutContext.GetDescription().GetApiSchemaDirAbsPath(serviceName)
+	if _, err := os.Stat(schemasDirAbsPath); os.IsNotExist(err) {
+		return false, nil
+	}
+
 	files, err := ioutil.ReadDir(schemasDirAbsPath)
 	if err != nil {
 		return false, err
