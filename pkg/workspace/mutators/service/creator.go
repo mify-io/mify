@@ -39,7 +39,7 @@ func CreateApiGateway(mutContext *mutators.MutatorContext) error {
 	}
 
 	if exists {
-		return fmt.Errorf("Api gateway already exists. Skipping creation... \n")
+		return fmt.Errorf("api gateway already exists, skipping creation")
 	}
 
 	err = CreateService(mutContext, mifyconfig.ServiceLanguageGo, workspace.ApiGatewayName)

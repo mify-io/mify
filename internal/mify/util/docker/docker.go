@@ -107,17 +107,20 @@ func Run(
 			Target: target,
 		})
 	}
-
-	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		User:  params.User.Uid + ":" + params.User.Gid,
-		Image: image,
-		Cmd:   params.Cmd,
-		Tty:   false,
+	conf := &container.Config{
+		Image:  image,
+		Cmd:    params.Cmd,
+		Tty:    false,
 		Labels: map[string]string{
 			mifyContainerLabel: "",
 		},
 		Env: params.Env,
-	}, &container.HostConfig{Mounts: m}, nil, nil, "")
+	}
+	if params.User != nil {
+		conf.User = params.User.Uid + ":" + params.User.Gid
+	}
+
+	resp, err := cli.ContainerCreate(ctx, conf, &container.HostConfig{Mounts: m}, nil, nil, "")
 	if err != nil {
 		return err
 	}
@@ -134,6 +137,23 @@ func Run(
 	logger.Infof("running image: %s", image)
 	var exitCode int64
 	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+	go func() {
+		out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
+			ShowStdout: true,
+			ShowStderr: true,
+			Follow:     true,
+		})
+		if err != nil {
+			logger.Errorf("Failed to read container logs: %s", err)
+			return
+		}
+
+		_, err = io.Copy(dockerLogs, out)
+		if err != nil {
+			logger.Errorf("Failed to read container logs: %s", err)
+			return
+		}
+	}()
 	select {
 	case err := <-errCh:
 		if err != nil {
@@ -141,19 +161,6 @@ func Run(
 		}
 	case st := <-statusCh:
 		exitCode = st.StatusCode
-	}
-
-	out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{
-		ShowStdout: true,
-		ShowStderr: true,
-	})
-	if err != nil {
-		return err
-	}
-
-	_, err = io.Copy(dockerLogs, out)
-	if err != nil {
-		return err
 	}
 
 	if exitCode != 0 {

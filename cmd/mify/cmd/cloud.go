@@ -40,8 +40,9 @@ var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy code to cloud",
 	Long:  `Deploy code to cloud`,
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := mify.Deploy(appContext, deployEnv); err != nil {
+		if err := mify.Deploy(appContext, deployEnv, args[0]); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to run deploy: %s\n", err)
 			os.Exit(2)
 		}
