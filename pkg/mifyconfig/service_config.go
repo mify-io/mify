@@ -33,8 +33,13 @@ type ServiceOpenAPIConfig struct {
 	Clients map[string]ServiceOpenAPIClientConfig `yaml:"clients,omitempty"`
 }
 
+func (s ServiceOpenAPIConfig) HasClient(target string) bool {
+	_, ok := s.Clients[target]
+	return ok
+}
+
 type PostgresConfig struct {
-	Enabled bool `yaml:"enabled"`
+	Enabled      bool   `yaml:"enabled"`
 	DatabaseName string `yaml:"database_name,omitempty"`
 }
 

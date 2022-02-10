@@ -7,15 +7,15 @@ import (
 	"github.com/mify-io/mify/pkg/workspace/mutators"
 )
 
-func AddClient(mutContext *mutators.MutatorContext, name string, clientName string) error {
-	fmt.Printf("Adding client: %s to %s\n", name, clientName)
+func AddClient(mutContext *mutators.MutatorContext, fromService string, toService string) error {
+	fmt.Printf("Adding client: %s to %s\n", fromService, toService)
 
-	serviceConf, err := mifyconfig.ReadServiceConfig(mutContext.GetDescription().BasePath, name)
+	serviceConf, err := mifyconfig.ReadServiceConfig(mutContext.GetDescription().BasePath, fromService)
 	if err != nil {
 		return err
 	}
 
-	_, err = mifyconfig.ReadServiceConfig(mutContext.GetDescription().BasePath, clientName)
+	_, err = mifyconfig.ReadServiceConfig(mutContext.GetDescription().BasePath, toService)
 	if err != nil {
 		return err
 	}
@@ -23,8 +23,8 @@ func AddClient(mutContext *mutators.MutatorContext, name string, clientName stri
 	if serviceConf.OpenAPI.Clients == nil {
 		serviceConf.OpenAPI.Clients = map[string]mifyconfig.ServiceOpenAPIClientConfig{}
 	}
-	serviceConf.OpenAPI.Clients[clientName] = mifyconfig.ServiceOpenAPIClientConfig{}
-	err = mifyconfig.SaveServiceConfig(mutContext.GetDescription().BasePath, name, serviceConf)
+	serviceConf.OpenAPI.Clients[toService] = mifyconfig.ServiceOpenAPIClientConfig{}
+	err = mifyconfig.SaveServiceConfig(mutContext.GetDescription().BasePath, fromService, serviceConf)
 	if err != nil {
 		return err
 	}

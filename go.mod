@@ -3,7 +3,6 @@ module github.com/mify-io/mify
 go 1.17
 
 require (
-	github.com/adrg/xdg v0.4.0
 	github.com/briandowns/spinner v1.18.0
 	github.com/docker/docker v20.10.12+incompatible
 	github.com/getkin/kin-openapi v0.88.0
@@ -33,7 +32,6 @@ require (
 	go.uber.org/multierr v1.7.0 // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	gopkg.in/ini.v1 v1.66.3 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
@@ -42,6 +40,7 @@ require (
 	github.com/Microsoft/go-winio v0.5.1 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
+	github.com/adrg/xdg v0.4.0
 	github.com/containerd/containerd v1.5.9
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
@@ -65,6 +64,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.20.0
+	golang.org/x/build v0.0.0-20220204194726-1d09d2e26685
 	golang.org/x/net v0.0.0-20220127074510-2fabfed7e28f // indirect
 	google.golang.org/genproto v0.0.0-20220126215142-9970aeb2e350 // indirect
 	google.golang.org/grpc v1.44.0 // indirect

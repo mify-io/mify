@@ -1,8 +1,8 @@
 package apigateway
 
 import (
-	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/getkin/kin-openapi/openapi3"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 )
 
 const (
@@ -20,7 +20,10 @@ func scanPublicApis(ctx *gencontext.GenContext) PublicApis {
 			continue
 		}
 		openapiSchema := schema.GetOpenapi().GetMainSchema()
-		res[schema.GetMify().ServiceName] = extractPublicAPI(openapiSchema)
+		apiPaths := extractPublicAPI(openapiSchema)
+		if len(apiPaths) > 0 {
+			res[schema.GetMify().ServiceName] = apiPaths
+		}
 	}
 
 	return res
