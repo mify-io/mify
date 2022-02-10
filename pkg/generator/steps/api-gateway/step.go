@@ -25,15 +25,10 @@ func (s ApiGatewaySchemaStep) Execute(ctx *gencontext.GenContext) (core.StepResu
 		return core.Done, nil
 	}
 
-	foundPublicApis := scanPublicApis(ctx)
-	res, err := updateApiGatewayOpenapiSchema(ctx, foundPublicApis)
+	res, err := execute(ctx)
 	if err != nil {
 		return core.Done, err
 	}
 
-	if res {
-		return core.RepeatAll, nil
-	}
-
-	return core.Done, nil
+	return res, nil
 }
