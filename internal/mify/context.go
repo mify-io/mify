@@ -72,6 +72,7 @@ func (c *CliContext) InitWorkspaceDescription() error {
 	}
 
 	c.workspaceDescription = &res
+	c.WorkspacePath = c.workspaceDescription.BasePath
 	return nil
 }
 

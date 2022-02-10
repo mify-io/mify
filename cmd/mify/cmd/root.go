@@ -67,7 +67,6 @@ func init() {
 	rootCmd.AddCommand(genCmd)
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(toolCmd)
-	rootCmd.AddCommand(deployCmd)
 	rootCmd.AddCommand(cloudCmd)
 }
 

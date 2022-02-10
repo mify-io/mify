@@ -1,46 +1,49 @@
 package mify
 
 import (
-	"fmt"
+	"io"
 	"os"
-	"os/user"
 
 	"github.com/mify-io/mify/internal/mify/util/docker"
-	"go.uber.org/zap"
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 )
 
 const (
-	image = "mify-pipeline:latest"
+	image = "mifyio/pipeline:latest"
 )
 
-func Deploy(ctx *CliContext, deployEnv string) error {
+func Deploy(ctx *CliContext, deployEnv string, serviceName string) error {
+	ctx.Logger.Printf("Deploying service %s to %s, environment: %s", serviceName,
+		ctx.workspaceDescription.Config.WorkspaceName, deployEnv)
+	err := ServiceGenerate(ctx, ctx.WorkspacePath, serviceName)
+	if err != nil {
+		return err
+	}
+	// TODO: maybe separate logger
+	genContext := gencontext.NewGenContext(ctx.Ctx, serviceName, *ctx.workspaceDescription)
+
 	if err := docker.Cleanup(ctx.GetCtx()); err != nil {
 		return err
 	}
 
-	logger, err := zap.NewDevelopment()
-	if err != nil {
+	if err := docker.PullImage(ctx.GetCtx(), genContext.Logger, io.Discard, image); err != nil {
 		return err
 	}
 
-	// if err := docker.PullImage(ctx.GetCtx(), logger.Sugar(), os.Stdout, image); err != nil {
-	// 	return err
-	// }
-
-	curUser, err := user.Current()
-	if err != nil {
-		return err
-	}
-
-	ctx.Logger.Println("running deploy")
 	params := docker.DockerRunParams{
-		User:   curUser,
-		Mounts: map[string]string{"/repo": ctx.WorkspacePath},
-		Cmd:    []string{"get-services", "-p", "/repo"},
-		Env:    []string{fmt.Sprintf("MIFY_API_TOKEN=%s", ctx.Config.APIToken)},
+		Mounts: map[string]string{
+			"/repo": ctx.WorkspacePath,
+			// TODO: support other oses
+			"/var/run/docker.sock": "/var/run/docker.sock",
+		},
+		Cmd: []string{"deploy", serviceName, "-p", "/repo"},
+		Env: []string{
+			"MIFY_API_TOKEN=" + ctx.Config.APIToken,
+			"DEPLOY_ENVIRONMENT=" + deployEnv,
+		},
 	}
 
-	err = docker.Run(ctx.GetCtx(), logger.Sugar(), os.Stdout, image, params)
+	err = docker.Run(ctx.GetCtx(), genContext.Logger, os.Stdout, image, params)
 	if err != nil {
 		return err
 	}
