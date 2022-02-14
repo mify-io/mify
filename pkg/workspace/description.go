@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 
@@ -68,7 +69,7 @@ func InitDescription(workspacePath string) (Description, error) {
 	return res, nil
 }
 
-func (c Description) GetServices() []string {
+func (c Description) GetApiServices() []string {
 	services := []string{}
 	files, err := ioutil.ReadDir(c.GetSchemasRootAbsPath())
 	if err != nil {
@@ -84,8 +85,13 @@ func (c Description) GetServices() []string {
 	return services
 }
 
+func (c Description) GetAllApps() []string {
+	services := c.GetApiServices()
+	return append(services, DevRunnerName)
+}
+
 func (c Description) HasService(serviceName string) bool {
-	services := c.GetServices()
+	services := c.GetApiServices()
 	for _, svc := range services {
 		if serviceName == svc {
 			return true
@@ -395,6 +401,14 @@ func (c *Description) GetLogsDirectory() string {
 
 func (c *Description) GetServiceCacheDirectory(serviceName string) string {
 	return filepath.Join(c.GetCacheDirectory(), TmpSubdir, serviceName)
+}
+
+func (c *Description) HasApi(serviceName string) bool {
+	if _, err := os.Stat(c.GetApiSchemaAbsPath(serviceName, MainApiSchemaName)); os.IsNotExist(err) {
+		return false
+	}
+
+	return true
 }
 
 // Postgres
