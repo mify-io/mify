@@ -8,6 +8,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	vcsTemplate string
+)
+
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
@@ -15,7 +19,7 @@ var initCmd = &cobra.Command{
 	Long:  `Initialize new workspace`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := mify.CreateWorkspace(appContext, workspacePath, args[0]); err != nil {
+		if err := mify.CreateWorkspace(appContext, workspacePath, args[0], vcsTemplate); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to create workspace: %s\n", err)
 			os.Exit(2)
 		}
@@ -23,4 +27,5 @@ var initCmd = &cobra.Command{
 }
 
 func init() {
+	initCmd.LocalFlags().StringVar(&vcsTemplate, "vcs", "git", "[git|none]")
 }

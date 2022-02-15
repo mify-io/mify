@@ -23,7 +23,7 @@ func TestFullFlow1(t *testing.T) {
 	ctx := mify.NewContext(mify.Config{}, basePath, false)
 
 	approval.NewSubtest()
-	require.NoError(t, mify.CreateWorkspace(ctx, tempDir, "workspace1"))
+	require.NoError(t, mify.CreateWorkspace(ctx, tempDir, "workspace1", "git"))
 	approval.EndSubtest(tempDir)
 
 	assert.NoError(t, ctx.InitWorkspaceDescription())
