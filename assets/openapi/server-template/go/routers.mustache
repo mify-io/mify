@@ -46,7 +46,6 @@ func NewRouter(mifyCtx *core.MifyServiceContext, routerConfig RouterConfig, rout
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(RequestContext(mifyCtx))
-	router.Use(Logger())
 	router.Use(Metrics())
 	for _, middleware := range routerConfig.Middlewares() {
 		router.Use(middleware)
