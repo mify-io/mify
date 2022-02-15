@@ -59,16 +59,18 @@ func (c *{{classname}}Controller) Routes() Routes {
 // Deprecated
 {{/isDeprecated}}
 func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Request) {
+	var handlerErr error
+	var requestBody []byte
 	{{#hasFormParams}}
 	{{#isMultipart}}
-	if err := r.ParseMultipartForm(32 << 20); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+	if handlerErr = r.ParseMultipartForm(32 << 20); handlerErr != nil {
+		c.errorHandler(w, r, &ParsingError{Err: handlerErr}, nil)
 		return
 	}
 	{{/isMultipart}}
 	{{^isMultipart}}
-	if err := r.ParseForm(); err != nil {
-		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+	if handlerErr = r.ParseForm(); handlerErr != nil {
+		c.errorHandler(w, r, &ParsingError{Err: handlerErr}, nil)
 		return
 	}
 	{{/isMultipart}}
@@ -81,6 +83,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{#isLong}}
 	{{paramName}}ParamRaw, err := parseInt64Parameter({{#routers}}getURLParam(r, "{{baseName}}"){{/routers}}, {{required}})
 	if err != nil {
+		handlerErr = err
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
@@ -88,6 +91,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{#isInteger}}
 	{{paramName}}ParamRaw, err := parseInt32Parameter({{#routers}}getURLParam(r, "{{baseName}}"){{/routers}}, {{required}})
 	if err != nil {
+		handlerErr = err
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
@@ -101,6 +105,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{#isLong}}
 	{{paramName}}ParamRaw, err := parseInt64Parameter(query.Get("{{baseName}}"), {{required}})
 	if err != nil {
+		handlerErr = err
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
@@ -108,6 +113,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{#isInteger}}
 	{{paramName}}ParamRaw, err := parseInt32Parameter(query.Get("{{baseName}}"), {{required}})
 	if err != nil {
+		handlerErr = err
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
@@ -115,6 +121,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{#isBoolean}}
 	{{paramName}}ParamRaw, err := parseBoolParameter(query.Get("{{baseName}}"))
 	if err != nil {
+		handlerErr = err
 		w.WriteHeader(500)
 		return
 	}
@@ -133,6 +140,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{paramName}}ParamRaw, err := ReadFormFileToTempFile(r, "{{baseName}}")
 	{{/isArray}}
 	if err != nil {
+		handlerErr = err
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
@@ -141,6 +149,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{paramName}}ParamRaw, err := parseInt64ArrayParameter(r.FormValue("{{baseName}}"), ",", {{required}}){{/isArray}}{{^isArray}}
 	{{paramName}}ParamRaw, err := parseInt64Parameter(r.FormValue("{{baseName}}"), {{required}}){{/isArray}}
 	if err != nil {
+		handlerErr = err
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
@@ -149,6 +158,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{paramName}}ParamRaw, err := parseInt32ArrayParameter(r.FormValue("{{baseName}}"), ",", {{required}}){{/isArray}}{{^isArray}}
 	{{paramName}}ParamRaw, err := parseInt32Parameter(r.FormValue("{{baseName}}"), {{required}}){{/isArray}}
 	if err != nil {
+		handlerErr = err
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
@@ -164,11 +174,19 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isHeaderParam}}
 	{{#isBodyParam}}
 	{{paramName}}ParamRaw := {{dataType}}{}
-	d := getBodyDecoder(r.Body)
+	var rerr error
+	requestBody, rerr = readBody(r.Body)
+	if rerr != nil {
+		handlerErr = rerr
+		c.errorHandler(w, r, &ParsingError{Err: rerr}, nil)
+		return
+	}
+	d := getBodyDecoder(requestBody)
 	{{^isAdditionalPropertiesTrue}}
 	d.DisallowUnknownFields()
 	{{/isAdditionalPropertiesTrue}}
 	if err := d.Decode(&{{paramName}}ParamRaw); err != nil {
+		handlerErr = err
 		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
 		return
 	}
@@ -176,6 +194,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 		{{#items.isModel}}
 	for _, el := range {{paramName}}ParamRaw {
 		if err := Assert{{baseType}}Required(el); err != nil {
+			handlerErr = err
 			c.errorHandler(w, r, err, nil)
 			return
 		}
@@ -185,6 +204,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{^isArray}}
 		{{#isModel}}
 	if err := Assert{{baseType}}Required({{paramName}}ParamRaw); err != nil {
+		handlerErr = err
 		c.errorHandler(w, r, err, nil)
 		return
 	}
@@ -223,19 +243,25 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isArray}}
 
 	{{/allParams}}
+	var result ServiceResponse
 	builder := r.Context().Value(MifyContextField).(*core.MifyRequestContextBuilder)
+	defer LogHandler(builder, requestBody, &result, &handlerErr)()
+
 
 	reqCtx, err := builder.Build(r, w)
 	if err != nil {
-		resp := Response(http.StatusInternalServerError, nil)
-		c.errorHandler(w, r, err, &resp)
+		handlerErr = err
+		result = Response(http.StatusInternalServerError, nil)
+		c.errorHandler(w, r, err, &result)
 		return
 	}
 
-	result, err := c.service.{{nickname}}(reqCtx{{#allParams}}, {{paramName}}Param{{/allParams}})
+	var herr error
+	result, herr = c.service.{{nickname}}(reqCtx{{#allParams}}, {{paramName}}Param{{/allParams}})
 	// If an error occurred, encode the error with the status code
-	if err != nil {
-		c.errorHandler(w, r, err, &result)
+	if herr != nil {
+		handlerErr = herr
+		c.errorHandler(w, r, herr, &result)
 		return
 	}
 	// If no error, encode the body and the result code

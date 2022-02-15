@@ -2,31 +2,61 @@
 package {{packageName}}
 
 import (
-	"github.com/go-chi/chi/v5/middleware"
+	"encoding/json"
 	"go.uber.org/zap"
-	"net/http"
 	"time"
+
+	"{{goModule}}/internal/{{serviceName}}/generated/core"
 )
 
-func Logger() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+func bodyPrinter(data []byte) []byte {
+	const maxDataLen = 1024
+	truncSuffix := "...(truncated)"
+	if len(data) > maxDataLen {
+		data = data[:maxDataLen]
+		data = append(data, truncSuffix...)
+	}
+	return data
+}
 
-			ctxBuilder := mustGetContextBuilder(r)
+func logRequest(ctxBuilder *core.MifyRequestContextBuilder, body []byte) {
+	var fields []zap.Field
+	if body != nil {
+		fields = append(fields,
+			zap.Int("size", len(body)),
+			zap.ByteString("body", bodyPrinter(body)),
+		)
+	}
+	ctxBuilder.Logger().Info("started processing request", fields...)
+}
 
-			ctxBuilder.Logger().Info("started processing request")
+func logResponse(ctxBuilder *core.MifyRequestContextBuilder, startTime time.Time, resp ServiceResponse, respErr error) {
+	var data []byte
+	var fields []zap.Field
+	data, err := json.Marshal(resp.Body)
+	if err != nil {
+		data = []byte(err.Error())
+	}
+	fields = append(fields,
+		zap.Duration("elapsed_sec", time.Since(startTime)),
+		zap.Int("status", resp.Code),
+	)
+	if respErr != nil {
+		fields = append(fields, zap.Error(respErr))
+	} else {
+		fields = append(fields,
+			zap.Int("size", len(data)),
+			zap.ByteString("body", bodyPrinter(data)),
+		)
+	}
+	ctxBuilder.Logger().Info("finished processing request", fields...)
+}
 
-			t1 := time.Now()
-
-			next.ServeHTTP(ww, r)
-
-			ctxBuilder.Logger().Info("finished processing request",
-				zap.Duration("elapsed_sec", time.Since(t1)),
-				zap.Int("status", ww.Status()),
-				zap.Int("size", ww.BytesWritten()),
-			)
-		}
-		return http.HandlerFunc(fn)
+func LogHandler(
+	ctxBuilder *core.MifyRequestContextBuilder, requestBody []byte, resp *ServiceResponse, respErr *error) func() {
+	logRequest(ctxBuilder, requestBody)
+	startTime := time.Now()
+	return func() {
+		logResponse(ctxBuilder, startTime, *resp, *respErr)
 	}
 }

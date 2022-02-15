@@ -48,13 +48,18 @@ func deploy(ctx *CliContext, deployEnv string, serviceName string) error {
 		return err
 	}
 
+	cmdArgs := []string{"deploy", serviceName, "-p", "/repo"}
+	if ctx.IsVerbose {
+		cmdArgs = append(cmdArgs, "--verbose")
+	}
+
 	params := docker.DockerRunParams{
 		Mounts: map[string]string{
 			"/repo": ctx.WorkspacePath,
 			// TODO: support other oses
 			"/var/run/docker.sock": "/var/run/docker.sock",
 		},
-		Cmd: []string{"deploy", serviceName, "-p", "/repo"},
+		Cmd: cmdArgs,
 		Env: []string{
 			"MIFY_API_TOKEN=" + strings.TrimSpace(ctx.Config.APIToken),
 			"DEPLOY_ENVIRONMENT=" + deployEnv,

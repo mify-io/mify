@@ -42,11 +42,12 @@ type CliContext struct {
 	Cancel        context.CancelFunc
 	Config        Config
 	WorkspacePath string
+	IsVerbose     bool
 
 	workspaceDescription *workspace.Description
 }
 
-func NewContext(config Config, workspacePath string) *CliContext {
+func NewContext(config Config, workspacePath string, isVerbose bool) *CliContext {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &CliContext{
 		Logger:        log.New(os.Stdout, "", 0),
@@ -54,6 +55,7 @@ func NewContext(config Config, workspacePath string) *CliContext {
 		Cancel:        cancel,
 		Config:        config,
 		WorkspacePath: workspacePath,
+		IsVerbose:     isVerbose,
 	}
 }
 

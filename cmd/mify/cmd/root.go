@@ -15,6 +15,7 @@ import (
 var (
 	cfgFile       string
 	workspacePath string
+	isVerbose     bool
 	appContext    *mify.CliContext
 )
 
@@ -60,6 +61,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVarP(&workspacePath, "path", "p", "", "Path to workspace")
+	rootCmd.PersistentFlags().BoolVarP(&isVerbose, "verbose", "v", false, "Show verbose output")
 
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(addCmd)
@@ -91,5 +93,5 @@ func initConfig() {
 		fmt.Fprintf(os.Stderr, "failed to read config: %s", err)
 		os.Exit(2)
 	}
-	appContext = mify.NewContext(config, workspacePath)
+	appContext = mify.NewContext(config, workspacePath, isVerbose)
 }

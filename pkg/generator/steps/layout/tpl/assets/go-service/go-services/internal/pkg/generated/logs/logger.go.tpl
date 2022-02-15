@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type MifyLoggerWrapper struct {
@@ -20,15 +21,16 @@ type MifyServiceContext interface {
 }
 
 func NewMifyLoggerWrapper(ctx MifyServiceContext) (*MifyLoggerWrapper, error) {
-	logger, err := zap.NewProduction()
+	config := zap.NewProductionConfig()
+	config.EncoderConfig.TimeKey = "@timestamp"
+	config.EncoderConfig.EncodeTime = zapcore.RFC3339NanoTimeEncoder
+	logger, err := config.Build(zap.Fields(
+		zap.String("service_name", ctx.ServiceName()),
+		zap.String("hostname", ctx.Hostname()),
+	))
 	if err != nil {
 		return &MifyLoggerWrapper{}, err
 	}
-
-	logger = logger.With(
-		zap.String("service_name", ctx.ServiceName()),
-		zap.String("hostname", ctx.Hostname()),
-	)
 
 	defer logger.Sync()
 

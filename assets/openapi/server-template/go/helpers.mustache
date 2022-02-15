@@ -2,10 +2,12 @@
 package {{packageName}}
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"reflect"
 	"io"
+	"io/ioutil"
 
 	"github.com/go-chi/chi/v5"
 	"{{goModule}}/internal/{{serviceName}}/generated/core"
@@ -66,8 +68,13 @@ func AssertRecurseValueRequired(value reflect.Value, callback func(interface{}) 
 }
 
 // wrapper to prevent generating controllers with unused imports
-func getBodyDecoder(r io.Reader) *json.Decoder {
-	return json.NewDecoder(r)
+func getBodyDecoder(body []byte) *json.Decoder {
+	return json.NewDecoder(bytes.NewBuffer(body))
+}
+
+// wrapper to prevent generating controllers with unused imports
+func readBody(r io.Reader) ([]byte, error) {
+	return ioutil.ReadAll(r)
 }
 
 // wrapper to prevent generating controllers with unused imports
