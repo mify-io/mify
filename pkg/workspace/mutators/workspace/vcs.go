@@ -6,6 +6,14 @@ import (
 )
 
 func InitGit(mutContext *mutators.MutatorContext) error {
-	_, err := git.PlainInit(mutContext.GetDescription().BasePath, false)
+	repo, err := git.PlainInit(mutContext.GetDescription().BasePath, false)
+	if err != nil {
+		return err
+	}
+	tree, err := repo.Worktree()
+	if err != nil {
+		return err
+	}
+	_, err = tree.Commit("Initial commit", &git.CommitOptions{})
 	return err
 }
