@@ -1,6 +1,7 @@
-TARGET_PATH=$HOME/.cache/dima-tmp
+NAME=mify_tmp
+TARGET_PATH=$HOME/.cache/"$NAME"
 rm -rf $TARGET_PATH
-go run ./cmd/mify/ init dima-tmp -p $HOME/.cache
+go run ./cmd/mify/ init "$NAME" -p $HOME/.cache
 go run ./cmd/mify/ add service service1 service2 -p $TARGET_PATH
 go run ./cmd/mify/ add client service1 --to service2 -p $TARGET_PATH
 go run ./cmd/mify/ remove client service1 --to service2 -p $TARGET_PATH

@@ -64,6 +64,7 @@ func deploy(ctx *CliContext, deployEnv string, serviceName string) error {
 			"MIFY_API_TOKEN=" + strings.TrimSpace(ctx.Config.APIToken),
 			"DEPLOY_ENVIRONMENT=" + deployEnv,
 		},
+		Tty: true,
 	}
 
 	err = docker.Run(ctx.GetCtx(), genContext.Logger, os.Stdout, image, params)
