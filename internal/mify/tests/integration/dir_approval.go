@@ -245,7 +245,6 @@ func getResultsPath(t *testing.T) string {
 }
 
 func verifyDirTree(t *testing.T, approvedDirPath string, receivedDirPath string) error {
-	fmt.Printf("%s %s\n", approvedDirPath, receivedDirPath)
 	approvedDirTree, err := buildDirTree(approvedDirPath)
 	if err != nil {
 		return fmt.Errorf("can't get approved directory tree: %w", err)
@@ -271,11 +270,11 @@ func verifyDirTree(t *testing.T, approvedDirPath string, receivedDirPath string)
 func buildDirTree(path string) (string, error) {
 	res := ""
 	err := filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
+		// skip .git/objects
 		if strings.Contains(p, ".git/objects") {
 			return nil
 		}
 		if d.IsDir() {
-			// skip .git/objects
 			files, err := ioutil.ReadDir(p)
 			if err != nil {
 				return err
