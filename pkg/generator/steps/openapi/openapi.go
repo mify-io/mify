@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"os"
 	"path"
-	"strconv"
 	"sync"
 
 	"os/user"
@@ -445,7 +444,7 @@ func runOpenapiGenerator(
 	ctx *gencontext.GenContext, basePath string, schemaPath string, templatePath string, targetDir string,
 	packageName string,
 	clientName string,
-	servicePort int,
+	apiEndpoint string,
 	info OpenAPIGeneratorInfo) error {
 	const (
 		image = "openapitools/openapi-generator-cli:v5.3.0"
@@ -480,8 +479,7 @@ func runOpenapiGenerator(
 		"-p", "serviceName=" + info.ServiceName,
 		"-p", "clientName=" + clientName,
 		"-p", "clientEndpointEnv=" + MakeClientEnvName(clientName),
-		"-p", "serviceEndpointEnv=" + MakeServerEnvName(info.ServiceName),
-		"-p", "serviceEndpoint=:" + strconv.Itoa(servicePort),
+		"-p", fmt.Sprintf("serviceEndpoint=%s", apiEndpoint),
 		"--package-name", packageName,
 	}
 	ctx.Logger.Infof("running docker %s", args)
