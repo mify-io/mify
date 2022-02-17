@@ -57,3 +57,15 @@ func (sc SchemaContext) MustGetMifySchema(serviceName string) *mifyconfig.Servic
 
 	return schemas.mify
 }
+
+func (sc SchemaContext) GetApiServices() map[string]*ServiceSchemas {
+	res := make(map[string]*ServiceSchemas)
+
+	for service, schema := range sc.schemas {
+		if schema.GetOpenapi() != nil {
+			res[service] = schema
+		}
+	}
+
+	return res
+}

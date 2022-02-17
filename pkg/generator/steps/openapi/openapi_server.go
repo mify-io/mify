@@ -9,31 +9,25 @@ import (
 	"go/format"
 	"io"
 	"io/ioutil"
-	"net"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/mify-io/mify/internal/mify/util"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 )
-
-type serviceGenCache struct {
-	ListenPort int `yaml:"listen_port"`
-}
 
 func (g *OpenAPIGenerator) doGenerateServer(
 	ctx *gencontext.GenContext, assetsPath string, schemaPath string, targetPath string, paths []string) error {
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated")
 
-	listenPort, err := makeServicePort(ctx.GetWorkspace().GetServiceCacheDirectory(ctx.GetServiceName()))
+	endpoints, err := ctx.EndpointsResolver.ResolveEndpoints(ctx.GetServiceName())
 	if err != nil {
-		return fmt.Errorf("failed to get service port: %w", err)
+		return err
 	}
 
 	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, assetsPath,
-		generatedPath, SERVER_PACKAGE_NAME, g.info.ServiceName, listenPort, g.info)
+		generatedPath, SERVER_PACKAGE_NAME, g.info.ServiceName, endpoints.Api, g.info)
 	if err != nil {
 		return fmt.Errorf("failed to run openapi-generator: %w", err)
 	}
@@ -434,60 +428,4 @@ func sanitizeServerHandlersImports(ctx *gencontext.GenContext, apiPath string) e
 
 	ctx.Logger.Infof("sanitized routes imports")
 	return nil
-}
-
-func makeServicePort(tmpDir string) (int, error) {
-	cacheFilePath := filepath.Join(tmpDir, ".service-cache.yaml")
-
-	err := os.MkdirAll(tmpDir, 0755)
-	if err != nil {
-		return 0, fmt.Errorf("failed to create service cache directory: %w", err)
-	}
-
-	var cache serviceGenCache
-	yd := util.NewYAMLData(cacheFilePath)
-	err = yd.ReadFile(&cache)
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return 0, fmt.Errorf("failed to read service gen cache: %w", err)
-	}
-	if err == nil && cache.ListenPort > 0 {
-		return cache.ListenPort, nil
-	}
-
-	port, err := getFreePort()
-	if err != nil {
-		return 0, fmt.Errorf("failed to get free port: %w", err)
-	}
-	cache.ListenPort = port
-
-	err = yd.SaveFile(&cache)
-	if err != nil {
-		return 0, fmt.Errorf("failed to save service gen cache: %w", err)
-	}
-
-	return cache.ListenPort, nil
-}
-
-func getServicePort(tmpDir string) (int, error) {
-	cacheFilePath := filepath.Join(tmpDir, ".service-cache.yaml")
-
-	var cache serviceGenCache
-	yd := util.NewYAMLData(cacheFilePath)
-	err := yd.ReadFile(&cache)
-	if err != nil {
-		return 0, fmt.Errorf("failed to read service gen cache: %w", err)
-	}
-	return cache.ListenPort, nil
-}
-
-func getFreePort() (port int, err error) {
-	var a *net.TCPAddr
-	if a, err = net.ResolveTCPAddr("tcp", "localhost:0"); err == nil {
-		var l *net.TCPListener
-		if l, err = net.ListenTCP("tcp", a); err == nil {
-			defer l.Close()
-			return l.Addr().(*net.TCPAddr).Port, nil
-		}
-	}
-	return
 }

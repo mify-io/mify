@@ -18,9 +18,6 @@ files:
   init/routes.mustache:
     destinationFilename: routes.go
     folder: api/init
-  init/server.mustache:
-    destinationFilename: server.go
-    folder: api/init
   metrics.mustache:
     destinationFilename: metrics.go
     folder: api

@@ -3,6 +3,7 @@ package gencontext
 import (
 	"context"
 
+	"github.com/mify-io/mify/pkg/generator/lib/endpoints"
 	api_gateway_context "github.com/mify-io/mify/pkg/generator/steps/api-gateway/context"
 	openapi_context "github.com/mify-io/mify/pkg/generator/steps/openapi/context"
 	schema_context "github.com/mify-io/mify/pkg/generator/steps/schema/context"
@@ -23,6 +24,9 @@ type GenContext struct {
 	schema     *schema_context.SchemaContext
 	openapi    *openapi_context.OpenapiContext
 	apiGateway *api_gateway_context.ApiGatewayContext
+
+	// libs
+	EndpointsResolver *endpoints.EndpointsResolver
 }
 
 func NewGenContext(
@@ -33,10 +37,11 @@ func NewGenContext(
 	logger := initLogger(workspaceDescription.GetLogsDirectory())
 
 	return &GenContext{
-		goContext:   goContext,
-		Logger:      logger.Sugar(),
-		serviceName: serviceName,
-		workspace:   workspaceDescription,
+		goContext:         goContext,
+		Logger:            logger.Sugar(),
+		serviceName:       serviceName,
+		workspace:         workspaceDescription,
+		EndpointsResolver: endpoints.NewEndpointsResolver(&workspaceDescription),
 	}
 }
 
