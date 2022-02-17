@@ -270,6 +270,10 @@ func verifyDirTree(t *testing.T, approvedDirPath string, receivedDirPath string)
 func buildDirTree(path string) (string, error) {
 	res := ""
 	err := filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
+		// skip .git/objects
+		if strings.Contains(p, ".git/objects") {
+			return nil
+		}
 		if d.IsDir() {
 			files, err := ioutil.ReadDir(p)
 			if err != nil {
