@@ -18,6 +18,7 @@ const (
 	ApiGatewayName    = "api-gateway"
 	MainApiSchemaName = "api.yaml"
 	MifySchemaName    = "service.mify.yaml"
+	CloudSchemaName   = "cloud.mify.yaml"
 	GoServicesDirName = "go-services"
 	DevRunnerName     = "dev-runner"
 	TmpSubdir         = "services"
@@ -138,6 +139,14 @@ func (c Description) GetMifySchemaRelPath(serviceName string) string {
 
 func (c Description) GetMifySchemaAbsPath(serviceName string) string {
 	return path.Join(c.BasePath, c.GetMifySchemaRelPath(serviceName))
+}
+
+func (c Description) GetCloudSchemaRelPath(serviceName string) string {
+	return path.Join(c.GetSchemasRelPath(serviceName), CloudSchemaName)
+}
+
+func (c Description) GetCloudSchemaAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetCloudSchemaRelPath(serviceName))
 }
 
 func (c Description) GetApiSchemaDirRelPath(serviceName string) string {

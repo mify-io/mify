@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/adrg/xdg"
+	"github.com/mify-io/mify/internal/mify/userinput"
 	"github.com/mify-io/mify/pkg/workspace"
 	"github.com/mify-io/mify/pkg/workspace/mutators"
 	"github.com/spf13/viper"
@@ -43,6 +44,7 @@ type CliContext struct {
 	Config        Config
 	WorkspacePath string
 	IsVerbose     bool
+	UserInput     userinput.UserInput
 
 	workspaceDescription *workspace.Description
 }
