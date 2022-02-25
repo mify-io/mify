@@ -1,30 +1,26 @@
 package mify
 
 import (
+	"fmt"
+
 	"github.com/mify-io/mify/pkg/workspace/mutators/client"
 )
 
 func AddClient(ctx *CliContext, basePath string, name string, clientName string) error {
-	mutCtx, err := initMutatorCtx(ctx, basePath)
+	err := client.AddClient(ctx.MustGetMutatorContext(), name, clientName)
 	if err != nil {
-		return err
+		return fmt.Errorf("can't add client: %w", err)
 	}
 
-	err = client.AddClient(mutCtx, name, clientName)
-	if err != nil {
-		return err
+	if err = ServiceGenerate(ctx, basePath, name); err != nil {
+		return fmt.Errorf("error during generation: %w", err)
 	}
 
-	return ServiceGenerate(ctx, basePath, name)
+	return nil
 }
 
 func RemoveClient(ctx *CliContext, basePath string, name string, clientName string) error {
-	mutCtx, err := initMutatorCtx(ctx, basePath)
-	if err != nil {
-		return err
-	}
-
-	err = client.RemoveClient(mutCtx, name, clientName)
+	err := client.RemoveClient(ctx.MustGetMutatorContext(), name, clientName)
 	if err != nil {
 		return err
 	}

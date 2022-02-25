@@ -20,7 +20,7 @@ func CreateWorkspace(ctx *CliContext, parentDir string, name string, vcs string)
 	}
 
 	ctx.WorkspacePath = path.Join(parentDir, name) // TODO: remove this hack
-	err = ctx.InitWorkspaceDescription()
+	err = ctx.LoadWorkspace()
 	if err != nil {
 		return err
 	}

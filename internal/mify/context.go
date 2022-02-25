@@ -47,6 +47,7 @@ type CliContext struct {
 	UserInput     userinput.UserInput
 
 	workspaceDescription *workspace.Description
+	mutatorContext       *mutators.MutatorContext
 }
 
 func NewContext(config Config, workspacePath string, isVerbose bool) *CliContext {
@@ -61,15 +62,11 @@ func NewContext(config Config, workspacePath string, isVerbose bool) *CliContext
 	}
 }
 
-func initMutatorCtx(ctx *CliContext, basePath string) (*mutators.MutatorContext, error) {
-	return mutators.NewMutatorContext(ctx.Ctx, ctx.Logger, ctx.workspaceDescription), nil
-}
-
 func (c CliContext) GetCtx() context.Context {
 	return c.Ctx
 }
 
-func (c *CliContext) InitWorkspaceDescription() error {
+func (c *CliContext) LoadWorkspace() error {
 	res, err := workspace.InitDescription(c.WorkspacePath)
 	if err != nil {
 		return err
@@ -77,6 +74,9 @@ func (c *CliContext) InitWorkspaceDescription() error {
 
 	c.workspaceDescription = &res
 	c.WorkspacePath = c.workspaceDescription.BasePath
+
+	c.mutatorContext = mutators.NewMutatorContext(c.Ctx, c.Logger, c.workspaceDescription)
+
 	return nil
 }
 
@@ -86,4 +86,12 @@ func (c *CliContext) MustGetWorkspaceDescription() *workspace.Description {
 	}
 
 	return c.workspaceDescription
+}
+
+func (c *CliContext) MustGetMutatorContext() *mutators.MutatorContext {
+	if c.mutatorContext == nil {
+		panic("missed mutatorContext")
+	}
+
+	return c.mutatorContext
 }

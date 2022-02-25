@@ -26,7 +26,7 @@ func TestFullFlow1(t *testing.T) {
 	require.NoError(t, mify.CreateWorkspace(ctx, tempDir, "workspace1", "git"))
 	approval.EndSubtest(tempDir)
 
-	assert.NoError(t, ctx.InitWorkspaceDescription())
+	assert.NoError(t, ctx.LoadWorkspace())
 
 	approval.NewSubtest()
 	require.NoError(t, mify.CreateService(ctx, basePath, "go", "service1"))

@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/mify-io/mify/internal/mify/util"
-	"github.com/mify-io/mify/pkg/cloudconfig"
 	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/workspace/mutators/cloud"
 )
 
 const CLOUD_URL = "https://cloud.mify.io"
@@ -63,6 +63,10 @@ func CloudInit(ctx *CliContext, projectName string, env string) error {
 	err = initCloudConfigs(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to init cloud configs: %w", err)
+	}
+
+	if err := cloud.Init(ctx.mutatorContext); err != nil {
+		return err
 	}
 
 	return nil
@@ -140,8 +144,7 @@ func initCloudConfigs(ctx *CliContext) error {
 			continue
 		}
 
-		config := &cloudconfig.ServiceCloudConfig{}
-		err := config.WriteToFile(path)
+		_, err := os.Create(path)
 		if err != nil {
 			return err
 		}

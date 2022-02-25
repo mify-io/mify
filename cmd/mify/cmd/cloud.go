@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	deployEnv string
+	deployEnv   string
 	projectName string
 )
 
@@ -54,7 +54,7 @@ var cloudCmd = &cobra.Command{
 	Short: "Use Mify Cloud",
 	Long:  `Subcommand to access and use Mify Cloud`,
 	PersistentPreRun: func(*cobra.Command, []string) {
-		err := appContext.InitWorkspaceDescription()
+		err := appContext.LoadWorkspace()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to init workspace: %s\n", err)
 			os.Exit(2)

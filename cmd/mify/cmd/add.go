@@ -76,7 +76,7 @@ var addCmd = &cobra.Command{
 	Short: "Add <service|client|frontend>",
 	Long:  `Add a service, frontend or clients`,
 	PersistentPreRun: func(*cobra.Command, []string) {
-		err := appContext.InitWorkspaceDescription()
+		err := appContext.LoadWorkspace()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to init workspace: %s\n", err)
 			os.Exit(2)

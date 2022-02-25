@@ -86,6 +86,31 @@ func (c Description) GetApiServices() []string {
 	return services
 }
 
+func (c Description) GetFrontendServices() ([]string, error) {
+	services := []string{}
+	files, err := ioutil.ReadDir(c.GetSchemasRootAbsPath())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, f := range files {
+		if !f.IsDir() {
+			continue
+		}
+
+		cfgPath := c.GetMifySchemaAbsPath(f.Name())
+		cfg, err := mifyconfig.ReadServiceCfg(cfgPath)
+		if err != nil {
+			return nil, err
+		}
+
+		if cfg.Language == mifyconfig.ServiceLanguageJs {
+			services = append(services, f.Name())
+		}
+	}
+	return services, nil
+}
+
 func (c Description) GetAllApps() []string {
 	services := c.GetApiServices()
 	return append(services, DevRunnerName)

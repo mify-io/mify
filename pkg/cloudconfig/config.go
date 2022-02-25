@@ -35,7 +35,7 @@ type ServiceCloudConfig struct {
 
 func ReadServiceCloudCfg(path string) (*ServiceCloudConfig, error) {
 	wrapErr := func(err error) error {
-		return fmt.Errorf("failed to read service config: %w", err)
+		return fmt.Errorf("failed to read cloud config: %w", err)
 	}
 
 	rawData, err := ioutil.ReadFile(path)
