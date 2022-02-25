@@ -5,11 +5,24 @@ import (
 
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/workspace/mutators"
+	"github.com/mify-io/mify/pkg/workspace/mutators/cloud"
 )
 
 func AddClient(mutContext *mutators.MutatorContext, fromService string, toService string) error {
 	fmt.Printf("Adding client: %s to %s\n", fromService, toService)
 
+	if err := addClientToMifyConfig(mutContext, fromService, toService); err != nil {
+		return fmt.Errorf("error while updating mify config: %w", err)
+	}
+
+	if err := cloud.UpdateCloudPublicity(mutContext); err != nil {
+		return fmt.Errorf("error while updating cloud config: %w", err)
+	}
+
+	return nil
+}
+
+func addClientToMifyConfig(mutContext *mutators.MutatorContext, fromService string, toService string) error {
 	serviceConf, err := mifyconfig.ReadServiceConfig(mutContext.GetDescription().BasePath, fromService)
 	if err != nil {
 		return err
