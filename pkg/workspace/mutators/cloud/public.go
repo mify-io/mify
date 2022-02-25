@@ -24,12 +24,13 @@ func UpdateCloudPublicity(mutContext *mutators.MutatorContext) error {
 
 		for clientTo := range frontConf.OpenAPI.Clients {
 			cfgPath := mutContext.GetDescription().GetCloudSchemaAbsPath(clientTo)
-			cloudConf := &cloudconfig.ServiceCloudConfig{}
-			if _, err := os.Stat(cfgPath); err == nil {
-				cloudConf, err = cloudconfig.ReadServiceCloudCfg(cfgPath)
-				if err != nil {
-					return err
-				}
+			if _, err := os.Stat(cfgPath); os.IsNotExist(err) {
+				continue
+			}
+
+			cloudConf, err := cloudconfig.ReadServiceCloudCfg(cfgPath)
+			if err != nil {
+				return err
 			}
 
 			if cloudConf.Publish {
