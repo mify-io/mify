@@ -2,10 +2,9 @@ package tpl
 
 import (
 	"fmt"
-	"strings"
-	"unicode"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/generator/lib/endpoints"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/workspace"
 )
@@ -28,20 +27,6 @@ func NewServiceModel(ctx *gencontext.GenContext) *ServiceModel {
 	}
 }
 
-func (c ServiceModel) GetEndpointEnvName() string {
-	return MakeServerEnvName(c.ServiceName)
-}
-
-func SanitizeServiceName(serviceName string) string {
-	if unicode.IsDigit(rune(serviceName[0])) {
-		serviceName = "service_" + serviceName
-	}
-	serviceName = strings.ReplaceAll(serviceName, "-", "_")
-
-	return serviceName
-}
-
-func MakeServerEnvName(serviceName string) string {
-	sanitizedName := SanitizeServiceName(serviceName)
-	return strings.ToUpper(sanitizedName) + "_SERVER_ENDPOINT"
+func (c ServiceModel) GetApiEndpointEnvName() string {
+	return endpoints.MakeApiEndpointEnvName(c.ServiceName)
 }
