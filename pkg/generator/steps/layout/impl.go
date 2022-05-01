@@ -33,6 +33,7 @@ func execute(ctx *gencontext.GenContext) error {
 func renderServiceTemplateTree(ctx *gencontext.GenContext, model *tpl.ServiceModel) error {
 	funcMap := template.FuncMap{
 		"svcUserCtxName": func(model tpl.ServiceModel) string {
+			// nolint: staticcheck
 			return fmt.Sprintf("%s%s", strings.Title(ctx.GetServiceName()), "Context")
 		},
 	}
