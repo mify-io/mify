@@ -2,7 +2,6 @@ package cloudconfig
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -38,7 +37,7 @@ func ReadServiceCloudCfg(path string) (*ServiceCloudConfig, error) {
 		return fmt.Errorf("failed to read cloud config: %w", err)
 	}
 
-	rawData, err := ioutil.ReadFile(path)
+	rawData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, wrapErr(err)
 	}
@@ -66,7 +65,7 @@ func (conf *ServiceCloudConfig) WriteToFile(path string) error {
 		return wrapErr(err)
 	}
 
-	err = ioutil.WriteFile(path, data, 0644)
+	err = os.WriteFile(path, data, 0644)
 	if err != nil {
 		return wrapErr(err)
 	}

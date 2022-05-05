@@ -4,7 +4,6 @@ import (
 	"embed"
 	"fmt"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -65,7 +64,7 @@ func copyFile(fs embed.FS, path string, targetPath string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(targetPath, data, 0644)
+	err = os.WriteFile(targetPath, data, 0644)
 
 	if err != nil {
 		return err

@@ -10,6 +10,8 @@ import (
 	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl"
 	tplnew "github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new"
 	"github.com/mify-io/mify/pkg/mifyconfig"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -33,8 +35,8 @@ func execute(ctx *gencontext.GenContext) error {
 func renderServiceTemplateTree(ctx *gencontext.GenContext, model *tpl.ServiceModel) error {
 	funcMap := template.FuncMap{
 		"svcUserCtxName": func(model tpl.ServiceModel) string {
-			// nolint: staticcheck
-			return fmt.Sprintf("%s%s", strings.Title(ctx.GetServiceName()), "Context")
+			caser := cases.Title(language.AmericanEnglish)
+			return fmt.Sprintf("%s%s", caser.String(ctx.GetServiceName()), "Context")
 		},
 	}
 
@@ -90,6 +92,10 @@ func renderNew(ctx *gencontext.GenContext) error {
 	case mifyconfig.ServiceLanguageJs:
 		if err := tplnew.RenderJs(ctx); err != nil {
 			return fmt.Errorf("can't render js files: %w", err)
+		}
+	case mifyconfig.ServiceLanguagePython:
+		if err := tplnew.RenderPy(ctx); err != nil {
+			return fmt.Errorf("can't render python files: %w", err)
 		}
 	}
 

@@ -5,11 +5,13 @@ import (
 
 	"github.com/containerd/containerd/log"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
-	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
 func generateServiceOpenAPI(ctx *gencontext.GenContext) error {
-	openapigen := NewOpenAPIGenerator(ctx)
+	openapigen, err := NewOpenAPIGenerator(ctx)
+	if err != nil {
+		return err
+	}
 
 	serverNeedsRegeneration, err := checkServerNeedsRegeneration(ctx, &openapigen)
 	if err != nil {
@@ -108,12 +110,7 @@ func tryPrepareOpenApi(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator)
 func generateServerSide(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGenerator) error {
 	ctx.Logger.Infof("Generating server side of service '%s'", ctx.GetServiceName())
 
-	targetDir, err := getAPIServicePathByLang(ctx.MustGetMifySchema().Language, ctx.GetServiceName())
-	if err != nil {
-		return err
-	}
-
-	if err := openAPIGenerator.GenerateServer(ctx, targetDir); err != nil {
+	if err := openAPIGenerator.GenerateServer(ctx); err != nil {
 		return err
 	}
 	return nil
@@ -140,18 +137,13 @@ func checkServerNeedsRegeneration(ctx *gencontext.GenContext, openapigen *OpenAP
 func generateClients(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, clientsDiff clientsDiff) error {
 	ctx.Logger.Infof("Generating clients inside service '%s'", ctx.GetServiceName())
 
-	targetDir, err := getAPIServicePathByLang(ctx.MustGetMifySchema().Language, ctx.GetServiceName())
-	if err != nil {
-		return err
-	}
-
 	executePool := ctx.GetExecutePoolFactory().NewPool()
 
 	for clientName := range clientsDiff.removed {
 		executePool.EnqueExecution(func() error {
 			log.L.Tracef("Removing client '%s' from service '%s' ...", clientName, ctx.GetServiceName())
 
-			err := openapigen.RemoveClient(ctx, clientName, targetDir)
+			err := openapigen.RemoveClient(ctx, clientName)
 			if err != nil {
 				return err
 			}
@@ -164,7 +156,7 @@ func generateClients(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, c
 		executePool.EnqueExecution(func() error {
 			log.L.Tracef("Adding client '%s' to service '%s' ...", clientName, ctx.GetServiceName())
 
-			if err := openapigen.GenerateClient(ctx, clientName, targetDir); err != nil {
+			if err := openapigen.GenerateClient(ctx, clientName); err != nil {
 				return fmt.Errorf("failed to generate client for: %s: %w", clientName, err)
 			}
 
@@ -176,7 +168,7 @@ func generateClients(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, c
 		executePool.EnqueExecution(func() error {
 			log.L.Tracef("Regenerating client '%s' in service '%s' ...", clientName, ctx.GetServiceName())
 
-			if err := openapigen.GenerateClient(ctx, clientName, targetDir); err != nil {
+			if err := openapigen.GenerateClient(ctx, clientName); err != nil {
 				return fmt.Errorf("failed to generate client for: %s: %w", clientName, err)
 			}
 
@@ -190,16 +182,6 @@ func generateClients(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, c
 	}
 
 	return nil
-}
-
-func getAPIServicePathByLang(language mifyconfig.ServiceLanguage, serviceName string) (string, error) {
-	switch language {
-	case mifyconfig.ServiceLanguageGo:
-		return mifyconfig.GoServicesRoot + "/internal/" + serviceName, nil
-	case mifyconfig.ServiceLanguageJs:
-		return mifyconfig.JsServicesRoot + "/" + serviceName, nil
-	}
-	return "", fmt.Errorf("unknown language: %s", language)
 }
 
 // Some services could don't have scheme (f.e. frontend)

@@ -60,6 +60,14 @@ func TestFullFlow1(t *testing.T) {
 	require.NoError(t, mify.CreateApiGateway(ctx))
 	approval.EndSubtest(tempDir)
 
+	approval.NewSubtest()
+	require.NoError(t, mify.CreateService(ctx, basePath, "python", "service3"))
+	approval.EndSubtest(tempDir)
+
+	approval.NewSubtest()
+	require.NoError(t, mify.AddClient(ctx, basePath, "service3", "service1"))
+	approval.EndSubtest(tempDir)
+
 	if approve {
 		approval.Approve()
 	} else {

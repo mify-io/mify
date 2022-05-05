@@ -11,8 +11,6 @@ import (
 
 const (
 	SchemasDirName    = "schemas"
-	GoServicesDirName = "go-services"
-	JsServicesDirName = "js-services"
 )
 
 func CreateWorkspace(mutContext *mutators.MutatorContext, dirAbsPath string, name string) error {
@@ -29,16 +27,6 @@ func CreateWorkspace(mutContext *mutators.MutatorContext, dirAbsPath string, nam
 
 	schemasAbsPath := filepath.Join(baseAbsPath, SchemasDirName)
 	if err := os.MkdirAll(schemasAbsPath, os.ModePerm); err != nil {
-		return wrapErr(err)
-	}
-
-	goServicesAbsPath := filepath.Join(baseAbsPath, GoServicesDirName)
-	if err := os.MkdirAll(goServicesAbsPath, os.ModePerm); err != nil {
-		return wrapErr(err)
-	}
-
-	jsServicesAbsPath := filepath.Join(baseAbsPath, JsServicesDirName)
-	if err := os.MkdirAll(jsServicesAbsPath, os.ModePerm); err != nil {
 		return wrapErr(err)
 	}
 

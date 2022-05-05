@@ -3,7 +3,6 @@ package service
 import (
 	_ "embed"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/mify-io/mify/pkg/mifyconfig"
@@ -86,7 +85,7 @@ func checkServiceExists(mutContext *mutators.MutatorContext, serviceName string)
 		return false, nil
 	}
 
-	files, err := ioutil.ReadDir(schemasDirAbsPath)
+	files, err := os.ReadDir(schemasDirAbsPath)
 	if err != nil {
 		return false, err
 	}

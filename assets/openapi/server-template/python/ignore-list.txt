@@ -1,0 +1,8 @@
+/Dockerfile
+/README.md
+/.gitignore
+/requirements.txt
+/test-requirements.txt
+/tox.ini
+/tests/*
+/setup.py

@@ -3,7 +3,6 @@ package mifyconfig
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -13,8 +12,9 @@ import (
 const (
 	WorkspaceConfigName = "workspace.mify.yaml"
 
-	GoServicesRoot = "go-services"
-	JsServicesRoot = "js-services"
+	GoServicesRoot     = "go-services"
+	PythonServicesRoot = "py-services"
+	JsServicesRoot     = "js-services"
 )
 
 type WorkspaceConfig struct {
@@ -27,7 +27,7 @@ type WorkspaceConfig struct {
 }
 
 func ReadWorkspaceConfig(path string) (WorkspaceConfig, error) {
-	workspaceConfFile, err := ioutil.ReadFile(filepath.Join(path, WorkspaceConfigName))
+	workspaceConfFile, err := os.ReadFile(filepath.Join(path, WorkspaceConfigName))
 
 	if errors.Is(err, os.ErrNotExist) {
 		return WorkspaceConfig{}, fmt.Errorf("workspace config not found at path: %s", path)
@@ -58,7 +58,7 @@ func SaveWorkspaceConfig(path string, conf WorkspaceConfig) error {
 		return fmt.Errorf("failed to create workspace config: %w", err)
 	}
 
-	err = ioutil.WriteFile(fmt.Sprintf("%s/%s", path, WorkspaceConfigName), data, 0644)
+	err = os.WriteFile(fmt.Sprintf("%s/%s", path, WorkspaceConfigName), data, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to create workspace config: %w", err)
 	}

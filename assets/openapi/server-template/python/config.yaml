@@ -1,0 +1,59 @@
+generatorName: python-aiohttp
+templateDir: /repo/.mify/assets/openapi/server-template/python
+enableMinimalUpdate: true
+globalProperties:
+  apiTests: false
+additionalProperties:
+  # router: chi
+  # addResponseHeaders: true
+  # enumClassPrefix: true
+  # controllerPackage: null
+  featureCORS: "true"
+  # hideGenerationTimestamp: true
+  # packageName: kek
+  packageVersion: 1.0.0
+  # pythonSrcRoot: api
+  # serverPort: 8080
+  # sourceFolder: api
+files:
+  ignore-list.txt:
+    destinationFilename: .openapi-generator-ignore
+  controller.mustache:
+    destinationFilename: .py
+    templateType: API
+  service.mustache:
+    destinationFilename: _service.py
+    templateType: API
+
+releaseNote: Release note
+httpUserAgent: User Agent
+
+apiPackage: handlers
+modelPackage: models
+
+invokerPackage: unused
+# packageName: api
+apiNameSuffix: Api
+modelNamePrefix: ""
+modelNameSuffix: ""
+artifactVersion: ARTIFACT_VERSION
+library: ""
+
+instantiationTypes: {}
+typeMappings: {}
+importMappings: {}
+languageSpecificPrimitives: []
+reservedWordMappings: {}
+serverVariables: {}
+
+verbose: false
+skipOverwrite: false
+removeOperationIdPrefix: false
+skipOperationExample: false
+logToStderr: false
+validateSpec: true
+enablePostProcessFile: false
+strictSpecBehavior: true
+generateAliasAsModel: false
+templatingEngineName: mustache
+# ignoreFileOverride: ""
