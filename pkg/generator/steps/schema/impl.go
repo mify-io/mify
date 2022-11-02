@@ -2,7 +2,6 @@ package schema
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -26,7 +25,7 @@ func execute(ctx *gencontext.GenContext) (*context.SchemaContext, error) {
 func collectSchemas(ctx *gencontext.GenContext) (context.AllSchemas, error) {
 	schemas := make(context.AllSchemas)
 
-	files, err := ioutil.ReadDir(ctx.GetWorkspace().GetSchemasRootAbsPath())
+	files, err := os.ReadDir(ctx.GetWorkspace().GetSchemasRootAbsPath())
 	if err != nil {
 		return nil, fmt.Errorf("can't iterate schemas directory: %w", err)
 	}
@@ -53,7 +52,7 @@ func collectSchemas(ctx *gencontext.GenContext) (context.AllSchemas, error) {
 func extractOpenapiSchemas(ctx *gencontext.GenContext, forService string) (context.OpenapiServiceSchemas, error) {
 	openapiSchemasDir := ctx.GetWorkspace().GetApiSchemaDirAbsPath(forService)
 
-	files, err := ioutil.ReadDir(openapiSchemasDir)
+	files, err := os.ReadDir(openapiSchemasDir)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil

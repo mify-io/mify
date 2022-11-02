@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"unicode"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
-	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/generator/lib/endpoints"
+	"github.com/mify-io/mify/pkg/generator/steps/openapi/processors"
 )
 
 func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *gencontext.GenContext, schemaPath string) (string, error) {
@@ -40,31 +40,35 @@ func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *gencontext.GenContext, 
 	return g.saveEnrichedSchema(ctx, doc, schemaPath, CACHE_CLIENT_SUBDIR)
 }
 
-func (g *OpenAPIGenerator) doGenerateClient(ctx *gencontext.GenContext, assetsPath string, clientName string, schemaPath string, targetPath string) error {
-	generatedPath := filepath.Join(g.basePath, targetPath, "generated", "api", "clients", clientName)
-
-	packageName := MakePackageName(clientName)
-
+func (g *OpenAPIGenerator) doGenerateClient(
+	ctx *gencontext.GenContext, clientName string, schemaPath string) error {
 	endpoints, err := ctx.EndpointsResolver.ResolveEndpoints(clientName)
 	if err != nil {
 		return err
 	}
 
-	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, assetsPath,
-		generatedPath, packageName, clientName, endpoints.Api, g.info)
+	postProcessor, err := processors.NewPostProcessor(g.language)
+	if err != nil {
+		return err
+	}
+
+	generatorConf, err := postProcessor.GetClientGeneratorConfig(ctx, clientName)
+	if err != nil {
+		return err
+	}
+
+	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, g.clientAssetsPath,
+		generatorConf.TargetPath, generatorConf.PackageName, clientName, endpoints.Api, g.info)
 	if err != nil {
 		return fmt.Errorf("failed to run openapi-generator: %w", err)
 	}
 
-	// TODO: go specific
-	if g.language == mifyconfig.ServiceLanguageGo {
-		err = os.Remove(filepath.Join(generatedPath, "api"))
-		if err != nil {
-			return err
-		}
+	err = postProcessor.ProcessClient(ctx, clientName)
+	if err != nil {
+		return err
 	}
 
-	err = formatGenerated(generatedPath, g.language)
+	err = postProcessor.Format(ctx)
 	if err != nil {
 		return err
 	}
@@ -72,7 +76,11 @@ func (g *OpenAPIGenerator) doGenerateClient(ctx *gencontext.GenContext, assetsPa
 	return nil
 }
 
-func (g *OpenAPIGenerator) doRemoveClient(ctx *gencontext.GenContext, clientName string, targetPath string) error {
+func (g *OpenAPIGenerator) doRemoveClient(ctx *gencontext.GenContext, clientName string) error {
+	targetPath, err := ctx.GetWorkspace().GetServiceGeneratedAPIRelPath(ctx.GetServiceName(), ctx.MustGetMifySchema().Language)
+	if err != nil {
+		return err
+	}
 	generatedPath := filepath.Join(g.basePath, targetPath, "generated", "api", "clients", clientName)
 
 	if err := os.RemoveAll(generatedPath); err != nil {
@@ -82,42 +90,7 @@ func (g *OpenAPIGenerator) doRemoveClient(ctx *gencontext.GenContext, clientName
 	return nil
 }
 
-func SanitizeServiceName(serviceName string) string {
-	if unicode.IsDigit(rune(serviceName[0])) {
-		serviceName = "service_" + serviceName
-	}
-	serviceName = strings.ReplaceAll(serviceName, "-", "_")
-
-	return serviceName
-}
-
-func MakePackageName(clientName string) string {
-	packageName := SanitizeServiceName(clientName)
-	return packageName + "_client"
-}
-
 func MakeClientEnvName(serviceName string) string {
-	sanitizedName := SanitizeServiceName(serviceName)
+	sanitizedName := endpoints.SanitizeServiceName(serviceName)
 	return strings.ToUpper(sanitizedName) + "_CLIENT_ENDPOINT"
-}
-
-func SnakeCaseToCamelCase(inputUnderScoreStr string, capitalize bool) (camelCase string) {
-	isToUpper := false
-	for k, v := range inputUnderScoreStr {
-		if k == 0 && capitalize {
-			camelCase = strings.ToUpper(string(inputUnderScoreStr[0]))
-		} else {
-			if isToUpper {
-				camelCase += strings.ToUpper(string(v))
-				isToUpper = false
-			} else {
-				if v == '_' {
-					isToUpper = true
-				} else {
-					camelCase += string(v)
-				}
-			}
-		}
-	}
-	return
 }

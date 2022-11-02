@@ -2,7 +2,6 @@ package mifyconfig
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,11 +18,13 @@ type ServiceLanguage string
 const (
 	ServiceLanguageUnknown ServiceLanguage = "unknown"
 	ServiceLanguageGo      ServiceLanguage = "go"
+	ServiceLanguagePython  ServiceLanguage = "python"
 	ServiceLanguageJs      ServiceLanguage = "js"
 )
 
 var LanguagesList = []ServiceLanguage{
 	ServiceLanguageGo,
+	ServiceLanguagePython,
 	ServiceLanguageJs,
 }
 
@@ -58,7 +59,7 @@ func ReadServiceCfg(path string) (*ServiceConfig, error) {
 		return fmt.Errorf("failed to read service config: %w", err)
 	}
 
-	rawData, err := ioutil.ReadFile(path)
+	rawData, err := os.ReadFile(path)
 	if err != nil {
 		return nil, wrapErr(err)
 	}
@@ -111,7 +112,7 @@ func (conf ServiceConfig) Dump(path string) error {
 		return wrapErr(err)
 	}
 
-	err = ioutil.WriteFile(path, data, 0644)
+	err = os.WriteFile(path, data, 0644)
 	if err != nil {
 		return wrapErr(err)
 	}

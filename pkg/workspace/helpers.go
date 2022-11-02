@@ -2,13 +2,13 @@ package workspace
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 )
 
 func (description Description) GetServiceList() ([]string, error) {
 	schemasDir := path.Join(description.BasePath, description.GetSchemasRootRelPath())
-	files, err := ioutil.ReadDir(schemasDir)
+	files, err := os.ReadDir(schemasDir)
 	if err != nil {
 		return nil, fmt.Errorf("can't collect service list: %w", err)
 	}

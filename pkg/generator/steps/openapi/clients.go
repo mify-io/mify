@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/generator/lib/endpoints"
 	"github.com/mify-io/mify/pkg/generator/steps/openapi/tpl"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/util/render"
@@ -85,9 +86,10 @@ func makeGoClientsModel(ctx *gencontext.GenContext) (tpl.GoClientsModel, error) 
 			return tpl.GoClientsModel{}, fmt.Errorf("schema of '%s' wasn't found while generating client in '%s'", targetServiceName, ctx.GetServiceName())
 		}
 
-		packageName := MakePackageName(targetServiceName)
-		fieldName := SnakeCaseToCamelCase(SanitizeServiceName(targetServiceName), false)
-		methodName := SnakeCaseToCamelCase(SanitizeServiceName(targetServiceName), true)
+		svcNameSanitized := endpoints.SanitizeServiceName(targetServiceName)
+		packageName := svcNameSanitized + "_client"
+		fieldName := endpoints.SnakeCaseToCamelCase(svcNameSanitized, false)
+		methodName := endpoints.SnakeCaseToCamelCase(svcNameSanitized, true)
 		clientsList = append(clientsList, tpl.NewGoClientModel(
 			targetServiceName,
 			packageName,
@@ -125,7 +127,7 @@ func makeJsClientsModel(ctx *gencontext.GenContext) (tpl.JsClientsModel, error) 
 			return tpl.JsClientsModel{}, fmt.Errorf("schema of '%s' wasn't found while generating client in '%s'", targetServiceName, ctx.GetServiceName())
 		}
 
-		methodName := SnakeCaseToCamelCase(SanitizeServiceName(targetServiceName), true)
+		methodName := endpoints.SnakeCaseToCamelCase(endpoints.SanitizeServiceName(targetServiceName), true)
 		clientsList = append(clientsList, tpl.NewJsClientModel(
 			targetServiceName,
 			methodName,

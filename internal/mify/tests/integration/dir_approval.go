@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -169,7 +168,7 @@ func (ac *approvalContext) EndSubtest(actualPath string) {
 	receivedPath := ac.getReceivedDir(ac.subtestSeqNo)
 	opts := copy.Options{
 		Skip: func(src string) (bool, error) {
-			return strings.Contains(src, "/.mify"), nil
+			return strings.Contains(src, "/.mify") || strings.Contains(src, "/venv"), nil
 		},
 	}
 	if err := copy.Copy(actualPath, receivedPath, opts); err != nil {
@@ -274,8 +273,11 @@ func buildDirTree(path string) (string, error) {
 		if strings.Contains(p, ".git/objects") {
 			return nil
 		}
+		if strings.Contains(p, "venv/") {
+			return nil
+		}
 		if d.IsDir() {
-			files, err := ioutil.ReadDir(p)
+			files, err := os.ReadDir(p)
 			if err != nil {
 				return err
 			}

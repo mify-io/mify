@@ -1,169 +1,58 @@
 package openapi
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/json"
-	"errors"
 	"fmt"
-	"go/format"
-	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/generator/steps/openapi/processors"
 )
 
 func (g *OpenAPIGenerator) doGenerateServer(
-	ctx *gencontext.GenContext, assetsPath string, schemaPath string, targetPath string, paths []string) error {
-	generatedPath := filepath.Join(g.basePath, targetPath, "generated")
+	ctx *gencontext.GenContext,
+	schemaPath string,
+	paths []string,
+) error {
+	postProcessor, err := processors.NewPostProcessor(g.language)
+	if err != nil {
+		return err
+	}
+
+	generatorConf, err := postProcessor.GetServerGeneratorConfig(ctx)
+	if err != nil {
+		return err
+	}
 
 	endpoints, err := ctx.EndpointsResolver.ResolveEndpoints(ctx.GetServiceName())
 	if err != nil {
 		return err
 	}
 
-	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, assetsPath,
-		generatedPath, SERVER_PACKAGE_NAME, g.info.ServiceName, endpoints.Api, g.info)
+	err = runOpenapiGenerator(
+		ctx, g.basePath, schemaPath, g.serverAssetsPath,
+		generatorConf.TargetPath, generatorConf.PackageName,
+		g.info.ServiceName, endpoints.Api, g.info)
 	if err != nil {
 		return fmt.Errorf("failed to run openapi-generator: %w", err)
 	}
 
-	apiPath := filepath.Join(generatedPath, "api")
-	err = sanitizeServerHandlersImports(ctx, apiPath)
+	err = postProcessor.ProcessServer(ctx)
 	if err != nil {
 		return err
 	}
 
-	handlersPath := filepath.Join(g.basePath, targetPath, "handlers")
-	err = moveServerHandlers(ctx, apiPath, handlersPath, paths)
+	err = postProcessor.PopulateServerHandlers(ctx, paths)
 	if err != nil {
 		return err
 	}
 
-	err = formatGenerated(apiPath, g.language)
+	err = postProcessor.Format(ctx)
 	if err != nil {
 		return err
 	}
 
-	return nil
-}
-
-// taken from openapi-generator
-func isReservedFilename(name string) bool {
-	parts := strings.Split(name, "_")
-	suffix := parts[len(parts)-1]
-
-	reservedSuffixes := []string{
-		// Test
-		"test",
-		// $GOOS
-		"aix", "android", "darwin", "dragonfly", "freebsd", "illumos", "js", "linux", "netbsd", "openbsd",
-		"plan9", "solaris", "windows",
-		// $GOARCH
-		"386", "amd64", "arm", "arm64", "mips", "mips64", "mips64le", "mipsle", "ppc64", "ppc64le", "s390x",
-		"wasm",
-	}
-	reservedSuffixesSet := map[string]struct{}{}
-	for _, suf := range reservedSuffixes {
-		reservedSuffixesSet[suf] = struct{}{}
-	}
-	_, ok := reservedSuffixesSet[suffix]
-	return ok
-}
-
-var (
-	capitalLetterPattern = regexp.MustCompile(`([A-Z]+)([A-Z][a-z][a-z]+)`)
-	lowercasePattern     = regexp.MustCompile(`([a-z\d])([A-Z])`)
-	pkgSeparatorPattern  = regexp.MustCompile(`\.`)
-	dollarPattern        = regexp.MustCompile(`\$`)
-)
-
-// taken from openapi-generator
-func underscore(word string) string {
-	replacementPattern := "$1_$2"
-	// Replace package separator with slash.
-	result := pkgSeparatorPattern.ReplaceAllString(word, "/")
-	// Replace $ with two underscores for inner classes.
-	result = dollarPattern.ReplaceAllString(result, "__")
-	// Replace capital letter with _ plus lowercase letter.
-	result = capitalLetterPattern.ReplaceAllString(result, replacementPattern)
-	result = lowercasePattern.ReplaceAllString(result, replacementPattern)
-	result = strings.ReplaceAll(result, "-", "_")
-	// replace space with underscore
-	result = strings.ReplaceAll(result, " ", "_")
-	result = strings.ToLower(result)
-	return result
-}
-
-// taken from openapi-generator
-func toAPIFilename(name string) string {
-	// NOTE: openapi-generator transforms tag to camelCase, we don't do that here
-	// we just remove slashes from path and then use openapi-generator logic
-	// to convert this path to filename.
-	api := strings.TrimPrefix(name, "/")
-	api = strings.ReplaceAll(api, "/", "_")
-	// replace - with _ e.g. created-at => created_at
-	api = strings.ReplaceAll(api, "-", "_")
-	// // e.g. PetApi.go => pet_api.go
-	api = "api_" + underscore(api)
-	if isReservedFilename(api) {
-		api += "_"
-	}
-	return api
-}
-
-// FIXME: go-specific
-func moveServerHandlers(ctx *gencontext.GenContext, apiPath string, handlersPath string, apiPaths []string) error {
-	services, err := filepath.Glob(filepath.Join(apiPath, "api_*_service.go"))
-	if err != nil {
-		return err
-	}
-	ctx.Logger.Infof("services: %v", services)
-	if len(services) == 0 {
-		ctx.Logger.Infof("no handlers to move")
-		return nil
-	}
-	pathsSet := map[string]string{}
-	for _, path := range apiPaths {
-		path = strings.ReplaceAll(path, "{", "")
-		path = strings.ReplaceAll(path, "}", "")
-		pathsSet[toAPIFilename(path)] = path
-	}
-	ctx.Logger.Infof("paths: %v", pathsSet)
-	for _, service := range services {
-		serviceFileName := filepath.Base(service)
-		serviceFileName = strings.TrimSuffix(serviceFileName, "_service.go")
-		path, ok := pathsSet[serviceFileName]
-		if !ok {
-			return fmt.Errorf("failed to find path for service file: %s", serviceFileName)
-		}
-
-		ctx.Logger.Infof("processing handler for: %v", path)
-		targetFile := filepath.Join(handlersPath, path, "service.go")
-		defer func(svc string) {
-			if err := os.Remove(svc); err != nil {
-				ctx.Logger.Infof("failed to remove service file: %s: %s", svc, err)
-				return
-			}
-			ctx.Logger.Infof("cleaned generated service file: %s", svc)
-		}(service)
-
-		if _, err := os.Stat(targetFile); err == nil {
-			ctx.Logger.Infof("skipping existing handler for: %v", path)
-			continue
-		}
-		if err := os.MkdirAll(filepath.Join(handlersPath, path), 0755); err != nil {
-			return err
-		}
-		if err := createServerHandlersFile(ctx, service, targetFile); err != nil {
-			return err
-		}
-		ctx.Logger.Infof("created handler for: %v", path)
-	}
 	return nil
 }
 
@@ -254,7 +143,10 @@ func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *gencontext.GenContext, 
 		for m, vv := range methods {
 			ctx.Logger.Infof("processing method: %s", m)
 			method := vv.(map[interface{}]interface{})
-			method["tags"] = []string{path.(string)}
+			pathStr := path.(string)
+			pathStr = strings.ReplaceAll(pathStr, "{", "")
+			pathStr = strings.ReplaceAll(pathStr, "}", "")
+			method["tags"] = []string{pathStr}
 			methods[m] = method
 		}
 	}
@@ -264,168 +156,4 @@ func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *gencontext.GenContext, 
 		return "", nil, err
 	}
 	return path, pathsList, nil
-}
-
-// FIXME: go-specific
-func createServerHandlersFile(ctx *gencontext.GenContext, serviceFile string, targetFile string) error {
-	const (
-		sectionStart = "// service_params_start"
-		sectionEnd   = "// service_params_end"
-	)
-	var (
-		primitivesList = map[string]struct{}{
-			"string":      {},
-			"bool":        {},
-			"uint":        {},
-			"uint32":      {},
-			"uint64":      {},
-			"int":         {},
-			"int32":       {},
-			"int64":       {},
-			"float32":     {},
-			"float64":     {},
-			"complex64":   {},
-			"complex128":  {},
-			"rune":        {},
-			"byte":        {},
-			"interface{}": {},
-		}
-	)
-
-	data, err := ioutil.ReadFile(serviceFile)
-	if err != nil {
-		return err
-	}
-	scanner := bufio.NewScanner(bytes.NewReader(data))
-	lines := make([]string, 0)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	// FIXME: instead of using mustache to generate argument list
-	// they're encoded as json so we can process each one individually and
-	// add package prefix to non-primitive types.
-	var decl struct {
-		Name string `json:"name"`
-		Type string `json:"type"`
-	}
-
-	buf := bytes.NewBufferString("")
-	w := bufio.NewWriter(buf)
-
-	isSectionStart := false
-	for i, line := range lines {
-		if line == sectionStart {
-			isSectionStart = true
-			continue
-		}
-		if line == sectionEnd {
-			isSectionStart = false
-			continue
-		}
-		if !isSectionStart {
-			if _, err := w.WriteString(line); err != nil {
-				return err
-			}
-
-			if i+1 < len(lines) && lines[i+1] != sectionStart {
-				if err := w.WriteByte('\n'); err != nil {
-					return err
-				}
-			}
-			continue
-		}
-		err := json.Unmarshal([]byte(line), &decl)
-		if err != nil {
-			return err
-		}
-		innermostType := decl.Type
-		innermostType = strings.ReplaceAll(innermostType, "map[string]", "")
-		innermostType = strings.ReplaceAll(innermostType, "[]", "")
-		if _, ok := primitivesList[innermostType]; !ok {
-			decl.Type = strings.ReplaceAll(decl.Type, innermostType, "openapi."+innermostType)
-		}
-		ctx.Logger.Infof("writing param %s %s", decl.Name, decl.Type)
-		fmt.Fprintf(w, ", %s %s", decl.Name, decl.Type)
-	}
-
-	err = w.Flush()
-	if err != nil {
-		return err
-	}
-
-	out, err := format.Source(buf.Bytes())
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(targetFile, out, 0666)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// FIXME: go-specific
-func sanitizeServerHandlersImports(ctx *gencontext.GenContext, apiPath string) error {
-	routesFilePath := filepath.Join(apiPath, "init/routes.go")
-	if _, err := os.Stat(routesFilePath); errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("routes file doesn't exists: %s: %w", routesFilePath, err)
-	}
-
-	f, err := os.OpenFile(routesFilePath, os.O_RDWR, 0644)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-	lines := make([]string, 0)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-
-	isImportStart := false
-	for i, line := range lines {
-		if strings.HasPrefix(line, "import") {
-			isImportStart = true
-			continue
-		}
-		if isImportStart && strings.HasPrefix(line, ")") {
-			break
-		}
-		if !isImportStart {
-			continue
-		}
-		lines[i] = strings.ReplaceAll(lines[i], "{", "")
-		lines[i] = strings.ReplaceAll(lines[i], "}", "")
-	}
-
-	err = f.Truncate(0)
-	if err != nil {
-		return err
-	}
-	_, err = f.Seek(0, io.SeekStart)
-	if err != nil {
-		return err
-	}
-
-	w := bufio.NewWriter(f)
-	for _, line := range lines {
-		if _, err := w.WriteString(line); err != nil {
-			return err
-		}
-		if err := w.WriteByte('\n'); err != nil {
-			return err
-		}
-	}
-
-	err = w.Flush()
-	if err != nil {
-		return err
-	}
-
-	ctx.Logger.Infof("sanitized routes imports")
-	return nil
 }

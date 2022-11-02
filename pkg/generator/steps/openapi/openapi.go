@@ -4,10 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"go/format"
-	"io"
 	"io/fs"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
@@ -21,6 +18,7 @@ import (
 	"github.com/mify-io/mify/internal/mify/config"
 	"github.com/mify-io/mify/internal/mify/util/docker"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/generator/lib/endpoints"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/util/threading"
 	"github.com/otiai10/copy"
@@ -48,6 +46,7 @@ type OpenAPIGeneratorInfo struct {
 
 type OpenAPIGenerator struct {
 	basePath         string
+	apiPath          string
 	language         mifyconfig.ServiceLanguage
 	info             OpenAPIGeneratorInfo
 	serverAssetsPath string
@@ -64,7 +63,7 @@ const (
 	Client
 )
 
-func NewOpenAPIGenerator(ctx *gencontext.GenContext) OpenAPIGenerator {
+func NewOpenAPIGenerator(ctx *gencontext.GenContext) (OpenAPIGenerator, error) {
 	info := OpenAPIGeneratorInfo{
 		GitHost:       ctx.GetWorkspace().Config.GitHost,
 		GitNamespace:  ctx.GetWorkspace().Config.GitNamespace,
@@ -73,11 +72,20 @@ func NewOpenAPIGenerator(ctx *gencontext.GenContext) OpenAPIGenerator {
 		ServiceName:   ctx.GetServiceName(),
 	}
 
+	apiPath, err := ctx.GetWorkspace().GetServiceGeneratedAPIRelPath(
+		info.ServiceName,
+		ctx.MustGetMifySchema().Language,
+	)
+	if err != nil {
+		return OpenAPIGenerator{}, err
+	}
+
 	return OpenAPIGenerator{
 		basePath: ctx.GetWorkspace().BasePath,
+		apiPath:  apiPath,
 		language: ctx.MustGetMifySchema().Language,
 		info:     info,
-	}
+	}, nil
 }
 
 func (g *OpenAPIGenerator) PrepareSync(ctx *gencontext.GenContext) error {
@@ -96,7 +104,7 @@ func (g *OpenAPIGenerator) PrepareSync(ctx *gencontext.GenContext) error {
 
 func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 	const (
-		image = "openapitools/openapi-generator-cli:v5.3.0"
+		image = "openapitools/openapi-generator-cli:v6.2.0"
 	)
 
 	langStr := string(g.language)
@@ -118,7 +126,8 @@ func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 	if config.HasAssets("openapi/server-template/" + langStr) {
 		g.serverAssetsPath, err = config.DumpAssets(
 			ctx.GetWorkspace().GetCacheDirectory(),
-			"openapi/server-template/"+langStr, "openapi/server-template")
+			"openapi/server-template/"+langStr,
+			"openapi/server-template")
 		if err != nil {
 			return fmt.Errorf("failed to dump assets: %w", err)
 		}
@@ -128,7 +137,8 @@ func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 	if config.HasAssets("openapi/client-template/" + langStr) {
 		g.clientAssetsPath, err = config.DumpAssets(
 			ctx.GetWorkspace().GetCacheDirectory(),
-			"openapi/client-template/"+langStr, "openapi/client-template")
+			"openapi/client-template/"+langStr,
+			"openapi/client-template")
 		if err != nil {
 			return fmt.Errorf("failed to dump assets: %w", err)
 		}
@@ -147,7 +157,7 @@ func (g *OpenAPIGenerator) NeedGenerateClient(ctx *gencontext.GenContext, schema
 	return g.anySchemaChanged(ctx, Client, schemaRelDir)
 }
 
-func (g *OpenAPIGenerator) GenerateServer(ctx *gencontext.GenContext, outputDir string) error {
+func (g *OpenAPIGenerator) GenerateServer(ctx *gencontext.GenContext) error {
 	schemaDir := ctx.GetWorkspace().GetApiSchemaDirRelPath(ctx.GetServiceName())
 	if len(g.serverAssetsPath) == 0 {
 		return fmt.Errorf("failed to generate server: no generator available for language: %s", g.language)
@@ -157,7 +167,7 @@ func (g *OpenAPIGenerator) GenerateServer(ctx *gencontext.GenContext, outputDir 
 		return fmt.Errorf("failed to generate server: %w", err)
 	}
 
-	err = g.doGenerateServer(ctx, g.serverAssetsPath, schemaPath, outputDir, paths)
+	err = g.doGenerateServer(ctx, schemaPath, paths)
 	if err != nil {
 		return fmt.Errorf("failed to generate server: %w", err)
 	}
@@ -171,7 +181,7 @@ func (g *OpenAPIGenerator) GenerateServer(ctx *gencontext.GenContext, outputDir 
 
 }
 
-func (g *OpenAPIGenerator) GenerateClient(ctx *gencontext.GenContext, clientName string, outputDir string) error {
+func (g *OpenAPIGenerator) GenerateClient(ctx *gencontext.GenContext, clientName string) error {
 	if len(g.clientAssetsPath) == 0 {
 		return fmt.Errorf("failed to generate client: no generator available for language: %s", g.language)
 	}
@@ -181,7 +191,7 @@ func (g *OpenAPIGenerator) GenerateClient(ctx *gencontext.GenContext, clientName
 		return fmt.Errorf("failed to generate client: %w", err)
 	}
 
-	err = g.doGenerateClient(ctx, g.clientAssetsPath, clientName, schemaPath, outputDir)
+	err = g.doGenerateClient(ctx, clientName, schemaPath)
 	if err != nil {
 		return fmt.Errorf("failed to generate client: %w", err)
 	}
@@ -195,14 +205,14 @@ func (g *OpenAPIGenerator) GenerateClient(ctx *gencontext.GenContext, clientName
 
 }
 
-func (g *OpenAPIGenerator) RemoveClient(ctx *gencontext.GenContext, clientName string, outputDir string) error {
-	return g.doRemoveClient(ctx, clientName, outputDir)
+func (g *OpenAPIGenerator) RemoveClient(ctx *gencontext.GenContext, clientName string) error {
+	return g.doRemoveClient(ctx, clientName)
 }
 
 // private
 
 func (g *OpenAPIGenerator) readSchema(ctx *gencontext.GenContext, schemaPath string) (map[string]interface{}, error) {
-	data, err := ioutil.ReadFile(schemaPath)
+	data, err := os.ReadFile(schemaPath)
 	if err != nil {
 		return nil, err
 	}
@@ -269,61 +279,6 @@ func (g *OpenAPIGenerator) saveEnrichedSchema(
 	return targetPath, nil
 }
 
-// FIXME: go-specific
-func formatGenerated(apiPath string, language mifyconfig.ServiceLanguage) error {
-	if language != mifyconfig.ServiceLanguageGo {
-		return nil
-	}
-	return filepath.WalkDir(apiPath, func(path string, d fs.DirEntry, ferr error) error {
-		if d == nil {
-			return fmt.Errorf("failed to format: %s: %w", apiPath, ferr)
-		}
-		if d.IsDir() {
-			return nil
-		}
-		if ext := filepath.Ext(path); ext != ".go" {
-			return nil
-		}
-		f, err := os.OpenFile(path, os.O_RDWR, 0666)
-		if err != nil {
-			return fmt.Errorf("failed to format %s: %w", path, err)
-		}
-
-		data, err := ioutil.ReadAll(f)
-		if err != nil {
-			return fmt.Errorf("failed to format %s: %w", path, err)
-		}
-
-		fmtData, err := format.Source(data)
-		if err != nil {
-			return fmt.Errorf("failed to format %s: %w", path, err)
-		}
-
-		err = f.Truncate(0)
-		if err != nil {
-			return fmt.Errorf("failed to format %s: %w", path, err)
-		}
-
-		_, err = f.Seek(0, io.SeekStart)
-		if err != nil {
-			return fmt.Errorf("failed to format %s: %w", path, err)
-		}
-
-		w := bufio.NewWriter(f)
-		_, err = w.Write(fmtData)
-		if err != nil {
-			return fmt.Errorf("failed to format %s: %w", path, err)
-		}
-
-		err = w.Flush()
-		if err != nil {
-			return fmt.Errorf("failed to format %s: %w", path, err)
-		}
-
-		return nil
-	})
-}
-
 func makeFileUpdateMap(ctx *gencontext.GenContext, schemaDir string, tmpSchemaDir string) (fileTimeMap, error) {
 	basePath := ctx.GetWorkspace().BasePath
 
@@ -375,7 +330,7 @@ func updateGenerationTime(ctx *gencontext.GenContext, targetServiceName string, 
 
 func (g *OpenAPIGenerator) anySchemaChanged(ctx *gencontext.GenContext, mode OpenAPIGeneratorMode, schemaRelDir string) (bool, error) {
 	fullPath := filepath.Join(g.basePath, schemaRelDir)
-	files, err := ioutil.ReadDir(fullPath)
+	files, err := os.ReadDir(fullPath)
 	if err != nil {
 		return false, err
 	}
@@ -447,7 +402,7 @@ func runOpenapiGenerator(
 	apiEndpoint string,
 	info OpenAPIGeneratorInfo) error {
 	const (
-		image = "openapitools/openapi-generator-cli:v5.3.0"
+		image = "openapitools/openapi-generator-cli:v6.2.0"
 	)
 	curUser, err := user.Current()
 	if err != nil {
@@ -477,6 +432,7 @@ func runOpenapiGenerator(
 		"-o", filepath.Join("/repo", targetDirRel),
 		"-p", "goModule=" + info.GoModule,
 		"-p", "serviceName=" + info.ServiceName,
+		"-p", "servicePackageName=" + endpoints.SanitizeServiceName(info.ServiceName),
 		"-p", "clientName=" + clientName,
 		"-p", "clientEndpointEnv=" + MakeClientEnvName(clientName),
 		"-p", fmt.Sprintf("serviceEndpoint=%s", apiEndpoint),
@@ -529,12 +485,12 @@ func runOpenapiGenerator(
 }
 
 func copyFile(from string, to string) error {
-	data, err := ioutil.ReadFile(from)
+	data, err := os.ReadFile(from)
 	if err != nil {
 		return err
 	}
 
-	return ioutil.WriteFile(to, data, 0644)
+	return os.WriteFile(to, data, 0644)
 }
 
 func createLogFile(ctx *gencontext.GenContext, fileName string) (*os.File, error) {

@@ -1,0 +1,45 @@
+generatorName: python
+templateDir: /repo/.mify/assets/openapi/client-template/python
+enableMinimalUpdate: true
+globalProperties:
+  apiDocs: false
+  modelDocs: false
+  apiTests: false
+  modelTests: false
+additionalProperties:
+  packageVersion: 1.0.0
+  generateSourceCodeOnly: true
+  packageName: openapi
+files:
+  ignore-list.txt:
+    destinationFilename: .openapi-generator-ignore
+
+releaseNote: Release note
+httpUserAgent: User Agent
+
+apiPackage: handlers
+modelPackage: models
+
+invokerPackage: unused
+apiNameSuffix: "_"
+modelNamePrefix: ""
+modelNameSuffix: ""
+library: ""
+
+instantiationTypes: {}
+typeMappings: {}
+importMappings: {}
+languageSpecificPrimitives: []
+reservedWordMappings: {}
+serverVariables: {}
+
+verbose: false
+skipOverwrite: false
+removeOperationIdPrefix: false
+skipOperationExample: false
+logToStderr: false
+validateSpec: true
+enablePostProcessFile: false
+strictSpecBehavior: true
+generateAliasAsModel: false
+templatingEngineName: handlebars

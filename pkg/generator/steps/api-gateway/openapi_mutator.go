@@ -3,7 +3,6 @@ package apigateway
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
 	"os"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
@@ -40,7 +39,7 @@ func updateApiGatewayOpenapiSchema(genContex *gencontext.GenContext, publicApis 
 		return false, err
 	}
 
-	err = ioutil.WriteFile(getAbsPathToGeneratedApiSchema(genContex), []byte(newSchemaYaml), 0644)
+	err = os.WriteFile(getAbsPathToGeneratedApiSchema(genContex), []byte(newSchemaYaml), 0644)
 	if err != nil {
 		return false, err
 	}
