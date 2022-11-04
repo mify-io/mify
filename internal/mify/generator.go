@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mify-io/mify/internal/mify/generator"
 	"github.com/mify-io/mify/internal/mify/status"
 	"github.com/mify-io/mify/internal/mify/util/docker"
-	"github.com/mify-io/mify/pkg/generator"
 	"github.com/mify-io/mify/pkg/generator/core"
 	"github.com/mify-io/mify/pkg/workspace"
 )

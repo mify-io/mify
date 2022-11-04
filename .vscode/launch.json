@@ -1,0 +1,91 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Package",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${fileDirname}"
+    },
+    {
+      "name": "Mify add service",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "cmd/mify",
+      "args": [
+        "add",
+        "service",
+        "service1",
+        "service2",
+        "-p",
+        "/home/dima/.cache/mify_tmp"
+      ]
+    },
+    {
+      "name": "Mify add client",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "cmd/mify",
+      "args": [
+        "add",
+        "client",
+        "service1",
+        "--to",
+        "service2",
+        "-p",
+        "/home/dima/.cache/mify_tmp"
+      ]
+    },
+    {
+      "name": "Mify add frontend",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "cmd/mify",
+      "args": [
+        "add",
+        "frontend",
+        "--template",
+        "vue",
+        "front",
+        "-p",
+        "/home/dima/.cache/mify_tmp"
+      ]
+    },
+    {
+      "name": "Mify generate",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "cmd/mify",
+      "args": [
+        "generate",
+        "api-gateway",
+        //"front",
+        //"service1",
+        //"dev-runner",
+        "-p",
+        "/home/dima/.cache/mify_tmp"
+      ]
+    },
+    {
+      "name": "Mify deploy",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "cmd/mify",
+      "args": [
+        "cloud",
+        "deploy",
+        "-p",
+        "/home/dima/.cache/mify_tmp"
+      ]
+    },
+  ]
+}

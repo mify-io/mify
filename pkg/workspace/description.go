@@ -13,6 +13,23 @@ import (
 	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
+type (
+	GoService struct {
+		Name string
+	}
+
+	ServiceLanguage uint32
+
+	Description struct {
+		Name        string
+		BasePath    string
+		GoRoot      string // Path to go-services
+		Config      mifyconfig.WorkspaceConfig
+		TplHeader   string
+		TplHeaderPy string
+	}
+)
+
 const (
 	ApiGatewayName    = "api-gateway"
 	MainApiSchemaName = "api.yaml"
@@ -21,25 +38,16 @@ const (
 	GoServicesDirName = "go-services"
 	DevRunnerName     = "dev-runner"
 	TmpSubdir         = "services"
+
+	Golang     ServiceLanguage = 0
+	Python     ServiceLanguage = 1
+	JavaScript ServiceLanguage = 2
 )
 
 var (
 	ErrUnsupportedLanguage = errors.New("unknown or unsupported language")
 	ErrNoSuchService       = errors.New("no such service")
 )
-
-type GoService struct {
-	Name string
-}
-
-type Description struct {
-	Name        string
-	BasePath    string
-	GoRoot      string // Path to go-services
-	Config      mifyconfig.WorkspaceConfig
-	TplHeader   string
-	TplHeaderPy string
-}
 
 func InitDescription(workspacePath string) (Description, error) {
 	wrapError := func(err error) error {
@@ -303,7 +311,6 @@ func (c *Description) GetJsServicesPath() string {
 	return path.Join(c.BasePath, "js-services")
 }
 
-
 func (c *Description) GetGoServicesRelPath() string {
 	return "go-services"
 }
@@ -331,7 +338,6 @@ func (c *Description) GetGoSumRelPath() string {
 func (c *Description) GetGoSumAbsPath() string {
 	return path.Join(c.BasePath, c.GetGoSumRelPath())
 }
-
 
 func (c *Description) GetPythonServicesRelPath() string {
 	return "py-services"
@@ -372,7 +378,6 @@ func (c *Description) GetPythonServicesLibrariesGeneratedLogsAbsPath() string {
 func (c *Description) GetPythonServicesLibrariesGeneratedMetricsAbsPath() string {
 	return path.Join(c.BasePath, c.GetPythonServicesLibrariesGeneratedMetricsRelPath())
 }
-
 
 func (c *Description) GetPythonGeneratedRelPath(serviceName string) string {
 	return path.Join(mifyconfig.PythonServicesRoot, serviceName, "generated")
@@ -417,7 +422,6 @@ func (c *Description) GetPythonServiceGeneratedCoreRelPath(serviceName string) s
 func (c *Description) GetPythonServiceGeneratedOpenAPIRelPath(serviceName string) string {
 	return path.Join(c.GetPythonServicesRelPath(), serviceName, "generated/openapi")
 }
-
 
 func (c *Description) GetDevRunnerRelPath() string {
 	return c.GetCmdRelPath(DevRunnerName)
@@ -473,7 +477,6 @@ func (c *Description) GetServiceGeneratedAPIRelPath(serviceName string, language
 	}
 	return "", ErrUnsupportedLanguage
 }
-
 
 func (c *Description) GetCmdAbsPath(serviceName string) string {
 	return path.Join(c.GetGoServicesAbsPath(), "cmd", serviceName)
@@ -563,4 +566,23 @@ func (c *Description) GetMigrationsDirectory(databaseName string, lang mifyconfi
 		return filepath.Join(c.GetGoServicesAbsPath(), "migrations", databaseName), nil
 	}
 	return "", ErrUnsupportedLanguage
+}
+
+func (c *Description) GetServiceLanguage(serviceName string) (ServiceLanguage, error) {
+	cfgPath := c.GetMifySchemaAbsPath(serviceName)
+	cfg, err := mifyconfig.ReadServiceCfg(cfgPath)
+	if err != nil {
+		return 0, err
+	}
+
+	switch cfg.Language {
+	case mifyconfig.ServiceLanguageGo:
+		return Golang, nil
+	case mifyconfig.ServiceLanguagePython:
+		return Python, nil
+	case mifyconfig.ServiceLanguageJs:
+		return JavaScript, nil
+	}
+
+	return 0, errors.New("unknown service language")
 }

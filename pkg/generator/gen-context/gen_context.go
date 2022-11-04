@@ -112,3 +112,12 @@ func (c *GenContext) GetMifySchema() *mifyconfig.ServiceConfig {
 func (c *GenContext) MustGetMifySchema() *mifyconfig.ServiceConfig {
 	return c.GetSchemaCtx().MustGetMifySchema(c.GetServiceName())
 }
+
+func (c *GenContext) GetServiceLanguage() workspace.ServiceLanguage {
+	lang, err := c.workspace.GetServiceLanguage(c.serviceName)
+	if err != nil {
+		panic(err)
+	}
+
+	return lang
+}
