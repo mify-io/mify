@@ -19,12 +19,15 @@ var (
 	appContext    *mify.CliContext
 )
 
+var MIFY_VERSION string
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "mify",
 	Short: "mify CLI tool",
 	Long: `Code generation of services across your repository.
 	The available commands for execution are listed below.`,
+	Version: MIFY_VERSION,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },

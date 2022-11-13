@@ -13,17 +13,12 @@ build_tar_package() {
     cd "$REPO_ROOT" || exit 2
     GOOS=$1
     GOARCH=$2
-    GOOS="$GOOS" GOARCH="$GOARCH" go build ./cmd/mify
+    GOOS="$GOOS" GOARCH="$GOARCH" go build -ldflags "-X github.com/mify-io/mify/cmd/mify/cmd.MIFY_VERSION=$MIFY_VERSION" ./cmd/mify
     WORKDIR="$REPO_ROOT/build/tar-$GOOS-$GOARCH"
     rm -rf "$WORKDIR" && mkdir -p "$WORKDIR/bin"
     cp "$REPO_ROOT/mify" "$WORKDIR/bin"
     cp "$REPO_ROOT/README.md" "$WORKDIR/"
     cd "$WORKDIR" && tar -cvzf "$REPO_ROOT/build/mify-$GOOS-$GOARCH.tar.gz" .
-}
-
-build_mac() {
-    cd "$REPO_ROOT" || exit 2
-    GOOS=darwin GOARCH=amd64 go build
 }
 
 case "$1" in
