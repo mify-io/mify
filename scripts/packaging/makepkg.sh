@@ -3,7 +3,6 @@
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 REPO_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 MIFY_VERSION="$(cd "$REPO_ROOT" && git describe --tags --always)"
-MIFY_VERSION=v0.1
 
 build_ubuntu() {
     docker build -t mify-ubuntu-build -f "$REPO_ROOT"/scripts/packaging/Dockerfile-ubuntu "$REPO_ROOT" || exit 2
