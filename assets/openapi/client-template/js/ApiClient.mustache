@@ -16,23 +16,19 @@ import querystring from "querystring";
 * @class
 */{{/emitJSDoc}}
 class ApiClient {
-    static defaultConfig() {
-        return {
-            basePath: process.env.{{clientEndpointEnv}} || '{{serviceEndpoint}}'
-        }
-    }
     /**
      * The base URL against which to resolve every API call's (relative) path.
      * Overrides the default value set in spec file if present
      * @param {String} basePath
      */
-    constructor(conf = ApiClient.defaultConfig()) {
+    constructor(conf) {
+        var basePath = conf['{{clientEndpointEnv}}'] || '{{serviceEndpoint}}'
         {{#emitJSDoc}}/**
          * The base URL against which to resolve every API call's (relative) path.
          * @type {String}
          * @default {{{basePath}}}
          */{{/emitJSDoc}}
-        this.basePath = conf.basePath.replace(/\/+$/, '');
+        this.basePath = basePath.replace(/\/+$/, '');
 
         {{#emitJSDoc}}/**
          * The authentication methods to be included for all API calls.
@@ -106,6 +102,17 @@ class ApiClient {
          */
         this.plugins = null;
 
+    }
+
+    static getConfigEnvName() {
+        return '{{clientEndpointEnv}}';
+    }
+
+    setAuthToken(type, value) {
+        if (type != 'BearerAuth') {
+            return;
+        }
+        this.authentications['BearerAuth']['accessToken'] = value;
     }
 
     {{#emitJSDoc}}/**
@@ -767,5 +774,4 @@ ApiClient.CollectionFormatEnum = {
 * The default API client implementation.
 * @type {module:{{#invokerPackage}}{{.}}/{{/invokerPackage}}ApiClient}
 */{{/emitJSDoc}}
-ApiClient.instance = new ApiClient();
 export default ApiClient;

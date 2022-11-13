@@ -78,7 +78,7 @@ const config = {
               },
               {
                 label: 'Create Service',
-                to: '/docs/guides/create-service',
+                to: '/docs/guides/overview',
               },
               {
                 label: 'Deploy to Cloud',

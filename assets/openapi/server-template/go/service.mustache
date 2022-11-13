@@ -2,7 +2,9 @@ package {{classFilename}}
 
 import (
 	"net/http"
-	"errors"{{#imports}}
+	"errors"
+
+	{{#imports}}
 	"{{import}}"{{/imports}}
 	"{{goModule}}/internal/{{serviceName}}/generated/core"
 	"{{goModule}}/internal/{{serviceName}}/generated/api"

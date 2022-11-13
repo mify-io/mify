@@ -37,24 +37,36 @@
 [![Go](https://github.com/mify-io/mify/actions/workflows/go.yml/badge.svg)](https://github.com/mify-io/mify/actions/workflows/go.yml)
 
 ## Features
+
 - OpenAPI http server generation
 - Built-in Prometheus metrics
 - Structured logging
-- Multiple language code generation (Right now it's Go for backend, and NuxtJS based frontend)
+- Multiple language code generation (Right now it's Go and Python for backend, and NuxtJS based frontend)
 
 ## Installation
 
-Install Docker, it is needed for OpenAPI generation.
+You can get the latest Mify CLI from [Releases](https://github.com/mify-io/mify/releases).
 
-Then install mify CLI using Go:
+Before using it you need to install and start Docker which is used for running
+some code generation tasks, You can refer to Docker's
+[guide](https://docs.docker.com/get-docker/) for installation.
+
+### Supported platforms
+
+Right now Mify should work on Linux, Mac and WSL.
+
+### Getting the last version
+
+You can always install mify from main branch using Go:
 ```sh
 $ go install github.com/mify-io/mify/cmd/mify@latest
 ```
+
 ## Quick Start
 
 Create your first project: https://mify.io/docs/getting-started/create-project
 
-Guide on how to create sample backend and frontend app: https://mify.io/docs/guides/create-service
+Guide on how to create sample backend and frontend app: https://mify.io/docs/guides/overview
 
 ## License
 [Apache 2.0](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0))
