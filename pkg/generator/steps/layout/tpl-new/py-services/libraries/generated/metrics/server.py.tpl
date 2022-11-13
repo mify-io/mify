@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 
 from aiohttp import web
 
@@ -9,7 +9,7 @@ from prometheus_client.openmetrics import exposition as openmetrics
 _ROOT_CONTENT = '<html><body><a href="/metrics">Metrics</a></body></html>'
 
 
-def _choose_generator(accept_header: Optional[str]) -> tuple[Callable, str]:
+def _choose_generator(accept_header: Optional[str]) -> (Callable, str):
     accept_header = accept_header or ""
     for accepted in accept_header.split(","):
         if accepted.split(";")[0].strip() == "application/openmetrics-text":

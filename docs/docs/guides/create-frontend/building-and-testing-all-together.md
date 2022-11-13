@@ -10,6 +10,9 @@ $ cd js-services/counter-display
 $ yarn install
 ```
 
+*Note: if you're using Ubuntu 20.04, this command won't work, because default
+node is too old, please install node >= 18.12.1.*
+
 Then we can run it:
 
 ```

@@ -4,11 +4,11 @@ sidebar_position: 1
 
 # Getting the number from backend service
 
-For frontend Mify uses [Nuxtjs](https://nuxtjs.org/) template which is based on
+For frontend Mify uses [NuxtJS](https://nuxtjs.org/) template which is based on
 Vue and provides a nice structure for the project. NuxtJS also provides great
 support for Server Side + Client Side rendering. Here is a good description of page loading lifecycle: https://nuxtjs.org/docs/concepts/nuxt-lifecycle.
 
-Let's edit the index page and add call to our backend (`js-services/cloud-frontend/pages/index.vue`):
+Let's edit the index page and add call to our backend (`js-services/counter-display/pages/index.vue`):
 
 ```html
 <template>

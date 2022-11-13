@@ -33,9 +33,10 @@ services written in Go being put. If you run the same command with the flag
 `--language python` it will generate code in `py-services`. And when you add
 frontend it is being put into `js-services`.
 
-There is also a `schemas` directory, which is very important. In order to
-support writing services in multiple languages Mify need a way to describe
-language-agnostic API description. We use
+There is also a `schemas` directory, which is very important. It stores Mify
+service schema definitions for different purposes, one of them is an API. In
+order to support writing services in multiple languages Mify need a way to
+describe language-agnostic API description. We use
 [OpenAPI](https://spec.openapis.org/oas/latest.html) schemas for that.
 
 The main API file for your service is located at
