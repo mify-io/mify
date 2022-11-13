@@ -1,0 +1,15 @@
+FROM ubuntu:20.04
+
+RUN apt update && apt install -y curl ca-certificates git
+RUN mkdir /tmp/go && \
+    cd /tmp/go && \
+    curl -O -L https://go.dev/dl/go1.18.8.linux-amd64.tar.gz && \
+    tar -xvf go1.18.8.linux-amd64.tar.gz && \
+    mv go /usr/local && ln -s /usr/local/go/bin/go /usr/local/bin/go
+
+RUN useradd -ms /bin/bash build
+RUN mkdir /build && chown build:build /build
+USER build
+WORKDIR /build
+
+CMD ["/build/scripts/packaging/build-deb.sh"]

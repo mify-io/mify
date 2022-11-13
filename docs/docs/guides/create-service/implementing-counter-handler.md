@@ -14,7 +14,8 @@ for that Mify provides `MifyRequestContext` struct. It also supports custom
 dependencies, and this is where we can put our counter, so let's do it!
 
 Open `go-services/internal/counting-backend/app/service_extra.go`,
-add `Counter` field to `ServiceExtra` struct, and you should end up with something like this:
+add `Counter` field to `ServiceExtra` struct (which is already defined in the end of the file),
+and you should end up with something like this:
 ```go
 type ServiceExtra struct {
 	// Append your dependencies here
@@ -47,4 +48,13 @@ func (s *CounterNextApiService) CounterNextGet(ctx *core.MifyRequestContext) (op
 		Number: int32(currentNumber),
 	}), nil
 }
+```
+
+Add import for `app.ServiceExtra` and remove unused ones:
+```
+import (
+	"example.com/namespace/counting-project/go-services/internal/counting-backend/app"
+	"example.com/namespace/counting-project/go-services/internal/counting-backend/generated/api"
+	"example.com/namespace/counting-project/go-services/internal/counting-backend/generated/core"
+)
 ```

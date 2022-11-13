@@ -93,7 +93,7 @@ components:
 Now run command to apply changed schema:
 
 ```
-mify generate cloud-backend
+mify generate counting-backend
 ```
 
 *NOTE: If you remove or change the name of the handler after you ran `mify
