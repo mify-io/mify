@@ -24,7 +24,8 @@ Description: Mify CLI - cloud service generator tool
 HERE
 )
 
-go build ./cmd/mify || exit 2
+
+go build -ldflags "-X github.com/mify-io/mify/cmd/mify/cmd.MIFY_VERSION=$MIFY_VERSION" ./cmd/mify || exit 2
 
 rm -rf "$WORKDIR" && mkdir -p "$WORKDIR"/mify/{DEBIAN,usr/bin}
 
