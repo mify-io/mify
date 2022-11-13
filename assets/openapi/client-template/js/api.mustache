@@ -24,6 +24,10 @@ export default class <&classname> {
         this.apiClient = apiClient || ApiClient.instance;
     }
 
+    setAuthToken(type, value) {
+        this.apiClient.setAuthToken(type, value)
+    }
+
 <#operations><#operation><#emitJSDoc><^usePromises>
     /**
      * Callback function to receive the result of the <&operationId> operation.

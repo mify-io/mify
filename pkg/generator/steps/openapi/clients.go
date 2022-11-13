@@ -127,9 +127,11 @@ func makeJsClientsModel(ctx *gencontext.GenContext) (tpl.JsClientsModel, error) 
 			return tpl.JsClientsModel{}, fmt.Errorf("schema of '%s' wasn't found while generating client in '%s'", targetServiceName, ctx.GetServiceName())
 		}
 
-		methodName := endpoints.SnakeCaseToCamelCase(endpoints.SanitizeServiceName(targetServiceName), true)
+		methodName := endpoints.SnakeCaseToCamelCase(endpoints.SanitizeServiceName(targetServiceName), false)
+		className := endpoints.SnakeCaseToCamelCase(endpoints.SanitizeServiceName(targetServiceName), true)
 		clientsList = append(clientsList, tpl.NewJsClientModel(
 			targetServiceName,
+			className,
 			methodName,
 		))
 	}

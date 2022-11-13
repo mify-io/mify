@@ -7,6 +7,9 @@ import (
 	"{{goModule}}/internal/{{serviceName}}/generated/core"
 )
 
+// hack to keep imports used if there are no routes in api
+var _ *http.Request
+var _ *core.MifyRequestContext
 
 {{#apiInfo}}{{#apis}}
 // {{classname}}Router defines the required methods for binding the api requests to a responses for the {{classname}}

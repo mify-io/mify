@@ -3,15 +3,18 @@ package tpl
 type JsClientModel struct {
 	ClientName       string
 	PublicMethodName string
+	ClassName        string
 }
 
 func NewJsClientModel(
 	clientName string,
+	className string,
 	publicMethodName string) JsClientModel {
 
 	return JsClientModel{
 		ClientName:       clientName,
 		PublicMethodName: publicMethodName,
+		ClassName:        className,
 	}
 }
 

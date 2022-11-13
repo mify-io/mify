@@ -1,15 +1,21 @@
 <template>
+  <div>
   <Sample/>
+  </div>
 </template>
 
 <script>
-// uncomment if you have clients
-/* import Clients from '@/generated/core/clients' */
 
 export default {
   name: 'Index',
   async fetch() {
-    // let client = new Clients.Service1.Api()
+    // Example backend call
+    // let service1Backend = this.$clients.service1();
+    // try {
+    //     var resp = await service1Backend.pathToApiGet();
+    // } catch (e) {
+    //     console.log(e);
+    // }
   }
 }
 </script>
