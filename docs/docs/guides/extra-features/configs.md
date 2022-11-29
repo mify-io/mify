@@ -25,11 +25,11 @@ type CountingAppConf struct {
 
 This structure contains one int field "IncStep". This field will contain the value loaded from ENV variable
 with the name "INC_STEP" (which can be edited in the field tag). Also, we provided a default value "1" for this field. This value
-is used if env variable with the name "INC_STEP" will not exist.
+is used if env variable with the name "INC_STEP" doesn't exist.
 
 Now we should access the defined configuration in our code. For doing that, find the line inside API handler where
 the counter is increasing (we have added this code in
-[Implementing Counter Handler](/create-service/implementing-counter-handler) section), and modify this
+[Implementing Counter Handler](/docs/guides/create-service/implementing-counter-handler#getting-counter-in-handler) section), and modify this
 handler as shown below:
 ```go
 // CounterNextGet - get next number
@@ -58,13 +58,13 @@ So, for accessing static configuration we are using ```ctx.StaticConfig()```.
 
 ## Building and testing
 
-Now we should check the new code. Since we are using `envconfig`, we should specify the required env variable before
+Now let's test our new code. Since we are using `envconfig`, we should specify the required env variable before
 the application is started. For doing that, just run your `counting-backend` like this:
 ```
 export INC_STEP=3; go run ./cmd/counting-backend
 ```
 
-Now, you can use curl to validate the result:
+Now, you can use curl to validate the result. Don't forget that port in your case could be [different](/docs/guides/create-service/building-and-testing):
 ```
 $ curl 'http://localhost:33767/counter/next'
 {"number":0}
