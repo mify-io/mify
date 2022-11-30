@@ -38,12 +38,12 @@ func (s *CounterNextApiService) CounterNextGet(ctx *core.MifyRequestContext) (op
   currentNumber := svcCtx.Counter
 
   // NEW CODE
-  cfg, err := ctx.StaticConfig().Get(CountingAppConf{})
-  if err != nil {
-    return openapi.ServiceResponse{}, err
-  }
+  cfg, err := core.GetStaticConfig[CountingAppConf](ctx)
+	if err != nil {
+		return openapi.ServiceResponse{}, err
+	}
 
-  svcCtx.Counter += cfg.(CountingAppConf).IncStep
+  svcCtx.Counter += cfg.IncStep
   // END OF NEW CODE
 
   svcCtx.Counter++ // THIS LINE SHOULD BE REMOVED
@@ -54,7 +54,7 @@ func (s *CounterNextApiService) CounterNextGet(ctx *core.MifyRequestContext) (op
 }
 ```
 
-Also, another method to access config exists: `MustGet`. This method doesn't return any error but raises
+Also, another method to access config exists: `MustGetStaticConfig`. This method doesn't return any error but raises
 `panic` if any error occurred.
 
 ## Building and testing
