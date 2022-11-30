@@ -4,7 +4,7 @@ sidebar_position: 0
 
 # Using configuration in your application
 
-All backend services generated with mify contain code required for accessing application configs.
+All mify services have simple generated interface to read static configs.
 
 ## Working with static configuration
 
@@ -54,14 +54,15 @@ func (s *CounterNextApiService) CounterNextGet(ctx *core.MifyRequestContext) (op
 }
 ```
 
-So, for accessing static configuration we are using ```ctx.StaticConfig()```.
+Also, another method to access config exists: `MustGet`. This method doesn't return any error but raises
+`panic` if any error occurred.
 
 ## Building and testing
 
 Now let's test our new code. Since we are using `envconfig`, we should specify the required env variable before
 the application is started. For doing that, just run your `counting-backend` like this:
 ```
-export INC_STEP=3; go run ./cmd/counting-backend
+$ INC_STEP=3 go run ./cmd/counting-backend
 ```
 
 Now, you can use curl to validate the result. Don't forget that port in your case could be [different](/docs/guides/create-service/building-and-testing):
