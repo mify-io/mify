@@ -28,6 +28,10 @@
     <a href="https://github.com/mify-io/mify/blob/main/.github/CONTRIBUTING.md">
       Contributing
     </a>
+    <span> | </span>
+    <a href="https://join.slack.com/t/mifyio/shared_invite/zt-1llnbiio6-lG45E696QOEVzHb0__Qqxw">
+      Slack Channel
+    </a>
   </h3>
 </div>
 
@@ -85,6 +89,8 @@ $ go install github.com/mify-io/mify/cmd/mify@latest
 Create your first project: https://mify.io/docs/getting-started/create-project
 
 Guide on how to create sample backend and frontend app: https://mify.io/docs/guides/overview
+
+If you have any questions, join our [Slack channel](https://join.slack.com/t/mifyio/shared_invite/zt-1llnbiio6-lG45E696QOEVzHb0__Qqxw)!
 
 ## License
 [Apache 2.0](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0))
