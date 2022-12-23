@@ -82,7 +82,7 @@ const config = {
               },
               {
                 label: 'Deploy to Cloud',
-                to: '/docs/cloud/deploy',
+                to: '/docs/cloud/overview',
               },
             ],
           },

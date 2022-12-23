@@ -7,10 +7,10 @@ sidebar_position: 1
 ## Why Mify
 
 Starting a new project is a repetitive and unnecessarily complicated task.
-Every time you need to choose a language, find a framework, set up storage,
+Every time you'll need to choose a language, find a framework, set up storage,
 configuration, logging, metrics, and many more things, duct tape it all
-together until it works. And after all that you need to write infrastructure
-code and configs to set up deployment.
+together until it works. And it doesn't stop there, after all of that
+you'll need to write infrastructure code and configs to set up deployment.
 
 But it doesn't have to be that way - Mify is designed to remove this repetitive
 work from a developer and generate everything required to just start writing
@@ -26,4 +26,4 @@ all of your work to continue expanding the project.
 
 We believe in open platforms and Mify, which is an open-source tool, doesn't
 lock you in, in our generated code we strive to use the best industry practices
-which will help your project in a long term.
+which will help your project in the long term.
