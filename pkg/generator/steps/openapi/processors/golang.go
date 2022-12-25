@@ -33,7 +33,7 @@ func (p *goPostProcessor) GetServerGeneratorConfig(ctx *gencontext.GenContext) (
 	}
 	generatedPath := filepath.Join(basePath, targetPath, "generated")
 	return GeneratorConfig{
-		TargetPath: generatedPath,
+		TargetPath:  generatedPath,
 		PackageName: SERVER_PACKAGE_NAME,
 	}, nil
 }
@@ -48,7 +48,7 @@ func (p *goPostProcessor) GetClientGeneratorConfig(ctx *gencontext.GenContext, c
 	generatedPath := filepath.Join(basePath, targetPath, "generated", "api", "clients", clientName)
 	packageName := endpoints.SanitizeServiceName(clientName) + "_client"
 	return GeneratorConfig{
-		TargetPath: generatedPath,
+		TargetPath:  generatedPath,
 		PackageName: packageName,
 	}, nil
 }
@@ -247,6 +247,7 @@ func toAPIFilename(name string) string {
 	// we just remove slashes from path and then use openapi-generator logic
 	// to convert this path to filename.
 	api := strings.TrimPrefix(name, "/")
+	api = strings.TrimSuffix(api, "/")
 	api = strings.ReplaceAll(api, "/", "_")
 	// replace - with _ e.g. created-at => created_at
 	api = strings.ReplaceAll(api, "-", "_")
