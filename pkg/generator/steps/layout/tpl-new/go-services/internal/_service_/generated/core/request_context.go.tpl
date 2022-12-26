@@ -1,4 +1,5 @@
 {{- .TplHeader}}
+// vim: set ft=go:
 
 package core
 
@@ -83,6 +84,19 @@ type MifyRequestContext struct {
 	logger         *zap.Logger
 	request        *http.Request
 	responseWriter http.ResponseWriter
+}
+
+// WithGoContext returns a shallow copy of MifyRequestContext which allows
+// to pass different go context into nested functions, for instance to add
+// custom deadlines.
+func (c *MifyRequestContext) WithGoContext(goCtx context.Context) *MifyRequestContext {
+	return &MifyRequestContext{
+		MifyServiceContext: c.MifyServiceContext,
+		requestId:      c.requestId,
+		logger:         c.logger,
+		request:        c.request.WithContext(goCtx),
+		responseWriter: c.responseWriter,
+	}
 }
 
 func (c *MifyRequestContext) Logger() *zap.Logger {
