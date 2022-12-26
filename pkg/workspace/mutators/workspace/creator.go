@@ -1,17 +1,22 @@
 package workspace
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/util/render"
 	"github.com/mify-io/mify/pkg/workspace/mutators"
 )
 
 const (
 	SchemasDirName    = "schemas"
 )
+
+//go:embed tpl/gitignore.tpl
+var gitignoreTemplate string
 
 func CreateWorkspace(mutContext *mutators.MutatorContext, dirAbsPath string, name string) error {
 	wrapErr := func(err error) error {
@@ -27,6 +32,11 @@ func CreateWorkspace(mutContext *mutators.MutatorContext, dirAbsPath string, nam
 
 	schemasAbsPath := filepath.Join(baseAbsPath, SchemasDirName)
 	if err := os.MkdirAll(schemasAbsPath, os.ModePerm); err != nil {
+		return wrapErr(err)
+	}
+
+	cacheGitignoreAbsPath := filepath.Join(baseAbsPath, ".mify", ".gitignore")
+	if err := render.RenderTemplate(gitignoreTemplate, struct{}{}, cacheGitignoreAbsPath); err != nil {
 		return wrapErr(err)
 	}
 

@@ -30,6 +30,9 @@ files:
   cors.mustache:
     destinationFilename: cors.go
     folder: api
+  recoverer.mustache:
+    destinationFilename: recoverer.go
+    folder: api
 
 releaseNote: Release note
 httpUserAgent: User Agent

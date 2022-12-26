@@ -1,5 +1,6 @@
 {{>partial_header}}
 package {{packageName}}
+// vim: set ft=go:
 
 import (
 	"context"
@@ -28,4 +29,11 @@ func RequestContext(sc *core.MifyServiceContext) func(next http.Handler) http.Ha
 		}
 		return http.HandlerFunc(fn)
 	}
+}
+
+// GetRequestContextBuilder allows getting current request context in between
+// middleware calls. This is useful for accessing sevice dependencies inside
+// middleware, while keeping the context flow intact.
+func GetMifyRequestContextBuilder(r *http.Request) *core.MifyRequestContextBuilder {
+	return r.Context().Value(MifyContextField).(*core.MifyRequestContextBuilder)
 }

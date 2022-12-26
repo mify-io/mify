@@ -1,6 +1,9 @@
 {{>partial_header}}
+// vim: set ft=go:
+
 package {{packageName}}
 // vim: set ft=go:
+
 
 import (
 	"encoding/json"
@@ -47,11 +50,15 @@ func NewRouter(mifyCtx *core.MifyServiceContext, routerConfig RouterConfig, rout
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(RequestContext(mifyCtx))
+	router.Use(Recoverer())
 	router.Use(Metrics())
 	router.Use(CORS())
 	for _, middleware := range routerConfig.Middlewares() {
 		router.Use(middleware)
 	}
+
+	router.NotFound(HandleRouterError(http.StatusNotFound))
+	router.MethodNotAllowed(HandleRouterError(http.StatusMethodNotAllowed))
 {{/routers}}
 	for _, api := range routers {
 		for _, route := range api.Routes() {

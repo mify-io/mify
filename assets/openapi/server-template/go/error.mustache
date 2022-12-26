@@ -1,4 +1,6 @@
 {{>partial_header}}
+// vim: set ft=go:
+
 package {{packageName}}
 
 import (
@@ -50,5 +52,19 @@ func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error, resu
 	} else {
 		// Handle all other errors
 		EncodeJSONResponse(err.Error(), &result.Code,{{#addResponseHeaders}} result.Headers,{{/addResponseHeaders}} w)
+	}
+}
+
+// HandleRouterError used for handling unknown paths and incorrect method errors
+// it logs error calls the same way as the normal requests and returns JSON.
+func HandleRouterError(status int) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var requestBody []byte
+		var result ServiceResponse
+		result = Response(status, nil)
+		handlerErr := errors.New(http.StatusText(status))
+		ctxBuilder := GetMifyRequestContextBuilder(r)
+		defer LogHandler(ctxBuilder, requestBody, &result, &handlerErr)()
+		DefaultErrorHandler(w, r, handlerErr, &result)
 	}
 }
