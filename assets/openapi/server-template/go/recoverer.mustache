@@ -1,0 +1,46 @@
+{{>partial_header}}
+// vim: set ft=go:
+
+package {{packageName}}
+
+import (
+	"fmt"
+	"os"
+	"net/http"
+	"runtime"
+
+	"go.uber.org/zap"
+)
+
+func Recoverer() func(next http.Handler) http.Handler {
+	const STACK_SIZE = 4 * 1024 * 1024 // 4 KB
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			defer func() {
+				if rc := recover(); rc != nil {
+					if rc == http.ErrAbortHandler {
+						panic(rc)
+					}
+					reqCtx := GetMifyRequestContextBuilder(r)
+					err, ok := rc.(error)
+					if !ok {
+						err = fmt.Errorf("%v", r)
+					}
+					var stack []byte
+					var length int
+
+					stack = make([]byte, STACK_SIZE)
+					length = runtime.Stack(stack, true)
+					stack = stack[:length]
+					reqCtx.Logger().Error(
+						"got panic in handler",
+						zap.String("stacktrace", string(stack)), zap.Error(err))
+					fmt.Fprintf(os.Stderr, "panic: %s", string(stack))
+					w.WriteHeader(http.StatusInternalServerError)
+				}
+			}()
+			next.ServeHTTP(w, r)
+		}
+		return http.HandlerFunc(fn)
+	}
+}
