@@ -1,0 +1,17 @@
+{{>partial_header}}
+package {{packageName}}
+// vim: set ft=go:
+
+import (
+	_ "embed"
+	"net/http"
+
+	"github.com/flowchartsman/swaggerui"
+)
+
+//go:embed openapi.yaml
+var openapiYamlRaw []byte
+
+func SwaggerUIHandlerFunc(rw http.ResponseWriter, r *http.Request) {
+	http.StripPrefix("/swagger-ui", swaggerui.Handler(openapiYamlRaw)).ServeHTTP(rw, r)
+}

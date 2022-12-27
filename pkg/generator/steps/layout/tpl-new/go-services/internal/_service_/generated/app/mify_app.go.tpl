@@ -1,4 +1,5 @@
 {{- .TplHeader}}
+// vim: set ft=go:
 
 package app
 
@@ -46,6 +47,12 @@ func (r maintenanceRouter) Routes() openapi.Routes {
 			HandlerFunc: func(rw http.ResponseWriter, r *http.Request) {
 				promhttp.Handler().ServeHTTP(rw, r)
 			},
+		},
+		{
+			Name: "swagger-ui",
+			Method: "get",
+			Pattern: "/swagger-ui/*",
+			HandlerFunc: openapi.SwaggerUIHandlerFunc,
 		},
 	}
 }

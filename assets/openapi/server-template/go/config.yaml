@@ -24,6 +24,12 @@ files:
   request_context.mustache:
     destinationFilename: request_context.go
     folder: api
+  swaggerui.mustache:
+    destinationFilename: swaggerui.go
+    folder: api
+  cors.mustache:
+    destinationFilename: cors.go
+    folder: api
 
 releaseNote: Release note
 httpUserAgent: User Agent

@@ -1,0 +1,24 @@
+{{>partial_header}}
+package {{packageName}}
+// vim: set ft=go:
+
+import (
+	"net/http"
+
+	"github.com/go-chi/cors"
+)
+
+func CORS() func(http.Handler) http.Handler {
+	// TODO(chebykinn): get the list of domains instead of wildcards
+	// https://github.com/mify-io/mify/issues/75
+	return cors.Handler(
+		cors.Options{
+			AllowCredentials: true,
+			AllowedOrigins: []string{
+				"*",
+			},
+			AllowedHeaders: []string{
+				"*",
+			},
+		})
+}
