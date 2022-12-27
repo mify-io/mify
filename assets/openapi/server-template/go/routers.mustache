@@ -1,5 +1,6 @@
 {{>partial_header}}
 package {{packageName}}
+// vim: set ft=go:
 
 import (
 	"encoding/json"
@@ -47,6 +48,7 @@ func NewRouter(mifyCtx *core.MifyServiceContext, routerConfig RouterConfig, rout
 	router.Use(middleware.RequestID)
 	router.Use(RequestContext(mifyCtx))
 	router.Use(Metrics())
+	router.Use(CORS())
 	for _, middleware := range routerConfig.Middlewares() {
 		router.Use(middleware)
 	}
