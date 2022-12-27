@@ -3,6 +3,7 @@ package render
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -40,6 +41,54 @@ func RenderOrSkipTemplate(templateText string, model interface{}, targetPath str
 	}
 
 	return RenderTemplate(templateText, model, targetPath)
+}
+
+// func(templateText, model, currentText) => migratedText
+type MigrationCallback func(string, interface{}, string) (string, error)
+
+type MigrateSettings struct {
+	Migrate              bool
+	HasUncommitedChanges bool
+	Migrations           []MigrationCallback
+}
+
+func RenderOrMigrateTemplate(
+	templateText string,
+	model interface{},
+	targetPath string,
+	migrateSettings MigrateSettings) error {
+
+	content, err := os.ReadFile(targetPath)
+	if errors.Is(err, os.ErrNotExist) {
+		return RenderTemplate(templateText, model, targetPath)
+	}
+
+	if !migrateSettings.Migrate {
+		return nil
+	}
+
+	res := string(content)
+	for _, migration := range migrateSettings.Migrations {
+		res, err = migration(templateText, model, res)
+		if err != nil {
+			return fmt.Errorf("can't migrate file %s: %w", targetPath, err)
+		}
+	}
+
+	if res == string(content) {
+		return nil
+	}
+
+	if migrateSettings.HasUncommitedChanges {
+		return errors.New("migration can't be applied since file has uncommitted changes")
+	}
+
+	err = os.WriteFile(targetPath, []byte(res), os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("can't write migrated file: %w", err)
+	}
+
+	return nil
 }
 
 func createWithPath(path string) (*os.File, error) {

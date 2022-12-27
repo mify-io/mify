@@ -28,6 +28,7 @@ func (p Pipeline) Execute(
 	goContext context.Context,
 	serviceName string,
 	workspaceDescription workspace.Description,
+	migrate bool,
 	outChan chan StepExecResult) {
 
 	shouldRepeat := true
@@ -44,7 +45,15 @@ func (p Pipeline) Execute(
 
 		shouldRepeat = false
 
-		genContext := gencontext.NewGenContext(goContext, serviceName, workspaceDescription)
+		genContext, err := gencontext.NewGenContext(goContext, serviceName, workspaceDescription, migrate)
+		if err != nil {
+			outChan <- StepExecResult{
+				SeqNo: -1,
+				Step:  nil,
+				Error: fmt.Errorf("can't initialize generate pipeline: %w", err),
+			}
+			break
+		}
 
 		for stepSeqNo, step := range p.steps {
 			genContext.Logger.Infof("Starting step '%s'", step.Name())

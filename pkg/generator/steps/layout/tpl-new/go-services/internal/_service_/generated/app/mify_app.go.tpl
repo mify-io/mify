@@ -1,3 +1,5 @@
+// vim: set ft=go:
+
 {{- .TplHeader}}
 
 package app
@@ -18,8 +20,8 @@ type routerConfig struct {
 	middlewares []func(http.Handler) http.Handler
 }
 
-func newRouterConfig() *routerConfig {
-	conf := app.NewRouterConfig()
+func newRouterConfig(ctx *core.MifyServiceContext) *routerConfig {
+	conf := app.NewRouterConfig(ctx)
 	return &routerConfig {
 		middlewares: conf.Middlewares,
 	}
@@ -62,8 +64,8 @@ func NewMifyServiceApp(goGontext context.Context) *MifyServiceApp {
 
 	return &MifyServiceApp{
 		context: serviceContext,
-		maintenanceRouter: openapi.NewRouter(serviceContext, newRouterConfig(), maintenanceRouter{}),
-		apiRouter: openapi_init.Routes(serviceContext, newRouterConfig()),
+		maintenanceRouter: openapi.NewRouter(serviceContext, newRouterConfig(serviceContext), maintenanceRouter{}),
+		apiRouter: openapi_init.Routes(serviceContext, newRouterConfig(serviceContext)),
 	}
 }
 

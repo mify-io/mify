@@ -2,6 +2,7 @@ package app
 
 import (
 	_ "embed"
+	"fmt"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/util/render"
@@ -22,8 +23,21 @@ func Render(ctx *gencontext.GenContext) error {
 
 	serviceExtraModel := newServiceExtraModel(ctx)
 	serviceExtraPath := ctx.GetWorkspace().GetAppSubAbsPath(ctx.GetServiceName(), "service_extra.go")
-	if err := render.RenderOrSkipTemplate(serviceExtraTemplate, serviceExtraModel, serviceExtraPath); err != nil {
-		return render.WrapError("service extra", err)
+	serviceExtraRelPath := ctx.GetWorkspace().GetAppSubRelPath(ctx.GetServiceName(), "service_extra.go")
+	hasUncommitedChanges, err := ctx.GetVcsIntegration().FileHasUncommitedChanges(serviceExtraRelPath)
+	if err != nil {
+		return err
+	}
+	migrationSettings := render.MigrateSettings{
+		Migrate:              ctx.GetMigrate(),
+		HasUncommitedChanges: hasUncommitedChanges,
+		Migrations:           []render.MigrationCallback{migrateContextToServiceExtra},
+	}
+
+	err = render.RenderOrMigrateTemplate(serviceExtraTemplate,
+		serviceExtraModel, serviceExtraPath, migrationSettings)
+	if err != nil {
+		return render.WrapError(fmt.Sprintf("file %s", serviceExtraPath), err)
 	}
 
 	return nil

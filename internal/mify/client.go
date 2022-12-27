@@ -12,7 +12,7 @@ func AddClient(ctx *CliContext, basePath string, name string, clientName string)
 		return fmt.Errorf("can't add client: %w", err)
 	}
 
-	if err = ServiceGenerate(ctx, basePath, name); err != nil {
+	if err = ServiceGenerate(ctx, basePath, name, false); err != nil {
 		return fmt.Errorf("error during generation: %w", err)
 	}
 
@@ -25,5 +25,5 @@ func RemoveClient(ctx *CliContext, basePath string, name string, clientName stri
 		return err
 	}
 
-	return ServiceGenerate(ctx, basePath, name)
+	return ServiceGenerate(ctx, basePath, name, false)
 }

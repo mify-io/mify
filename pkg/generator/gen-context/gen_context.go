@@ -19,6 +19,7 @@ type GenContext struct {
 
 	serviceName string
 	workspace   workspace.Description
+	migrate     bool
 
 	// Step contexts
 	schema     *schema_context.SchemaContext
@@ -27,22 +28,30 @@ type GenContext struct {
 
 	// libs
 	EndpointsResolver *endpoints.EndpointsResolver
+	vcsIntegration    *VcsIntegration
 }
 
 func NewGenContext(
 	goContext context.Context,
 	serviceName string,
-	workspaceDescription workspace.Description) *GenContext {
+	workspaceDescription workspace.Description,
+	migrate bool) (*GenContext, error) {
 
 	logger := initLogger(workspaceDescription.GetLogsDirectory())
+	vcs, err := initVcsIntegration(workspaceDescription.BasePath)
+	if err != nil {
+		return nil, err
+	}
 
 	return &GenContext{
 		goContext:         goContext,
 		Logger:            logger.Sugar(),
 		serviceName:       serviceName,
 		workspace:         workspaceDescription,
+		migrate:           migrate,
 		EndpointsResolver: endpoints.NewEndpointsResolver(&workspaceDescription),
-	}
+		vcsIntegration:    vcs,
+	}, nil
 }
 
 func (c *GenContext) GetGoContext() context.Context {
@@ -59,6 +68,14 @@ func (c *GenContext) GetServiceName() string {
 
 func (c *GenContext) GetWorkspace() *workspace.Description {
 	return &c.workspace
+}
+
+func (c *GenContext) GetMigrate() bool {
+	return c.migrate
+}
+
+func (c *GenContext) GetVcsIntegration() *VcsIntegration {
+	return c.vcsIntegration
 }
 
 func (c *GenContext) GetSchemaCtx() *schema_context.SchemaContext {
