@@ -1,4 +1,5 @@
 {{- .Workspace.TplHeader}}
+// vim: set ft=go:
 
 package logs
 

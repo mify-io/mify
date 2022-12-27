@@ -1,3 +1,4 @@
+# vim: set ft=python:
 import sys
 from typing import get_type_hints, Union
 

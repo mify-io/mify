@@ -1,4 +1,5 @@
 {{.TplHeader}}
+# vim: set ft=python:
 
 import os
 import connexion

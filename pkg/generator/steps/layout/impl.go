@@ -83,6 +83,9 @@ func renderNew(ctx *gencontext.GenContext) error {
 	if mifySchema == nil {
 		return nil
 	}
+	if err := tplnew.RenderWorkspace(ctx); err != nil {
+		return fmt.Errorf("can't render workspace files: %w", err)
+	}
 
 	switch mifySchema.Language {
 	case mifyconfig.ServiceLanguageGo:

@@ -1,4 +1,5 @@
 {{>licenseInfo}}
+// vim: set ft=javascript:
 import ApiClient from '../ApiClient';
 {{#imports}}import {{import}} from './{{import}}';
 {{/imports}}{{#models}}{{#model}}{{#isEnum}}{{>partial_model_enum_class}}{{/isEnum}}{{^isEnum}}{{>partial_model_generic}}{{/isEnum}}{{/model}}{{/models}}

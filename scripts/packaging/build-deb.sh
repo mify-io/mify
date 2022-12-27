@@ -32,3 +32,4 @@ rm -rf "$WORKDIR" && mkdir -p "$WORKDIR"/mify/{DEBIAN,usr/bin}
 echo "$CONTROL_DATA" > "$WORKDIR"/mify/DEBIAN/control
 cp ./mify "$WORKDIR"/mify/usr/bin
 cd "$WORKDIR" && dpkg-deb --build mify
+mv mify.deb ../mify-"$MIFY_VERSION"-ubuntu-amd64.deb
