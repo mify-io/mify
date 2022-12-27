@@ -10,6 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	migrate bool
+)
+
 // genCmd represents the gen command
 var genCmd = &cobra.Command{
 	Use:   "generate [service]...",
@@ -23,7 +27,7 @@ var genCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := mify.ServiceGenerateMany(appContext, workspacePath, args); err != nil {
+		if err := mify.ServiceGenerateMany(appContext, workspacePath, args, migrate); err != nil {
 			if errors.Is(err, context.Canceled) {
 				return
 			}
@@ -34,4 +38,8 @@ var genCmd = &cobra.Command{
 }
 
 func init() {
+	genCmd.Flags().BoolVarP(
+		&migrate,
+		"migrate", "m", true, "Should code migrations be applied?",
+	)
 }

@@ -1,3 +1,5 @@
+// vim: set ft=go:
+
 package app
 
 import (
@@ -10,7 +12,7 @@ type routerConfig struct {
 	Middlewares []func(http.Handler) http.Handler
 }
 
-func NewRouterConfig() *routerConfig {
+func NewRouterConfig(ctx *core.MifyServiceContext) *routerConfig {
 	return &routerConfig {
 		Middlewares: []func(http.Handler) http.Handler {
 		// Add your middlewares here

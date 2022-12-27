@@ -13,7 +13,7 @@ func CreateService(ctx *CliContext, basePath string, language string, name strin
 		return err
 	}
 
-	return ServiceGenerate(ctx, basePath, name)
+	return ServiceGenerate(ctx, basePath, name, false)
 }
 
 func CreateFrontend(ctx *CliContext, basePath string, template string, name string) error {
@@ -23,7 +23,7 @@ func CreateFrontend(ctx *CliContext, basePath string, template string, name stri
 		return err
 	}
 
-	return ServiceGenerate(ctx, basePath, name)
+	return ServiceGenerate(ctx, basePath, name, false)
 }
 
 func CreateApiGateway(ctx *CliContext) error {
@@ -33,5 +33,5 @@ func CreateApiGateway(ctx *CliContext) error {
 		return err
 	}
 
-	return ServiceGenerate(ctx, ctx.WorkspacePath, workspace.ApiGatewayName)
+	return ServiceGenerate(ctx, ctx.WorkspacePath, workspace.ApiGatewayName, false)
 }

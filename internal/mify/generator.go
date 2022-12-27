@@ -11,7 +11,7 @@ import (
 	"github.com/mify-io/mify/pkg/workspace"
 )
 
-func ServiceGenerateMany(ctx *CliContext, basePath string, names []string) error {
+func ServiceGenerateMany(ctx *CliContext, basePath string, names []string, migrate bool) error {
 	descr, err := workspace.InitDescription(basePath)
 	if err != nil {
 		return err
@@ -23,7 +23,7 @@ func ServiceGenerateMany(ctx *CliContext, basePath string, names []string) error
 	}
 
 	for _, name := range names {
-		if err := ServiceGenerate(ctx, basePath, name); err != nil {
+		if err := ServiceGenerate(ctx, basePath, name, migrate); err != nil {
 			return fmt.Errorf("service '%s' generation failed: %w", name, err)
 		}
 	}
@@ -31,7 +31,7 @@ func ServiceGenerateMany(ctx *CliContext, basePath string, names []string) error
 	return nil
 }
 
-func ServiceGenerate(ctx *CliContext, basePath string, name string) error {
+func ServiceGenerate(ctx *CliContext, basePath string, name string, migrate bool) error {
 	descr, err := workspace.InitDescription(basePath)
 	if err != nil {
 		return err
@@ -42,7 +42,7 @@ func ServiceGenerate(ctx *CliContext, basePath string, name string) error {
 
 	outChan := make(chan core.StepExecResult)
 
-	go genPipeline.Execute(ctx.Ctx, name, descr, outChan)
+	go genPipeline.Execute(ctx.Ctx, name, descr, migrate, outChan)
 
 	for {
 		stepResult := <-outChan

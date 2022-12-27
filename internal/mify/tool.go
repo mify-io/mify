@@ -41,7 +41,11 @@ func ToolMigrate(
 	if err != nil {
 		return err
 	}
-	genContext := gencontext.NewGenContext(ctx.Ctx, serviceName, workspace)
+	genContext, err := gencontext.NewGenContext(ctx.Ctx, serviceName, workspace, false)
+	if err != nil {
+		return fmt.Errorf("failed to initialize: %w", err)
+	}
+
 	schemaStep := schema.NewSchemaStep()
 	_, err = schemaStep.Execute(genContext)
 	if err != nil {
@@ -82,4 +86,4 @@ func ToolMigrate(
 	return nil
 }
 
-	// genContext.GetMifySchema().Postgres.DatabaseName
+// genContext.GetMifySchema().Postgres.DatabaseName
