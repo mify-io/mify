@@ -24,17 +24,13 @@ func Render(ctx *gencontext.GenContext) error {
 	serviceExtraModel := newServiceExtraModel(ctx)
 	serviceExtraPath := ctx.GetWorkspace().GetAppSubAbsPath(ctx.GetServiceName(), "service_extra.go")
 	serviceExtraRelPath := ctx.GetWorkspace().GetAppSubRelPath(ctx.GetServiceName(), "service_extra.go")
-	hasUncommitedChanges, err := ctx.GetVcsIntegration().FileHasUncommitedChanges(serviceExtraRelPath)
-	if err != nil {
-		return err
-	}
 	migrationSettings := render.MigrateSettings{
 		Migrate:              ctx.GetMigrate(),
-		HasUncommitedChanges: hasUncommitedChanges,
+		HasUncommitedChanges: func() (bool, error) { return ctx.GetVcsIntegration().FileHasUncommitedChanges(serviceExtraRelPath) },
 		Migrations:           []render.MigrationCallback{migrateContextToServiceExtra},
 	}
 
-	err = render.RenderOrMigrateTemplate(serviceExtraTemplate,
+	err := render.RenderOrMigrateTemplate(serviceExtraTemplate,
 		serviceExtraModel, serviceExtraPath, migrationSettings)
 	if err != nil {
 		return render.WrapError(fmt.Sprintf("file %s", serviceExtraPath), err)
