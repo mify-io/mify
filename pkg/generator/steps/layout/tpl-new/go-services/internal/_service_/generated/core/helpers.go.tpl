@@ -1,4 +1,5 @@
 {{- .TplHeader}}
+// vim: set ft=go:
 
 package core
 

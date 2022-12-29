@@ -1,3 +1,4 @@
+# vim: set ft=python:
 from {{.ServiceName}}.generated.app.mify_app import MifyServiceApp
 
 

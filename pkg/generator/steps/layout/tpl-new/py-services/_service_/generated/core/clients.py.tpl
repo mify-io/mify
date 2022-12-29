@@ -1,4 +1,5 @@
 {{.TplHeader}}
+# vim: set ft=python:
 from libraries.generated.metrics.client_metrics import ClientMetrics
 
 {{- range .Clients}}

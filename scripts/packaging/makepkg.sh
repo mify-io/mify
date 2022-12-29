@@ -18,7 +18,7 @@ build_tar_package() {
     rm -rf "$WORKDIR" && mkdir -p "$WORKDIR/bin"
     cp "$REPO_ROOT/mify" "$WORKDIR/bin"
     cp "$REPO_ROOT/README.md" "$WORKDIR/"
-    cd "$WORKDIR" && tar -cvzf "$REPO_ROOT/build/mify-$GOOS-$GOARCH.tar.gz" .
+    cd "$WORKDIR" && tar -cvzf "$REPO_ROOT/build/mify-$MIFY_VERSION-$GOOS-$GOARCH.tar.gz" .
 }
 
 case "$1" in

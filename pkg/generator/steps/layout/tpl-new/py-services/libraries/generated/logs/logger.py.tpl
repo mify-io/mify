@@ -1,3 +1,4 @@
+# vim: set ft=python:
 import structlog
 import logging
 

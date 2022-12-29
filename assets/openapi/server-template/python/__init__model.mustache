@@ -1,4 +1,5 @@
-# coding: utf-8
+{{>partial_header}}
+# vim: set ft=python:
 
 # import models into model package
 {{#models}}{{#model}}from {{packageName}}.{{modelPackage}}.{{classFilename}} import {{classname}}{{/model}}

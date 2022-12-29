@@ -1,4 +1,5 @@
 {{ .TplHeader }}
+# vim: set ft=python:
 from dataclasses import dataclass
 
 from prometheus_client import Counter, Summary, Histogram

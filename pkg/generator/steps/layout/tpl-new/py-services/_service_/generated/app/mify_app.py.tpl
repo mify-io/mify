@@ -1,4 +1,5 @@
 {{.TplHeader}}
+# vim: set ft=python:
 
 from {{.ServiceName}}.generated.core.service_context import MifyServiceContext
 

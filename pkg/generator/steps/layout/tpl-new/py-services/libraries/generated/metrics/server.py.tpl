@@ -1,3 +1,4 @@
+# vim: set ft=python:
 from typing import Callable, Optional
 
 from aiohttp import web
