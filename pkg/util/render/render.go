@@ -48,7 +48,7 @@ type MigrationCallback func(string, interface{}, string) (string, error)
 
 type MigrateSettings struct {
 	Migrate              bool
-	HasUncommitedChanges bool
+	HasUncommitedChanges func() (bool, error)
 	Migrations           []MigrationCallback
 }
 
@@ -79,7 +79,12 @@ func RenderOrMigrateTemplate(
 		return nil
 	}
 
-	if migrateSettings.HasUncommitedChanges {
+	hasUncommitedChanges, err := migrateSettings.HasUncommitedChanges()
+	if err != nil {
+		return err
+	}
+
+	if hasUncommitedChanges {
 		return errors.New("migration can't be applied since file has uncommitted changes")
 	}
 
