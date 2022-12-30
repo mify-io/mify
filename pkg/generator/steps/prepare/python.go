@@ -51,7 +51,7 @@ func prepareVirtualEnv(ctx *gencontext.GenContext, servicesPath string) error {
 
 	err := pipCmd.Run()
 	if err != nil {
-		return fmt.Errorf("Failed to prepare virtual env check if pip installed, for ubuntu install `python3-pip`, error: %w", err)
+		return fmt.Errorf("failed to prepare virtual env check if pip installed, for ubuntu install `python3-pip`, error: %w", err)
 	}
 
 	venvCmd := exec.Command("python3", "-m", "venv", virtualEnvDirName)
@@ -61,7 +61,7 @@ func prepareVirtualEnv(ctx *gencontext.GenContext, servicesPath string) error {
 
 	err = venvCmd.Run()
 	if err != nil {
-		return fmt.Errorf("Failed to prepare virtual env check if venv package installed, for ubuntu install `python3-venv`, error: %w", err)
+		return fmt.Errorf("failed to prepare virtual env check if venv package installed, for ubuntu install `python3-venv`, error: %w", err)
 	}
 
 

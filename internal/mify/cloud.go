@@ -1,6 +1,7 @@
 package mify
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,9 +12,13 @@ import (
 	"github.com/mify-io/mify/internal/mify/util"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/workspace/mutators/cloud"
+	"github.com/mitchellh/go-homedir"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-const CLOUD_URL = "https://cloud.mify.io"
+//const CLOUD_URL = "https://cloud.mify.io"
+const CLOUD_URL = "http://localhost:43057"
 
 func CloudInit(ctx *CliContext, projectName string, env string) error {
 	if ctx.Config.APIToken == "" {
@@ -66,6 +71,9 @@ func CloudInit(ctx *CliContext, projectName string, env string) error {
 	}
 
 	if err := cloud.Init(ctx.mutatorContext); err != nil {
+		return err
+	}
+	if err := CloudUpdateKubeconfig(ctx, env); err != nil {
 		return err
 	}
 
@@ -153,6 +161,104 @@ func initCloudConfigs(ctx *CliContext) error {
 	return nil
 }
 
-func CloudUpdateKubeconfig(ctx *CliContext) error {
+func findKubeConfig() (string, error) {
+	env := os.Getenv("KUBECONFIG")
+	if env != "" {
+		return env, nil
+	}
+	path, err := homedir.Expand("~/.kube/config")
+	if err != nil {
+		return "", err
+	}
+	return path, nil
+}
+
+type kubeconfigResponse struct {
+	ServerAddress string `json:"server_address"`
+	ServerCertficate string `json:"server_certficate"`
+	ServiceAccount string `json:"service_account"`
+	Token string `json:"token"`
+}
+
+func getKubeconfigData(
+	ctx *CliContext, projectName string,
+	environment string, accessToken string) (kubeconfigResponse, error) {
+	endpoint := fmt.Sprintf("%s/api/projects/kubeconfig", CLOUD_URL)
+	var reqData struct {
+		Name        string `json:"name"`
+		Environment string `json:"environment"`
+	}
+	reqData.Name = projectName
+	reqData.Environment = environment
+	client := resty.New()
+	var result kubeconfigResponse
+	resp, err := client.R().SetAuthToken(accessToken).SetBody(reqData).SetResult(&result).Post(endpoint)
+	if err != nil {
+		return kubeconfigResponse{}, fmt.Errorf("request to get token failed: %w", err)
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return kubeconfigResponse{}, fmt.Errorf("request to get token error: %s", resp.Status())
+	}
+	return result, nil
+
+}
+
+func CloudUpdateKubeconfig(ctx *CliContext, environment string) error {
+	accessToken, err := resolveAccessToken(ctx)
+	if err != nil {
+		return err
+	}
+	wspc := ctx.MustGetWorkspaceDescription()
+	data, err := getKubeconfigData(ctx, wspc.Name, environment, accessToken)
+	if err != nil {
+		return fmt.Errorf("failed to register project: %w", err)
+	}
+	cert, err := base64.StdEncoding.DecodeString(data.ServerCertficate)
+	if err != nil {
+		return err
+	}
+	token, err := base64.StdEncoding.DecodeString(data.Token)
+	if err != nil {
+		return err
+	}
+
+	kubeConfigPath, err := findKubeConfig()
+	if err != nil {
+		return err
+	}
+
+	var kubeConfig *api.Config
+	if _, err := os.Stat(kubeConfigPath); errors.Is(err, os.ErrNotExist) {
+		kubeConfig = api.NewConfig()
+	} else {
+		kubeConfig, err = clientcmd.LoadFromFile(kubeConfigPath)
+		if err != nil {
+			return err
+		}
+	}
+
+	clusterName := "mifykube-" + environment
+	cluster := api.NewCluster()
+	cluster.CertificateAuthorityData = cert
+	cluster.Server = data.ServerAddress
+
+	context := api.NewContext()
+	context.Cluster = clusterName
+	context.Namespace = wspc.Name + "-" + environment
+	context.AuthInfo = data.ServiceAccount
+
+	user := api.NewAuthInfo()
+	user.Token = string(token)
+
+	contextName := data.ServiceAccount + "@" + clusterName
+	kubeConfig.Clusters[clusterName] = cluster
+	kubeConfig.Contexts[contextName] = context
+	kubeConfig.AuthInfos[data.ServiceAccount] = user
+	kubeConfig.CurrentContext = contextName
+
+	err = clientcmd.WriteToFile(*kubeConfig, kubeConfigPath)
+	if err != nil {
+		return err
+	}
 	return nil
 }

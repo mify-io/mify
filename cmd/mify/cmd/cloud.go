@@ -10,6 +10,7 @@ import (
 
 var (
 	deployEnv   string
+	confEnv   string
 	initDeployEnv   string
 	projectName string
 )
@@ -31,7 +32,7 @@ var updateKubeconfigCmd = &cobra.Command{
 	Short: "Update ~/.kube/config file",
 	Long:  `Update ~/.kube/config file`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := mify.CloudUpdateKubeconfig(appContext); err != nil {
+		if err := mify.CloudUpdateKubeconfig(appContext, confEnv); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to update kubernetes config: %s\n", err)
 			os.Exit(2)
 		}
@@ -65,6 +66,7 @@ var cloudCmd = &cobra.Command{
 
 func init() {
 	deployCmd.PersistentFlags().StringVarP(&deployEnv, "environment", "e", "stage", "Target environment name")
+	updateKubeconfigCmd.PersistentFlags().StringVarP(&confEnv, "environment", "e", "stage", "Target environment name")
 	initCloudCmd.PersistentFlags().StringVarP(&initDeployEnv,
 		"environment", "e", "", `Project environment name ("stage" or "prod")`)
 	initCloudCmd.PersistentFlags().StringVarP(&projectName, "project-name", "n", "", "Cloud project name")
