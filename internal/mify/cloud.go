@@ -17,8 +17,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-//const CLOUD_URL = "https://cloud.mify.io"
-const CLOUD_URL = "http://localhost:43057"
+const CLOUD_URL = "https://cloud.mify.io"
 
 func CloudInit(ctx *CliContext, projectName string, env string) error {
 	if ctx.Config.APIToken == "" {
@@ -174,10 +173,10 @@ func findKubeConfig() (string, error) {
 }
 
 type kubeconfigResponse struct {
-	ServerAddress string `json:"server_address"`
+	ServerAddress    string `json:"server_address"`
 	ServerCertficate string `json:"server_certficate"`
-	ServiceAccount string `json:"service_account"`
-	Token string `json:"token"`
+	ServiceAccount   string `json:"service_account"`
+	Token            string `json:"token"`
 }
 
 func getKubeconfigData(
