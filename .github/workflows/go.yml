@@ -6,8 +6,12 @@ name: Go
   # pull_request:
     # branches: [ main ]
 on:
-  push: {}
-  pull_request: {}
+  push:
+    branches:
+      - '*'
+    tags:
+      - '*'
+  pull_request:
 
 jobs:
   analysis:
