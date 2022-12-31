@@ -1,17 +1,11 @@
 name: Go
 
-# on:
-  # push:
-    # branches: [ main ]
-  # pull_request:
-    # branches: [ main ]
 on:
   push:
-    branches:
-      - '*'
-    tags:
-      - '*'
+    branches: [ main ]
+    tags: ['*']
   pull_request:
+    branches: [ main ]
 
 jobs:
   analysis:
