@@ -17,7 +17,15 @@ import (
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-const CLOUD_URL = "https://cloud.mify.io"
+func getCloudUrl() string {
+	const CLOUD_URL = "https://cloud.mify.io"
+
+	env := os.Getenv("MIFY_CLOUD_API_URL")
+	if env != "" {
+		return env
+	}
+	return CLOUD_URL
+}
 
 func CloudInit(ctx *CliContext, projectName string, env string) error {
 	if ctx.Config.APIToken == "" {
@@ -80,7 +88,7 @@ func CloudInit(ctx *CliContext, projectName string, env string) error {
 }
 
 func obtainApiToken(ctx *CliContext) error {
-	token, err := ctx.UserInput.AskInput("Please visit %s to receive token and paste it here:", CLOUD_URL)
+	token, err := ctx.UserInput.AskInput("Please visit %s to receive token and paste it here:", getCloudUrl())
 
 	if err != nil {
 		return fmt.Errorf("failed to read token from stdin: %w", err)
@@ -105,7 +113,7 @@ func resolveAccessToken(ctx *CliContext) (string, error) {
 }
 
 func getAccessToken(ctx *CliContext, token string) (string, error) {
-	endpoint := fmt.Sprintf("%s/api/auth/token/service", CLOUD_URL)
+	endpoint := fmt.Sprintf("%s/api/auth/token/service", getCloudUrl())
 	var reqData struct {
 		RefreshToken string `json:"refresh_token"`
 	}
@@ -126,7 +134,7 @@ func getAccessToken(ctx *CliContext, token string) (string, error) {
 }
 
 func registerProject(ctx *CliContext, projectName string, environment string, accessToken string) error {
-	endpoint := fmt.Sprintf("%s/api/projects/register", CLOUD_URL)
+	endpoint := fmt.Sprintf("%s/api/projects/register", getCloudUrl())
 	var reqData struct {
 		Name        string `json:"name"`
 		Environment string `json:"environment"`
@@ -182,7 +190,7 @@ type kubeconfigResponse struct {
 func getKubeconfigData(
 	ctx *CliContext, projectName string,
 	environment string, accessToken string) (kubeconfigResponse, error) {
-	endpoint := fmt.Sprintf("%s/api/projects/kubeconfig", CLOUD_URL)
+	endpoint := fmt.Sprintf("%s/api/projects/kubeconfig", getCloudUrl())
 	var reqData struct {
 		Name        string `json:"name"`
 		Environment string `json:"environment"`
