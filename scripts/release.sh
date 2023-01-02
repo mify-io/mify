@@ -30,6 +30,12 @@ esac
 
 MAIN_BRANCH="origin/release-script"
 # MAIN_BRANCH="upstream/main"
+
+if [ ! -z "$(git status --porcelain)" ]; then
+    echo >&2 "Working directory is not clean, commit the changes before release"
+    exit 2
+fi
+
 git fetch --all --tags || exit 2
 VERSION="$(get_version)"
 echo "current version: $VERSION"
