@@ -27,16 +27,15 @@ case "$1" in
     * ) [ -z "$1" ] && VERSION_PART=2 || usage ;;
 esac
 
-
-MAIN_BRANCH="origin/release-script"
-# MAIN_BRANCH="upstream/main"
-
 if [ ! -z "$(git status --porcelain)" ]; then
     echo >&2 "Working directory is not clean, commit the changes before release"
     exit 2
 fi
 
+MAIN_BRANCH="upstream/main"
+
 git fetch --all --tags || exit 2
+
 VERSION="$(get_version)"
 echo "current version: $VERSION"
 
@@ -52,6 +51,6 @@ while true; do
 done
 
 git tag "$NEXT_VERSION" "$MAIN_BRANCH" || exit 2
-# git push upstream "$NEXT_VERSION" || exit 2
-git push origin "$NEXT_VERSION" || exit 2
-echo "successfully created new release version $NEXT_VERSION"
+git push upstream "$NEXT_VERSION" || exit 2
+
+echo "successfully created new release version: $NEXT_VERSION"
