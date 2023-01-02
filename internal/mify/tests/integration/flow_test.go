@@ -3,6 +3,7 @@ package integration
 import (
 	"flag"
 	"path"
+	"strings"
 	"testing"
 
 	"github.com/mify-io/mify/internal/mify"
@@ -14,6 +15,16 @@ var approve bool
 
 func init() {
 	flag.BoolVar(&approve, "approve", false, "Approve test result")
+}
+
+func ignoreFunc(path string) bool {
+	// TODO: think about how to improve ignore pattern (maybe ignore based on diff text)
+	return strings.HasSuffix(path, "generated/api/clients/service1/ApiClient.js") ||
+		strings.HasSuffix(path, "generated/api/clients/service2/configuration.go") ||
+		strings.HasSuffix(path, "generated/app/server.go") ||
+		strings.HasSuffix(path, "generated/app/server.py") ||
+		strings.HasSuffix(path, "generated/openapi/clients/service1/configuration.py") ||
+		strings.HasSuffix(path, "service3/generated/app/server.py")
 }
 
 func TestFullFlow1(t *testing.T) {
@@ -67,6 +78,8 @@ func TestFullFlow1(t *testing.T) {
 	approval.NewSubtest()
 	require.NoError(t, mify.AddClient(ctx, basePath, "service3", "service1"))
 	approval.EndSubtest(tempDir)
+
+	approval.SetIgnoreFunc(ignoreFunc)
 
 	if approve {
 		approval.Approve()

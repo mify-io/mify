@@ -19,6 +19,7 @@ import (
 type approvalContext struct {
 	subtestSeqNo int
 	t            *testing.T
+	ignoreFunc   func(path string) bool
 }
 
 func NewApprovalContext(t *testing.T) approvalContext {
@@ -177,6 +178,10 @@ func (ac *approvalContext) EndSubtest(actualPath string) {
 	ac.subtestSeqNo++
 }
 
+func (ac *approvalContext) SetIgnoreFunc(ignoreFunc func(path string) bool) {
+	ac.ignoreFunc = ignoreFunc
+}
+
 func (ac *approvalContext) Verify() {
 	success := true
 	for i := 0; i < ac.subtestSeqNo; i++ {
@@ -192,8 +197,14 @@ func (ac *approvalContext) Verify() {
 			ac.t.FailNow()
 		}
 
-		if err := verifyDirTree(ac.t, ac.getApprovedDir(i), ac.getReceivedDir(i)); err != nil {
-			ac.t.Logf("subtest %d failed: %s", i, err)
+		diff, err := diffDir(ac, ac.getApprovedDir(i), ac.getReceivedDir(i))
+		if err != nil {
+			ac.t.Logf("failed to calc diff: %s", err)
+			ac.t.FailNow()
+		}
+
+		if len(diff) > 0 {
+			ac.t.Logf("subtest %d failed. Unapproved changes were found: %s", i, diff)
 			success = false
 			continue
 		}
@@ -243,55 +254,90 @@ func getResultsPath(t *testing.T) string {
 	return path.Join(wd, "results", t.Name())
 }
 
-func verifyDirTree(t *testing.T, approvedDirPath string, receivedDirPath string) error {
-	approvedDirTree, err := buildDirTree(approvedDirPath)
-	if err != nil {
-		return fmt.Errorf("can't get approved directory tree: %w", err)
+func shouldIgnorePath(ac *approvalContext, path string, dir fs.DirEntry) (bool, error) {
+	// skip .git
+	if strings.Contains(path, ".git") {
+		return true, nil
+	}
+	if strings.Contains(path, "venv/") {
+		return true, nil
 	}
 
-	receivedDirTree, err := buildDirTree(receivedDirPath)
+	if ac.ignoreFunc != nil && ac.ignoreFunc(path) {
+		return true, nil
+	}
+
+	return dir.IsDir(), nil
+}
+
+func diffReceivedAndApproved(p string, aprovedDirPath string, receivedDirPath string) (string, error) {
+	relPath := ""
+	if strings.HasPrefix(p, aprovedDirPath) {
+		relPath = strings.TrimPrefix(p, aprovedDirPath)
+	} else {
+		relPath = strings.TrimPrefix(p, receivedDirPath)
+	}
+
+	receivedFilePath := path.Join(receivedDirPath, relPath)
+	receivedContent, err := os.ReadFile(receivedFilePath)
 	if err != nil {
-		return fmt.Errorf("can't get received directory tree: %w", err)
+		return "", err
+	}
+
+	approvedFilePath := path.Join(aprovedDirPath, relPath)
+	approvedContent, err := os.ReadFile(approvedFilePath)
+	if err != nil && !os.IsNotExist(err) {
+		return "", err
 	}
 
 	diff := difflib.UnifiedDiff{
-		A: difflib.SplitLines(approvedDirTree),
-		B: difflib.SplitLines(receivedDirTree),
+		A:        difflib.SplitLines(string(receivedContent)),
+		B:        difflib.SplitLines(string(approvedContent)),
+		FromFile: receivedFilePath,
+		ToFile:   approvedFilePath,
 	}
 	text, _ := difflib.GetUnifiedDiffString(diff)
-	if len(text) > 0 {
-		return fmt.Errorf("dir tree differs from approved one:\n%s", text)
-	}
 
-	return nil
+	return text, nil
 }
 
-func buildDirTree(path string) (string, error) {
+func diffDir(ac *approvalContext, aprovedDirPath string, receivedDirPath string) (string, error) {
+	checkedFilePaths := make(map[string]struct{})
 	res := ""
-	err := filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
-		// skip .git/objects
-		if strings.Contains(p, ".git/objects") {
+
+	handlePath := func(p string, d fs.DirEntry, _ error) error {
+		if _, ok := checkedFilePaths[p]; ok {
 			return nil
 		}
-		if strings.Contains(p, "venv/") {
+
+		ignore, err := shouldIgnorePath(ac, p, d)
+		if err != nil {
+			return err
+		}
+		if ignore {
 			return nil
 		}
-		if d.IsDir() {
-			files, err := os.ReadDir(p)
-			if err != nil {
-				return err
-			}
 
-			// Ignore empty dirs, because git removes them from approved
-			if len(files) == 0 {
-				return nil
-			}
+		diff, err := diffReceivedAndApproved(p, aprovedDirPath, receivedDirPath)
+		if err != nil {
+			return err
 		}
 
-		res += fmt.Sprintf("%s\n", strings.TrimPrefix(p, path))
+		if len(diff) > 0 {
+			res += diff
+			res += "\n"
+		}
+
+		checkedFilePaths[p] = struct{}{}
+
 		return nil
-	})
+	}
 
+	err := filepath.WalkDir(aprovedDirPath, handlePath)
+	if err != nil {
+		return "", err
+	}
+	err = filepath.WalkDir(receivedDirPath, handlePath)
 	if err != nil {
 		return "", err
 	}
