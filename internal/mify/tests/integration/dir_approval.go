@@ -204,7 +204,8 @@ func (ac *approvalContext) Verify() {
 		}
 
 		if len(diff) > 0 {
-			ac.t.Logf("subtest %d failed. Unapproved changes were found: %s", i, diff)
+			ac.t.Logf("subtest %d failed. Unapproved changes were found", i)
+			ac.t.Log(diff)
 			success = false
 			continue
 		}
@@ -291,10 +292,10 @@ func diffReceivedAndApproved(p string, aprovedDirPath string, receivedDirPath st
 	}
 
 	diff := difflib.UnifiedDiff{
-		A:        difflib.SplitLines(string(receivedContent)),
-		B:        difflib.SplitLines(string(approvedContent)),
-		FromFile: receivedFilePath,
-		ToFile:   approvedFilePath,
+		A:        difflib.SplitLines(string(approvedContent)),
+		B:        difflib.SplitLines(string(receivedContent)),
+		FromFile: approvedFilePath,
+		ToFile:   receivedFilePath,
 	}
 	text, _ := difflib.GetUnifiedDiffString(diff)
 
