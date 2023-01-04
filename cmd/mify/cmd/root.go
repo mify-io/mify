@@ -49,12 +49,13 @@ func Execute() {
 
 	cobra.CheckErr(rootCmd.Execute())
 	endWaiter.Wait()
+	cleanup()
 }
 
 func cleanup() {
 	appContext.Cancel()
 
-	if err := mify.Cleanup(); err != nil {
+	if err := mify.Cleanup(appContext); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to cleanup: %s", err)
 		os.Exit(2)
 	}

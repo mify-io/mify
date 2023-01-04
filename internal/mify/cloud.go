@@ -10,22 +10,13 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/mify-io/mify/internal/mify/util"
+	"github.com/mify-io/mify/pkg/cloudconfig"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/workspace/mutators/cloud"
 	"github.com/mitchellh/go-homedir"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
-
-func getCloudUrl() string {
-	const CLOUD_URL = "https://cloud.mify.io"
-
-	env := os.Getenv("MIFY_CLOUD_API_URL")
-	if env != "" {
-		return env
-	}
-	return CLOUD_URL
-}
 
 func CloudInit(ctx *CliContext, projectName string, env string) error {
 	if ctx.Config.APIToken == "" {
@@ -88,7 +79,9 @@ func CloudInit(ctx *CliContext, projectName string, env string) error {
 }
 
 func obtainApiToken(ctx *CliContext) error {
-	token, err := ctx.UserInput.AskInput("Please visit %s to receive token and paste it here:", getCloudUrl())
+	token, err := ctx.UserInput.AskInput(
+		"Please visit %s to receive token and paste it here:",
+		cloudconfig.GetCloudURL())
 
 	if err != nil {
 		return fmt.Errorf("failed to read token from stdin: %w", err)
@@ -113,7 +106,7 @@ func resolveAccessToken(ctx *CliContext) (string, error) {
 }
 
 func getAccessToken(ctx *CliContext, token string) (string, error) {
-	endpoint := fmt.Sprintf("%s/api/auth/token/service", getCloudUrl())
+	endpoint := fmt.Sprintf("%s/api/auth/token/service", cloudconfig.GetCloudURL())
 	var reqData struct {
 		RefreshToken string `json:"refresh_token"`
 	}
@@ -134,7 +127,7 @@ func getAccessToken(ctx *CliContext, token string) (string, error) {
 }
 
 func registerProject(ctx *CliContext, projectName string, environment string, accessToken string) error {
-	endpoint := fmt.Sprintf("%s/api/projects/register", getCloudUrl())
+	endpoint := fmt.Sprintf("%s/api/projects/register", cloudconfig.GetCloudURL())
 	var reqData struct {
 		Name        string `json:"name"`
 		Environment string `json:"environment"`
@@ -190,7 +183,7 @@ type kubeconfigResponse struct {
 func getKubeconfigData(
 	ctx *CliContext, projectName string,
 	environment string, accessToken string) (kubeconfigResponse, error) {
-	endpoint := fmt.Sprintf("%s/api/projects/kubeconfig", getCloudUrl())
+	endpoint := fmt.Sprintf("%s/api/projects/kubeconfig", cloudconfig.GetCloudURL())
 	var reqData struct {
 		Name        string `json:"name"`
 		Environment string `json:"environment"`

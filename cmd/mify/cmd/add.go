@@ -20,6 +20,7 @@ var addServiceCmd = &cobra.Command{
 	Long:  `Add a new service in workspace`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		for _, ival := range args {
 			if err := mify.CreateService(appContext, workspacePath, addServiceLanguage, ival); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to create service: %s\n", err)
@@ -35,6 +36,7 @@ var addClientCmd = &cobra.Command{
 	Long:  `Add a client from one service or frontend to another`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		for _, ival := range args {
 			if err := mify.AddClient(appContext, workspacePath, ival, addClientName); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to add client to service: %s\n", err)
@@ -50,6 +52,7 @@ var addFrontendCmd = &cobra.Command{
 	Long:  `Add a frontend to workspace`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		for _, ival := range args {
 			if err := mify.CreateFrontend(appContext, workspacePath, "vue_js", ival); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to create service: %s\n", err)
@@ -64,6 +67,7 @@ var addApiGatewayCmd = &cobra.Command{
 	Short: "Add api gateway",
 	Long:  `Add an api gateway to workspace`,
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		if err := mify.CreateApiGateway(appContext); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to create api gateway: %s\n", err)
 			os.Exit(2)

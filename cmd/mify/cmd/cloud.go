@@ -20,6 +20,7 @@ var initCloudCmd = &cobra.Command{
 	Short: "Init Mify Cloud user",
 	Long:  `Initialize Mify Cloud user and config`,
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		if err := mify.CloudInit(appContext, projectName, initDeployEnv); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to init cloud: %s\n", err)
 			os.Exit(2)
@@ -32,6 +33,7 @@ var updateKubeconfigCmd = &cobra.Command{
 	Short: "Update ~/.kube/config file",
 	Long:  `Update ~/.kube/config file`,
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		if err := mify.CloudUpdateKubeconfig(appContext, confEnv); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to update kubernetes config: %s\n", err)
 			os.Exit(2)
@@ -44,6 +46,7 @@ var deployCmd = &cobra.Command{
 	Short: "Deploy code to cloud",
 	Long:  `Deploy code to cloud`,
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		if err := mify.DeployMany(appContext, deployEnv, args); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to run deploy: %s\n", err)
 			os.Exit(2)

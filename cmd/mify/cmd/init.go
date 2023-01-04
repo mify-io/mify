@@ -18,6 +18,7 @@ var initCmd = &cobra.Command{
 	Short: "Initialize new workspace",
 	Long:  `Initialize new workspace`,
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		workspaceName := "."
 		if len(args) > 0 {
 			workspaceName = args[0]

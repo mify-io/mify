@@ -13,6 +13,7 @@ var migrateCmd = &cobra.Command{
 	Short: "Run database migration on service locally",
 	Long: `Run database migration on service locally`,
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		if len(args) < 2 {
 			_ = cmd.Help()
 			fmt.Fprintf(os.Stderr, "error: missing service-name and command\n")

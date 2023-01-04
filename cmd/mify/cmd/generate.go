@@ -27,6 +27,7 @@ var genCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		if err := mify.ServiceGenerateMany(appContext, workspacePath, args, migrate); err != nil {
 			if errors.Is(err, context.Canceled) {
 				return

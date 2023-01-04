@@ -21,6 +21,7 @@ var runCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		if err := mify.Run(appContext, workspacePath); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to run app: %s\n", err)
 			os.Exit(2)

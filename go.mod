@@ -7,10 +7,12 @@ require (
 	github.com/docker/docker v20.10.12+incompatible
 	github.com/getkin/kin-openapi v0.88.0
 	github.com/go-resty/resty/v2 v2.7.0
+	github.com/google/uuid v1.2.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/otiai10/copy v1.7.0
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/spf13/cobra v1.3.0
+	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.10.1
 	github.com/vbauerster/mpb/v7 v7.3.2
 	golang.org/x/text v0.3.7
@@ -45,7 +47,6 @@ require (
 	github.com/spf13/afero v1.8.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	go.uber.org/atomic v1.9.0 // indirect

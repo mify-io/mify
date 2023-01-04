@@ -18,6 +18,7 @@ var removeClientCmd = &cobra.Command{
 	Long:  `Remove client from service`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		appContext.StatsCollector.LogEvent("run", cmd)
 		for _, ival := range args {
 			if err := mify.RemoveClient(appContext, workspacePath, ival, removeClientName); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to add client to service: %s\n", err)
