@@ -53,6 +53,9 @@ func Execute() {
 }
 
 func cleanup() {
+	if appContext == nil {
+		return
+	}
 	appContext.Cancel()
 
 	if err := mify.Cleanup(appContext); err != nil {
