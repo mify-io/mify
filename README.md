@@ -45,7 +45,7 @@
 - OpenAPI http server generation
 - Built-in Prometheus metrics
 - Structured logging
-- Multiple language code generation (Right now it's Go and Python for backend, and NuxtJS based frontend)
+- Multiple language code generation (Right now it's Go and Python for backend, NuxtJS, React on Typescript based frontends)
 
 ## Installation
 

@@ -303,7 +303,6 @@ func (c *Description) GetJsServicesPath() string {
 	return path.Join(c.BasePath, "js-services")
 }
 
-
 func (c *Description) GetGoServicesRelPath() string {
 	return "go-services"
 }
@@ -331,7 +330,6 @@ func (c *Description) GetGoSumRelPath() string {
 func (c *Description) GetGoSumAbsPath() string {
 	return path.Join(c.BasePath, c.GetGoSumRelPath())
 }
-
 
 func (c *Description) GetPythonServicesRelPath() string {
 	return "py-services"
@@ -372,7 +370,6 @@ func (c *Description) GetPythonServicesLibrariesGeneratedLogsAbsPath() string {
 func (c *Description) GetPythonServicesLibrariesGeneratedMetricsAbsPath() string {
 	return path.Join(c.BasePath, c.GetPythonServicesLibrariesGeneratedMetricsRelPath())
 }
-
 
 func (c *Description) GetPythonGeneratedRelPath(serviceName string) string {
 	return path.Join(mifyconfig.PythonServicesRoot, serviceName, "generated")
@@ -417,7 +414,6 @@ func (c *Description) GetPythonServiceGeneratedCoreRelPath(serviceName string) s
 func (c *Description) GetPythonServiceGeneratedOpenAPIRelPath(serviceName string) string {
 	return path.Join(c.GetPythonServicesRelPath(), serviceName, "generated/openapi")
 }
-
 
 func (c *Description) GetDevRunnerRelPath() string {
 	return c.GetCmdRelPath(DevRunnerName)
@@ -474,6 +470,23 @@ func (c *Description) GetServiceGeneratedAPIRelPath(serviceName string, language
 	return "", ErrUnsupportedLanguage
 }
 
+func (c *Description) GetServiceDirectoryRelPath(serviceName string, language mifyconfig.ServiceLanguage, template string) (string, error) {
+	switch language {
+	case mifyconfig.ServiceLanguageGo:
+		return mifyconfig.GoServicesRoot + "/internal/" + serviceName, nil
+	case mifyconfig.ServiceLanguageJs:
+		switch template {
+		case "react-ts":
+			return mifyconfig.JsServicesRoot + "/" + serviceName + "/src", nil
+		default:
+			return mifyconfig.JsServicesRoot + "/" + serviceName, nil
+
+		}
+	case mifyconfig.ServiceLanguagePython:
+		return mifyconfig.PythonServicesRoot + "/" + serviceName, nil
+	}
+	return "", ErrUnsupportedLanguage
+}
 
 func (c *Description) GetCmdAbsPath(serviceName string) string {
 	return path.Join(c.GetGoServicesAbsPath(), "cmd", serviceName)
@@ -495,12 +508,19 @@ func (c *Description) GetGeneratedAbsPath(serviceName string) string {
 	return path.Join(c.BasePath, c.GetGeneratedRelPath(serviceName))
 }
 
-func (c *Description) GetJsGeneratedRelPath(serviceName string) string {
-	return path.Join(mifyconfig.JsServicesRoot, serviceName, "generated")
+func (c *Description) GetJsGeneratedRelPath(serviceName string, template string) string {
+	switch template {
+	case "nuxtjs":
+		return path.Join(mifyconfig.JsServicesRoot, serviceName, "generated")
+	case "react-ts":
+		return path.Join(mifyconfig.JsServicesRoot, serviceName, "src", "generated")
+	default:
+		return path.Join(mifyconfig.JsServicesRoot, serviceName, "generated")
+	}
 }
 
-func (c *Description) GetJsGeneratedAbsPath(serviceName string) string {
-	return path.Join(c.BasePath, c.GetJsGeneratedRelPath(serviceName))
+func (c *Description) GetJsGeneratedAbsPath(serviceName string, template string) string {
+	return path.Join(c.BasePath, c.GetJsGeneratedRelPath(serviceName, template))
 }
 
 func (c *Description) GetGeneratedAppPath(serviceName string) string {

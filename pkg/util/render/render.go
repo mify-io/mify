@@ -2,16 +2,89 @@ package render
 
 import (
 	"crypto/sha256"
+	"embed"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"text/template"
+
+	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 )
+
+type renderFlags struct {
+	skipExisting bool
+	migrate bool
+}
+
+func NewFlags() renderFlags {
+	return renderFlags{}
+}
+
+func (r renderFlags) SkipExisting() renderFlags {
+	r.skipExisting = true
+	return r
+}
+
+func (r renderFlags) Migrate() renderFlags {
+	r.migrate = true
+	return r
+}
+
+type renderFile struct {
+	targetPath string
+	templateName string
+	model any
+	flags renderFlags
+}
+
+func NewFile(ctx *gencontext.GenContext, targetPath string) renderFile {
+	templateName := path.Base(targetPath) + ".tpl"
+	return renderFile{
+		targetPath: targetPath,
+		model: NewDefaultModel(ctx),
+		flags: NewFlags(),
+		templateName: templateName,
+	}
+}
+
+func (f renderFile) SetFlags(flags renderFlags) renderFile {
+	f.flags = flags
+	return f
+}
+
+func (f renderFile) SetModel(model any) renderFile {
+	f.model = model
+	return f
+}
+
+func (f renderFile) SetTemplateName(templateName string) renderFile {
+	f.templateName = templateName
+	return f
+}
 
 func WrapError(text string, err error) error {
 	return fmt.Errorf("error while rendering %s: %w", text, err)
+}
+
+func RenderMany(templates embed.FS, files ...renderFile) error {
+	for _, file := range files {
+		data, err := templates.ReadFile(file.templateName)
+		if err != nil {
+			return WrapError(file.templateName, err)
+		}
+		if file.flags.skipExisting {
+			err = RenderOrSkipTemplate(string(data), file.model, file.targetPath)
+		} else {
+			err = RenderTemplate(string(data), file.model, file.targetPath)
+		}
+		if err != nil {
+			return WrapError(file.templateName, err)
+		}
+	}
+	return nil
 }
 
 func RenderTemplate(templateText string, model interface{}, targetPath string) error {

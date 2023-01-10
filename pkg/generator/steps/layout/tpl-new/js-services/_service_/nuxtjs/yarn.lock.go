@@ -1,4 +1,4 @@
-package service
+package nuxtjs
 
 import gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 

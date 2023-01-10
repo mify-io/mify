@@ -17,8 +17,8 @@ func newJsProcessor() *jsPostProcessor {
 
 func (p *jsPostProcessor) GetServerGeneratorConfig(ctx *gencontext.GenContext) (GeneratorConfig, error) {
 	basePath := ctx.GetWorkspace().BasePath
-	targetPath, err := ctx.GetWorkspace().GetServiceGeneratedAPIRelPath(
-		ctx.GetServiceName(), ctx.MustGetMifySchema().Language)
+	targetPath, err := ctx.GetWorkspace().GetServiceDirectoryRelPath(
+		ctx.GetServiceName(), ctx.MustGetMifySchema().Language, ctx.MustGetMifySchema().Template)
 	if err != nil {
 		return GeneratorConfig{}, err
 	}
@@ -31,8 +31,8 @@ func (p *jsPostProcessor) GetServerGeneratorConfig(ctx *gencontext.GenContext) (
 
 func (p *jsPostProcessor) GetClientGeneratorConfig(ctx *gencontext.GenContext, clientName string) (GeneratorConfig, error) {
 	basePath := ctx.GetWorkspace().BasePath
-	targetPath, err := ctx.GetWorkspace().GetServiceGeneratedAPIRelPath(
-		ctx.GetServiceName(), ctx.MustGetMifySchema().Language)
+	targetPath, err := ctx.GetWorkspace().GetServiceDirectoryRelPath(
+		ctx.GetServiceName(), ctx.MustGetMifySchema().Language, ctx.MustGetMifySchema().Template)
 	if err != nil {
 		return GeneratorConfig{}, err
 	}

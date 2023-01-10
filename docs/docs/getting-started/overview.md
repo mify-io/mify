@@ -16,9 +16,9 @@ Right now Mify should work on Linux, Mac and WSL.
 
 ## Development prerequisites
 
-At this moment Mify supports Go and Python language based templates for backends,
-and NuxtJS for frontends, here's what you need to install before starting developing
-in your choosen template:
+At this moment Mify supports Go and Python language based templates for
+backends, and NuxtJS and React on Typescript for frontends, here's what you
+need to install before starting developing in your choosen template:
 
 - Go:
   - Go >= 1.18
@@ -28,7 +28,7 @@ in your choosen template:
   - python3-pip
   - python3-venv
 
-- NuxtJS:
+- NuxtJS, React:
   - Node >= 18.12.1
   - Yarn
 
