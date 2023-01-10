@@ -62,8 +62,13 @@ func ServiceGenerate(ctx *CliContext, basePath string, name string, migrate bool
 	return nil
 }
 
-func Cleanup() error {
+func Cleanup(appContext *CliContext) error {
 	err := docker.Cleanup(context.Background())
+	if err != nil {
+		return err
+	}
+
+	err = UpdateConfig(appContext.Config)
 	if err != nil {
 		return err
 	}

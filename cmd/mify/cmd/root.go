@@ -49,12 +49,16 @@ func Execute() {
 
 	cobra.CheckErr(rootCmd.Execute())
 	endWaiter.Wait()
+	cleanup()
 }
 
 func cleanup() {
+	if appContext == nil {
+		return
+	}
 	appContext.Cancel()
 
-	if err := mify.Cleanup(); err != nil {
+	if err := mify.Cleanup(appContext); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to cleanup: %s", err)
 		os.Exit(2)
 	}
@@ -73,6 +77,13 @@ func init() {
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(toolCmd)
 	rootCmd.AddCommand(cloudCmd)
+
+	rootCmd.PersistentPostRun = PersistentPostRun
+}
+
+func PersistentPostRun(cmd *cobra.Command, args []string) {
+	appContext.InitStatsCollector()
+	appContext.StatsCollector.LogCobraCommandExecuted(cmd)
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -96,5 +107,5 @@ func initConfig() {
 		fmt.Fprintf(os.Stderr, "failed to read config: %s", err)
 		os.Exit(2)
 	}
-	appContext = mify.NewContext(config, workspacePath, isVerbose)
+	appContext = mify.NewContext(config, workspacePath, isVerbose, MIFY_VERSION)
 }
