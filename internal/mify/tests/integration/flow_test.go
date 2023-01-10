@@ -60,7 +60,15 @@ func TestFullFlow1(t *testing.T) {
 	approval.EndSubtest(tempDir)
 
 	approval.NewSubtest()
-	require.NoError(t, mify.CreateFrontend(ctx, basePath, "vue_js", "front"))
+	require.NoError(t, mify.CreateFrontend(ctx, basePath, "nuxtjs", "front"))
+	approval.EndSubtest(tempDir)
+
+	approval.NewSubtest()
+	require.NoError(t, mify.AddClient(ctx, basePath, "front", "service1"))
+	approval.EndSubtest(tempDir)
+
+	approval.NewSubtest()
+	require.NoError(t, mify.CreateFrontend(ctx, basePath, "react-ts", "front-react"))
 	approval.EndSubtest(tempDir)
 
 	approval.NewSubtest()

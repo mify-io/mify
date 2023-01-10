@@ -5,8 +5,6 @@ import (
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	service "github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js-services/_service_"
-	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js-services/plugins"
-	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js-services/store"
 	"github.com/mify-io/mify/pkg/util/render"
 )
 
@@ -23,14 +21,5 @@ func Render(ctx *gencontext.GenContext) error {
 	if err := service.Render(ctx); err != nil {
 		return render.WrapError("service", err)
 	}
-
-	if err := store.Render(ctx); err != nil {
-		return render.WrapError("store", err)
-	}
-
-	if err := plugins.Render(ctx); err != nil {
-		return render.WrapError("plugins", err)
-	}
-
 	return nil
 }

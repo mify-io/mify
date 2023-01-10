@@ -1,15 +1,14 @@
 {{- .Header}}
 
 {{- range .Clients}}
-import {{.ClassName}} from '@/generated/api/clients/{{.ClientName}}'
+import {{.ClassName}} from '../api/clients/{{.ClientName}}'
 {{- end}}
 
 class Clients {
-  constructor(ctx) {
-    this.ctx = ctx
+  constructor(config) {
 {{- range .Clients}}
     this._{{.PublicMethodName}} = new {{.ClassName}}.Api(
-        new {{.ClassName}}.ApiClient(ctx.store.state.config),
+        new {{.ClassName}}.ApiClient(config),
     );
 {{- end}}
   }

@@ -23,7 +23,7 @@ class ApiClient {
      * @param {String} basePath
      */
     constructor(conf) {
-        var basePath = conf['{{clientEndpointEnv}}'] || '{{serviceEndpoint}}'
+        var basePath = conf['{{clientEndpointEnv}}'] || 'http://localhost{{serviceEndpoint}}'
         {{#emitJSDoc}}/**
          * The base URL against which to resolve every API call's (relative) path.
          * @type {String}

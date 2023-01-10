@@ -1,3 +1,4 @@
+// vim: set ft=javascript:
 export default {
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
@@ -22,7 +23,7 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
-      '~/plugins/clients.js',
+      '~/plugins/mifycontext.js',
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components

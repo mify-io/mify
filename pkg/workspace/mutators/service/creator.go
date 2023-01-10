@@ -18,14 +18,14 @@ var apiSchemaTemplate string
 func CreateService(mutContext *mutators.MutatorContext, language mifyconfig.ServiceLanguage, serviceName string) error {
 	mutContext.GetLogger().Printf("Creating service '%s' ...", serviceName)
 
-	return createServiceImpl(mutContext, language, serviceName, true)
+	return createServiceImpl(mutContext, language, serviceName, "", true)
 }
 
 func CreateFrontend(mutContext *mutators.MutatorContext, template string, name string) error {
 	mutContext.GetLogger().Printf("Creating frontend '%s' ...", name)
 
-	if template == "vue_js" {
-		return createServiceImpl(mutContext, mifyconfig.ServiceLanguageJs, name, false)
+	if template == "nuxtjs" || template == "react-ts" {
+		return createServiceImpl(mutContext, mifyconfig.ServiceLanguageJs, name, template, false)
 	}
 
 	return fmt.Errorf("unknown template %s", template)
@@ -53,10 +53,12 @@ func createServiceImpl(
 	mutContext *mutators.MutatorContext,
 	language mifyconfig.ServiceLanguage,
 	serviceName string,
+	template string,
 	addOpenApi bool) error {
 
 	conf := mifyconfig.ServiceConfig{
 		ServiceName: serviceName,
+		Template: template,
 		Language:    language,
 	}
 
