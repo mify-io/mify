@@ -2,11 +2,14 @@ package mify
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/adrg/xdg"
+	"github.com/google/uuid"
+	"github.com/mify-io/mify/internal/mify/stats"
 	"github.com/mify-io/mify/internal/mify/userinput"
 	"github.com/mify-io/mify/pkg/workspace"
 	"github.com/mify-io/mify/pkg/workspace/mutators"
@@ -14,7 +17,22 @@ import (
 )
 
 type Config struct {
-	APIToken string `mapstructure:"MIFY_API_TOKEN"`
+	APIToken          string `mapstructure:"MIFY_API_TOKEN"`
+	DisableUsageStats bool   `mapstructure:"MIFY_DISABLE_USAGE_STATS"`
+	InstanceID        string `mapstructure:"MIFY_INSTANCE_ID"`
+}
+
+func (c Config) Equal(newConfig Config) bool {
+	if c.APIToken != newConfig.APIToken {
+		return false
+	}
+	if c.DisableUsageStats != newConfig.DisableUsageStats {
+		return false
+	}
+	if c.InstanceID != newConfig.InstanceID {
+		return false
+	}
+	return true
 }
 
 func GetConfigDirectory() string {
@@ -22,12 +40,21 @@ func GetConfigDirectory() string {
 }
 
 func NewDefaultConfig() Config {
+	instanceID := uuid.New().String()
 	viper.SetDefault("MIFY_API_TOKEN", "")
-	return Config{}
+	viper.SetDefault("MIFY_DISABLE_USAGE_STATS", false)
+	viper.SetDefault("MIFY_INSTANCE_ID", instanceID)
+	return Config{
+		APIToken:          "",
+		DisableUsageStats: false,
+		InstanceID:        instanceID,
+	}
 }
 
 func SaveConfig(config Config) error {
 	viper.Set("MIFY_API_TOKEN", config.APIToken)
+	viper.Set("MIFY_DISABLE_USAGE_STATS", config.DisableUsageStats)
+	viper.Set("MIFY_INSTANCE_ID", config.InstanceID)
 
 	err := os.MkdirAll(GetConfigDirectory(), 0755)
 	if err != nil {
@@ -37,29 +64,67 @@ func SaveConfig(config Config) error {
 	return viper.WriteConfigAs(configPath)
 }
 
+func UpdateConfig(config Config) error {
+	configPath := filepath.Join(GetConfigDirectory(), "config.yaml")
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return SaveConfig(config)
+	}
+	oldConfig := NewDefaultConfig()
+	if err := viper.Unmarshal(&oldConfig); err != nil {
+		return fmt.Errorf("failed to read config: %s", err)
+	}
+	if !oldConfig.Equal(config) {
+		return SaveConfig(config)
+	}
+	return nil
+}
+
 type CliContext struct {
-	Logger        *log.Logger
-	Ctx           context.Context
-	Cancel        context.CancelFunc
-	Config        Config
-	WorkspacePath string
-	IsVerbose     bool
-	UserInput     userinput.UserInput
+	Logger         *log.Logger
+	Ctx            context.Context
+	Cancel         context.CancelFunc
+	Config         Config
+	WorkspacePath  string
+	MifyVersion    string
+	IsVerbose      bool
+	UserInput      userinput.UserInput
+	StatsCollector *stats.Collector
 
 	workspaceDescription *workspace.Description
 	mutatorContext       *mutators.MutatorContext
 }
 
-func NewContext(config Config, workspacePath string, isVerbose bool) *CliContext {
+func NewContext(config Config, workspacePath string, isVerbose bool, mifyVersion string) *CliContext {
 	ctx, cancel := context.WithCancel(context.Background())
+	logger := log.New(os.Stdout, "", 0)
 	return &CliContext{
-		Logger:        log.New(os.Stdout, "", 0),
+		Logger:        logger,
 		Ctx:           ctx,
 		Cancel:        cancel,
 		Config:        config,
 		WorkspacePath: workspacePath,
+		MifyVersion:   mifyVersion,
 		IsVerbose:     isVerbose,
 	}
+}
+
+func (c *CliContext) InitStatsCollector() {
+	workspaceName := ""
+	projectName := ""
+	if c.workspaceDescription != nil {
+		workspaceName = c.workspaceDescription.Config.WorkspaceName
+		projectName = c.workspaceDescription.Config.ProjectName
+	}
+
+	c.StatsCollector = stats.NewCollector(
+		c.Ctx,
+		c.Logger,
+		!c.Config.DisableUsageStats || c.MifyVersion == "", // mifyVersion == "" => non release build
+		c.Config.InstanceID,
+		workspaceName,
+		projectName,
+		c.MifyVersion,
+		c.Config.APIToken)
 }
 
 func (c CliContext) GetCtx() context.Context {
