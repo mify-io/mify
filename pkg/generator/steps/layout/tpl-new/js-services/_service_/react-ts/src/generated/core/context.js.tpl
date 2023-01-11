@@ -4,6 +4,9 @@ import Clients from './clients'
 class MifyContext {
     constructor(config) {
         this._config = config
+        if (!this._config) {
+            this._config = MifyContext.getConfig()
+        }
         this._clients = new Clients(this._config)
     }
 

@@ -1,6 +1,8 @@
 package jsservices
 
 import (
+	"sort"
+
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 )
@@ -23,5 +25,6 @@ func getServiceList(ctx *gencontext.GenContext) []string {
 			res = append(res, serviceName)
 		}
 	}
+	sort.Strings(res)
 	return res
 }
