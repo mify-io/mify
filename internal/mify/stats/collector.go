@@ -98,6 +98,14 @@ func WrapCmdCommand(command *cobra.Command) *CmdCommand {
 	}
 }
 
+func Trim(s string, size int) string {
+	if len(s) <= size {
+		return s
+	}
+
+	return s[0:size]
+}
+
 func (s *Collector) LogCobraCommandExecuted(cmd *cobra.Command) {
 	if !s.isEnabled || s.mifyVersion == "" {
 		return
@@ -112,6 +120,7 @@ func (s *Collector) LogCobraCommandExecuted(cmd *cobra.Command) {
 	arch := runtime.GOARCH
 
 	var commandInfo []CmdCommand
+	commandInfo = append(commandInfo, *WrapCmdCommand(cmd))
 	cmd.VisitParents(func(c *cobra.Command) {
 		commandInfo = append(commandInfo, *WrapCmdCommand(c))
 	})
@@ -128,11 +137,11 @@ func (s *Collector) LogCobraCommandExecuted(cmd *cobra.Command) {
 		UserTime:       time.Now().UTC().Format(time.RFC3339),
 		Name:           "run",
 		MifyVersion:    s.mifyVersion,
-		OS:             os,
-		Arch:           arch,
+		OS:             Trim(os, 128),
+		Arch:           Trim(arch, 128),
 		MifyInstanceID: s.instanceID,
-		WorkspaceName:  s.workspaceName,
-		ProjectName:    s.projectName,
+		WorkspaceName:  Trim(s.workspaceName, 64),
+		ProjectName:    Trim(s.projectName, 64),
 		Payload:        string(data),
 	}
 
