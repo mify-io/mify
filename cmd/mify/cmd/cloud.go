@@ -11,8 +11,6 @@ import (
 var (
 	deployEnv   string
 	confEnv   string
-	initDeployEnv   string
-	projectName string
 )
 
 var initCloudCmd = &cobra.Command{
@@ -20,7 +18,7 @@ var initCloudCmd = &cobra.Command{
 	Short: "Init Mify Cloud user",
 	Long:  `Initialize Mify Cloud user and config`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := mify.CloudInit(appContext, projectName, initDeployEnv); err != nil {
+		if err := mify.CloudInit(appContext); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to init cloud: %s\n", err)
 			os.Exit(2)
 		}
@@ -67,9 +65,6 @@ var cloudCmd = &cobra.Command{
 func init() {
 	deployCmd.PersistentFlags().StringVarP(&deployEnv, "environment", "e", "stage", "Target environment name")
 	updateKubeconfigCmd.PersistentFlags().StringVarP(&confEnv, "environment", "e", "stage", "Target environment name")
-	initCloudCmd.PersistentFlags().StringVarP(&initDeployEnv,
-		"environment", "e", "", `Project environment name ("stage" or "prod")`)
-	initCloudCmd.PersistentFlags().StringVarP(&projectName, "project-name", "n", "", "Cloud project name")
 
 	cloudCmd.AddCommand(initCloudCmd)
 	cloudCmd.AddCommand(updateKubeconfigCmd)
