@@ -8,17 +8,20 @@ import (
 	"os"
 	"strings"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/go-resty/resty/v2"
-	"github.com/mify-io/mify/internal/mify/util"
+	"github.com/samber/lo"
+
 	"github.com/mify-io/mify/pkg/cloudconfig"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/workspace/mutators/cloud"
+
 	"github.com/mitchellh/go-homedir"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
-func CloudInit(ctx *CliContext, projectName string, env string) error {
+func CloudInit(ctx *CliContext) error {
 	if ctx.Config.APIToken == "" {
 		if err := obtainApiToken(ctx); err != nil {
 			return err
@@ -30,37 +33,82 @@ func CloudInit(ctx *CliContext, projectName string, env string) error {
 		return err
 	}
 
-	if len(projectName) == 0 {
-		projectName = ctx.workspaceDescription.Name
-		newName, err := ctx.UserInput.AskInput("Your project name (default: %s):", projectName)
+	orgsList, err := getOrganizations(ctx, accessToken)
+	if err != nil {
+		return err
+	}
+
+	if len(orgsList.Organizations) == 0 {
+		return fmt.Errorf(
+			"You have no organizations registered in Mify Cloud, please visit %s to register.",
+			cloudconfig.GetCloudUrl(),
+		)
+	}
+	org := orgsList.Organizations[0]
+	orgID := org.Id
+	if len(orgsList.Organizations) > 1 {
+		names := lo.Map(orgsList.Organizations, func(org organization, _ int) string {
+			return org.Name
+		})
+		var selectedName string
+		err := survey.AskOne(&survey.Select{
+			Message: "Choose organization to link to this workspace:",
+			Options: names,
+			Default: names[0],
+		}, &selectedName)
 		if err != nil {
-			return fmt.Errorf("failed to read project name from stdin: %w", err)
+			return err
 		}
-		if len(newName) > 0 {
-			projectName = newName
+		orgs := lo.Filter(orgsList.Organizations, func(org organization, _ int) bool {
+			return org.Name == selectedName
+		})
+		org = orgs[0]
+		orgID = org.Id
+	}
+
+	projectName := ctx.workspaceDescription.Config.ProjectName
+	curProjects := lo.Filter(org.Projects, func(p project, _ int) bool {
+		return p.Name == projectName
+	})
+
+	if len(curProjects) == 0 {
+		curProject := org.Projects[0]
+		projectName = curProject.Name
+		curProjects = lo.Filter(org.Projects, func(p project, _ int) bool {
+			return p.Name == projectName
+		})
+		projectNames := lo.Uniq(lo.Map(org.Projects, func(p project, _ int) string {
+			return p.Name
+		}))
+		if len(projectNames) > 1 {
+			err := survey.AskOne(&survey.Select{
+				Message: "Choose project to link to this workspace:",
+				Options: projectNames,
+				Default: projectNames[0],
+			}, &projectName)
+			if err != nil {
+				return err
+			}
+			curProjects = lo.Filter(org.Projects, func(p project, _ int) bool {
+				return p.Name == projectName
+			})
+			curProject = curProjects[0]
 		}
 	}
-	if len(env) == 0 {
-		env = "stage"
-		newEnv, err := ctx.UserInput.AskInput(`Project environment ("stage" or "prod", default: "stage"):`)
-		if err != nil {
-			return fmt.Errorf("failed to read environment name from stdin: %w", err)
+	envs := lo.FilterMap(curProjects, func(p project, _ int) (string, bool) {
+		if p.Name == projectName {
+			return p.Environment, true
 		}
-		if len(newEnv) > 0 {
-			env = newEnv
-		}
-	}
+		return "", false
+	})
+	ctx.workspaceDescription.Config.OrganizationID = orgID
 	ctx.workspaceDescription.Config.ProjectName = projectName
-	ctx.workspaceDescription.Config.Environments = util.StringSetAppend(ctx.workspaceDescription.Config.Environments, env)
+	ctx.workspaceDescription.Config.Environments = envs
 	err = mifyconfig.SaveWorkspaceConfig(ctx.WorkspacePath, ctx.workspaceDescription.Config)
 	if err != nil {
 		return fmt.Errorf("failed to update workspace config: %w", err)
 	}
 
-	err = registerProject(ctx, projectName, env, accessToken)
-	if err != nil {
-		return fmt.Errorf("failed to register project: %w", err)
-	}
 	fmt.Println("Successfully registered project! Now you can deploy services via `mify cloud deploy`.")
 
 	err = initCloudConfigs(ctx)
@@ -71,8 +119,10 @@ func CloudInit(ctx *CliContext, projectName string, env string) error {
 	if err := cloud.Init(ctx.mutatorContext); err != nil {
 		return err
 	}
-	if err := CloudUpdateKubeconfig(ctx, env); err != nil {
-		return err
+	for _, env := range envs {
+		if err := CloudUpdateKubeconfig(ctx, env); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -125,23 +175,32 @@ func getAccessToken(ctx *CliContext, token string) (string, error) {
 	return respData.AccessToken, nil
 }
 
-func registerProject(ctx *CliContext, projectName string, environment string, accessToken string) error {
-	endpoint := fmt.Sprintf("%s/projects/register", cloudconfig.GetCloudApiURL())
-	var reqData struct {
-		Name        string `json:"name"`
-		Environment string `json:"environment"`
-	}
-	reqData.Name = projectName
-	reqData.Environment = environment
+type project struct {
+	Environment string `json:"environment"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+}
+type organization struct {
+	Id       string    `json:"id"`
+	Name     string    `json:"name"`
+	Projects []project `json:"projects"`
+}
+type orgsResponse struct {
+	Organizations []organization `json:"organizations"`
+}
+
+func getOrganizations(ctx *CliContext, accessToken string) (orgsResponse, error) {
+	var out orgsResponse
+	endpoint := fmt.Sprintf("%s/orgs", cloudconfig.GetCloudApiURL())
 	client := resty.New()
-	resp, err := client.R().SetAuthToken(accessToken).SetBody(reqData).Post(endpoint)
+	resp, err := client.R().SetAuthToken(accessToken).SetResult(&out).Get(endpoint)
 	if err != nil {
-		return fmt.Errorf("request to get token failed: %w", err)
+		return orgsResponse{}, fmt.Errorf("request to get token failed: %w", err)
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return fmt.Errorf("request to get token error: %s", resp.Status())
+		return orgsResponse{}, fmt.Errorf("request to get token error: %s", resp.Status())
 	}
-	return nil
+	return out, nil
 }
 
 func initCloudConfigs(ctx *CliContext) error {

@@ -18,12 +18,13 @@ const (
 )
 
 type WorkspaceConfig struct {
-	WorkspaceName string   `yaml:"workspace_name"`
-	GitHost       string   `yaml:"git_host"`
-	GitNamespace  string   `yaml:"git_namespace"`
-	GitRepository string   `yaml:"git_repository,omitempty"`
-	ProjectName   string   `yaml:"project_name,omitempty"`
-	Environments  []string `yaml:"environments"`
+	WorkspaceName  string   `yaml:"workspace_name"`
+	GitHost        string   `yaml:"git_host"`
+	GitNamespace   string   `yaml:"git_namespace"`
+	GitRepository  string   `yaml:"git_repository,omitempty"`
+	OrganizationID string   `yaml:"organization_id,omitempty"`
+	ProjectName    string   `yaml:"project_name,omitempty"`
+	Environments   []string `yaml:"environments"`
 }
 
 func ReadWorkspaceConfig(path string) (WorkspaceConfig, error) {
