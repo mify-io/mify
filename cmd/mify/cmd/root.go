@@ -82,8 +82,9 @@ func init() {
 }
 
 func PersistentPostRun(cmd *cobra.Command, args []string) {
-	appContext.InitStatsCollector()
+	appContext.InitStatsCollector(appContext.MustGetWorkspaceDescription().GetStatsQueueFile())
 	appContext.StatsCollector.LogCobraCommandExecuted(cmd)
+	appContext.StatsCollector.MaybeSendStats()
 }
 
 // initConfig reads in config file and ENV variables if set.
