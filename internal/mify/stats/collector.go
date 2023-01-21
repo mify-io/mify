@@ -3,9 +3,12 @@ package stats
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
+	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,15 +19,17 @@ import (
 )
 
 type Collector struct {
-	logger        *log.Logger
-	isEnabled     bool
-	apiUrl        string
-	instanceID    string
-	workspaceName string
-	projectName   string
-	mifyVersion   string
-	apiToken      string
-	ctx           context.Context
+	logger              *log.Logger
+	isEnabled           bool
+	apiUrl              string
+	instanceID          string
+	workspaceName       string
+	projectName         string
+	mifyVersion         string
+	apiToken            string
+	ctx                 context.Context
+	statsQueueFileMutex sync.Mutex
+	statsQueueFile      string
 }
 
 type CmdCommand struct {
@@ -66,17 +71,19 @@ func NewCollector(
 	workspaceName string,
 	projectName string,
 	mifyVersion string,
-	apiToken string) *Collector {
+	apiToken string,
+	statsQueueFile string) *Collector {
 	return &Collector{
-		ctx:           ctx,
-		logger:        logger,
-		isEnabled:     isEnabled,
-		instanceID:    instanceID,
-		workspaceName: workspaceName,
-		projectName:   projectName,
-		mifyVersion:   mifyVersion,
-		apiToken:      apiToken,
-		apiUrl:        cloudconfig.GetStatsApiUrl(),
+		ctx:            ctx,
+		logger:         logger,
+		isEnabled:      isEnabled,
+		instanceID:     instanceID,
+		workspaceName:  workspaceName,
+		projectName:    projectName,
+		mifyVersion:    mifyVersion,
+		apiToken:       apiToken,
+		apiUrl:         cloudconfig.GetStatsApiUrl(),
+		statsQueueFile: statsQueueFile,
 	}
 }
 
@@ -145,8 +152,31 @@ func (s *Collector) LogCobraCommandExecuted(cmd *cobra.Command) {
 		Payload:        string(data),
 	}
 
-	err = SendStats(s.apiUrl, s.apiToken, []Event{event})
+	err = s.addEventToSendingQueue(&event)
 	if err != nil {
-		s.logger.Printf("Warn: can't send usage statistics to mify.io: %s", err)
+		s.logger.Printf("Warn: can't save usage statistics to stats queue file: %s", err)
 	}
+}
+
+func (s *Collector) addEventToSendingQueue(event *Event) error {
+	data, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+
+	s.statsQueueFileMutex.Lock()
+	defer s.statsQueueFileMutex.Unlock()
+
+	f, err := os.OpenFile(s.statsQueueFile,
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return fmt.Errorf("warn: can't open stat event queue file: %w", err)
+	}
+	defer f.Close()
+
+	if _, err := fmt.Fprintf(f, "%s\n", data); err != nil {
+		return fmt.Errorf("warn: can't write stat event to queue file: %w", err)
+	}
+
+	return nil
 }

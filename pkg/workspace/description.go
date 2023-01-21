@@ -563,6 +563,10 @@ func (c *Description) GetLogsDirectory() string {
 	return filepath.Join(c.GetCacheDirectory(), "logs")
 }
 
+func (c *Description) GetStatsQueueFile() string {
+	return filepath.Join(c.GetCacheDirectory(), "stats")
+}
+
 func (c *Description) GetServiceCacheDirectory(serviceName string) string {
 	return filepath.Join(c.GetCacheDirectory(), TmpSubdir, serviceName)
 }

@@ -108,7 +108,7 @@ func NewContext(config Config, workspacePath string, isVerbose bool, mifyVersion
 	}
 }
 
-func (c *CliContext) InitStatsCollector() {
+func (c *CliContext) InitStatsCollector(statsQueueFile string) {
 	workspaceName := ""
 	projectName := ""
 	if c.workspaceDescription != nil {
@@ -124,7 +124,8 @@ func (c *CliContext) InitStatsCollector() {
 		workspaceName,
 		projectName,
 		c.MifyVersion,
-		c.Config.APIToken)
+		c.Config.APIToken,
+		statsQueueFile)
 }
 
 func (c CliContext) GetCtx() context.Context {

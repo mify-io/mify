@@ -82,8 +82,12 @@ func init() {
 }
 
 func PersistentPostRun(cmd *cobra.Command, args []string) {
-	appContext.InitStatsCollector()
+	appContext.InitStatsCollector(appContext.MustGetWorkspaceDescription().GetStatsQueueFile())
 	appContext.StatsCollector.LogCobraCommandExecuted(cmd)
+	err := appContext.StatsCollector.MaybeSendStats()
+	if err != nil {
+		appContext.Logger.Printf("can't send stats: %s", err)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.
