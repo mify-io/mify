@@ -145,7 +145,7 @@ func (s *Collector) LogCobraCommandExecuted(cmd *cobra.Command) {
 		Payload:        string(data),
 	}
 
-	err = SendStats(s.apiUrl, []Event{event})
+	err = SendStats(s.apiUrl, s.apiToken, []Event{event})
 	if err != nil {
 		s.logger.Printf("Warn: can't send usage statistics to mify.io: %s", err)
 	}
