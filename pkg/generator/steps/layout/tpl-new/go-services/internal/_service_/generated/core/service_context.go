@@ -20,7 +20,7 @@ func newServiceContextModel(ctx *gencontext.GenContext) serviceContextModel {
 
 	postgresImportPath := ""
 	if ctx.GetMifySchema().Postgres.Enabled {
-		postgresImportPath = fmt.Sprintf("%s/internal/pkg/generated/postgres", ctx.GetWorkspace().GetGoModule())
+		postgresImportPath = fmt.Sprintf("%s/internal/%s/generated/postgres", ctx.GetWorkspace().GetGoModule(), ctx.GetServiceName())
 	}
 
 	return serviceContextModel{

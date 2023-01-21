@@ -14,7 +14,7 @@ var postgresConfigTemplate string
 func Render(ctx *gencontext.GenContext) error {
 	postgresConfigModel := NewPostgresConfigModel(ctx)
 	// TODO: move path to description
-	postgresConfigPath := path.Join(ctx.GetWorkspace().GetGoPostgresConfigAbsPath(), "config.go")
+	postgresConfigPath := path.Join(ctx.GetWorkspace().GetGoPostgresConfigAbsPath(ctx.GetMifySchema().ServiceName), "config.go")
 	if err := render.RenderTemplate(postgresConfigTemplate, postgresConfigModel, postgresConfigPath); err != nil {
 		return render.WrapError("postgres config", err)
 	}

@@ -531,12 +531,12 @@ func (c *Description) GetAppRelPath(serviceName string) string {
 	return path.Join(c.GetGoServicesRelPath(), "internal", serviceName, "app")
 }
 
-func (c Description) GetGoPostgresConfigRelPath() string {
-	return path.Join(c.GetGoServicesRelPath(), "internal/pkg/generated/postgres")
+func (c Description) GetGoPostgresConfigRelPath(serviceName string) string {
+	return path.Join(c.GetGoServicesRelPath(), "internal", serviceName, "generated", "postgres")
 }
 
-func (c Description) GetGoPostgresConfigAbsPath() string {
-	return path.Join(c.BasePath, c.GetGoPostgresConfigRelPath())
+func (c Description) GetGoPostgresConfigAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetGoPostgresConfigRelPath(serviceName))
 }
 
 // User app
