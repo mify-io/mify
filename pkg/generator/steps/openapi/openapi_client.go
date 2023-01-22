@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -40,6 +41,29 @@ func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *gencontext.GenContext, 
 	return g.saveEnrichedSchema(ctx, doc, schemaPath, CACHE_CLIENT_SUBDIR)
 }
 
+func (g *OpenAPIGenerator) getServiceBasePath(ctx *gencontext.GenContext, schemaPath string) (string, error) {
+	doc, err := g.readSchema(ctx, schemaPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
+	}
+	serversIface, ok := doc["servers"]
+	if !ok {
+		return "", fmt.Errorf("missing paths in schema: %s", schemaPath)
+	}
+	servers := serversIface.([]interface{})
+	if len(servers) == 0 {
+		return "", fmt.Errorf("missing services in schema: %s", schemaPath)
+	}
+	srv := servers[0].(map[interface{}]interface{})
+	ctx.Logger.Infof("processing server: %s", srv["url"])
+	u, err := url.Parse("//" + srv["url"].(string))
+	if err != nil {
+		return "", fmt.Errorf("failed to parse server url %s: %w", srv["url"], err)
+	}
+	ctx.Logger.Infof("got server path: %s", u.Path)
+	return u.Path, nil
+}
+
 func (g *OpenAPIGenerator) doGenerateClient(
 	ctx *gencontext.GenContext, clientName string, schemaPath string) error {
 	endpoints, err := ctx.EndpointsResolver.ResolveEndpoints(clientName)
@@ -57,8 +81,13 @@ func (g *OpenAPIGenerator) doGenerateClient(
 		return err
 	}
 
+	basePath, err := g.getServiceBasePath(ctx, schemaPath)
+	if err != nil {
+		return err
+	}
+
 	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, g.clientAssetsPath,
-		generatorConf.TargetPath, generatorConf.PackageName, clientName, endpoints.Api, g.info)
+		generatorConf.TargetPath, generatorConf.PackageName, clientName, endpoints.Api+basePath, g.info)
 	if err != nil {
 		return fmt.Errorf("failed to run openapi-generator: %w", err)
 	}
