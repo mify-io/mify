@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 
 	"github.com/mify-io/mify/internal/mify"
@@ -82,7 +83,18 @@ func init() {
 }
 
 func PersistentPostRun(cmd *cobra.Command, args []string) {
-	appContext.InitStatsCollector(appContext.MustGetWorkspaceDescription().GetStatsQueueFile())
+	if strings.HasPrefix(cmd.Name(), "__") {
+		// ignore __complete and other
+		return
+	}
+
+	desc := appContext.GetWorkspaceDescription()
+	if desc == nil {
+		// TODO: we should handle commands without workspace (such as completion generation). Move queue file to linux tmp file?
+		return
+	}
+
+	appContext.InitStatsCollector(desc.GetStatsQueueFile())
 	appContext.StatsCollector.LogCobraCommandExecuted(cmd)
 	err := appContext.StatsCollector.MaybeSendStats()
 	if err != nil {
