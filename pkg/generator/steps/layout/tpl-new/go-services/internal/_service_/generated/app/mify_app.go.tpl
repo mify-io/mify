@@ -79,7 +79,7 @@ func NewMifyServiceApp(goGontext context.Context) *MifyServiceApp {
 func (app MifyServiceApp) Run() {
 	app.context.Logger().Info("Starting...")
 
-	ctx, cancel := context.WithCancel(app.context.GetContext())
+	ctx, cancel := context.WithCancel(app.context.GoContext())
 
 	go func() {
 		err := runMaintenanceServer(app.context, app.maintenanceRouter)

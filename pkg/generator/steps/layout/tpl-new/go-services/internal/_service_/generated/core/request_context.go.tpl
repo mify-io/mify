@@ -10,15 +10,17 @@ import (
 	"net/http"
 	"time"
 
+	"{{.ConfigsImportPath}}"
 	"{{.MetricsImportPath}}"
 )
 
 type MifyRequestContextBuilder struct {
-	requestId string
-	protocol  string
-	urlPath   string
-	logger    *zap.Logger
-	metrics   *metrics.RequestMetrics
+	requestId    string
+	protocol     string
+	urlPath      string
+	logger       *zap.Logger
+	metrics      *metrics.RequestMetrics
+	requestExtra interface{}
 
 	serviceContext *MifyServiceContext
 }
@@ -50,6 +52,15 @@ func (b *MifyRequestContextBuilder) GetURLPath() string {
 	return b.urlPath
 }
 
+func (b *MifyRequestContextBuilder) SetRequestExtra(requestExtra interface{}) *MifyRequestContextBuilder {
+	b.requestExtra = requestExtra
+	return b
+}
+
+func (b *MifyRequestContextBuilder) GetRequestExtra() interface{} {
+	return b.requestExtra
+}
+
 func (b *MifyRequestContextBuilder) GetMetrics() *metrics.RequestMetrics {
 	return b.metrics
 }
@@ -68,22 +79,25 @@ func (b *MifyRequestContextBuilder) ServiceContext() *MifyServiceContext {
 
 func (b *MifyRequestContextBuilder) Build(r *http.Request, rw http.ResponseWriter) (*MifyRequestContext, error) {
 	return &MifyRequestContext{
-		MifyServiceContext: b.serviceContext,
+		mifyServiceContext: b.serviceContext,
 
 		requestId:      b.requestId,
 		logger:         b.Logger(),
 		request:        r,
 		responseWriter: rw,
+		requestExtra:   b.requestExtra,
 	}, nil
 }
 
 type MifyRequestContext struct {
-	*MifyServiceContext
+	mifyServiceContext *MifyServiceContext
 
 	requestId      string
 	logger         *zap.Logger
 	request        *http.Request
 	responseWriter http.ResponseWriter
+
+	requestExtra interface{}
 }
 
 // WithGoContext returns a shallow copy of MifyRequestContext which allows
@@ -91,12 +105,17 @@ type MifyRequestContext struct {
 // custom deadlines.
 func (c *MifyRequestContext) WithGoContext(goCtx context.Context) *MifyRequestContext {
 	return &MifyRequestContext{
-		MifyServiceContext: c.MifyServiceContext,
-		requestId:      c.requestId,
-		logger:         c.logger,
-		request:        c.request.WithContext(goCtx),
-		responseWriter: c.responseWriter,
+		mifyServiceContext: c.ServiceContext(),
+		requestId:          c.requestId,
+		logger:             c.logger,
+		request:            c.request.WithContext(goCtx),
+		responseWriter:     c.responseWriter,
+		requestExtra:       c.requestExtra,
 	}
+}
+
+func (c *MifyRequestContext) ServiceContext() *MifyServiceContext {
+	return c.mifyServiceContext
 }
 
 func (c *MifyRequestContext) Logger() *zap.Logger {
@@ -107,12 +126,24 @@ func (c *MifyRequestContext) Request() *http.Request {
 	return c.request
 }
 
-func (c *MifyRequestContext) RequestContext() context.Context {
+func (c *MifyRequestContext) GoContext() context.Context {
 	return c.request.Context()
 }
 
 func (c *MifyRequestContext) ResponseWriter() http.ResponseWriter {
 	return c.responseWriter
+}
+
+func (c *MifyRequestContext) StaticConfig() *configs.MifyStaticConfig {
+	return c.mifyServiceContext.StaticConfig()
+}
+
+func (c *MifyRequestContext) DynamicConfig() *configs.MifyDynamicConfig {
+	return c.mifyServiceContext.DynamicConfig()
+}
+
+func (c *MifyRequestContext) RequestExtra() interface{} {
+	return c.requestExtra
 }
 
 // context.Context
