@@ -154,6 +154,10 @@ func (c *CliContext) MustGetWorkspaceDescription() *workspace.Description {
 	return c.workspaceDescription
 }
 
+func (c *CliContext) GetWorkspaceDescription() *workspace.Description {
+	return c.workspaceDescription
+}
+
 func (c *CliContext) MustGetMutatorContext() *mutators.MutatorContext {
 	if c.mutatorContext == nil {
 		panic("missed mutatorContext")

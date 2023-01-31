@@ -88,7 +88,13 @@ func PersistentPostRun(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	appContext.InitStatsCollector(appContext.MustGetWorkspaceDescription().GetStatsQueueFile())
+	desc := appContext.GetWorkspaceDescription()
+	if desc == nil {
+		// TODO: we should handle commands without workspace (such as completion generation). Move queue file to linux tmp file?
+		return
+	}
+
+	appContext.InitStatsCollector(desc.GetStatsQueueFile())
 	appContext.StatsCollector.LogCobraCommandExecuted(cmd)
 	err := appContext.StatsCollector.MaybeSendStats()
 	if err != nil {
