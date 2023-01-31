@@ -9,6 +9,7 @@ import (
 type requestContextModel struct {
 	TplHeader         string
 	MetricsImportPath string
+	ConfigsImportPath string
 }
 
 func newRequestContextModel(ctx *gencontext.GenContext) requestContextModel {
@@ -16,5 +17,6 @@ func newRequestContextModel(ctx *gencontext.GenContext) requestContextModel {
 	return requestContextModel{
 		TplHeader:         ctx.GetWorkspace().TplHeader,
 		MetricsImportPath: fmt.Sprintf("%s/internal/pkg/generated/metrics", ctx.GetWorkspace().GetGoModule()),
+		ConfigsImportPath: fmt.Sprintf("%s/internal/pkg/generated/configs", ctx.GetWorkspace().GetGoModule()),
 	}
 }

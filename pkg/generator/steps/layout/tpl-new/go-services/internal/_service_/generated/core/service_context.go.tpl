@@ -94,7 +94,7 @@ func NewMifyServiceContext(goContext context.Context, serviceName string, extraC
 	return context, nil
 }
 
-func (c *MifyServiceContext) GetContext() context.Context {
+func (c *MifyServiceContext) GoContext() context.Context {
 	return c.goContext
 }
 
