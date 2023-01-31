@@ -39,6 +39,9 @@ func (s *Collector) MaybeSendStats() error {
 	defer s.statsQueueFileMutex.Unlock()
 
 	f, err := os.ReadFile(s.statsQueueFile)
+	if os.IsNotExist(err) {
+		return nil
+	}
 	if err != nil {
 		return fmt.Errorf("can't open stat event queue file: %w", err)
 	}

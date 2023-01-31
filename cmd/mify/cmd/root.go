@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 
 	"github.com/mify-io/mify/internal/mify"
@@ -82,6 +83,11 @@ func init() {
 }
 
 func PersistentPostRun(cmd *cobra.Command, args []string) {
+	if strings.HasPrefix(cmd.Name(), "__") {
+		// ignore __complete and other
+		return
+	}
+
 	appContext.InitStatsCollector(appContext.MustGetWorkspaceDescription().GetStatsQueueFile())
 	appContext.StatsCollector.LogCobraCommandExecuted(cmd)
 	err := appContext.StatsCollector.MaybeSendStats()

@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 
@@ -118,11 +117,6 @@ func (s *Collector) LogCobraCommandExecuted(cmd *cobra.Command) {
 		return
 	}
 
-	if strings.HasPrefix(cmd.Name(), "__") {
-		// ignore __complete and other
-		return
-	}
-
 	os := runtime.GOOS
 	arch := runtime.GOARCH
 
@@ -168,7 +162,7 @@ func (s *Collector) addEventToSendingQueue(event *Event) error {
 	defer s.statsQueueFileMutex.Unlock()
 
 	f, err := os.OpenFile(s.statsQueueFile,
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		os.O_WRONLY|os.O_SYNC|os.O_APPEND|os.O_CREATE, 0644)
 	if err != nil {
 		return fmt.Errorf("warn: can't open stat event queue file: %w", err)
 	}
