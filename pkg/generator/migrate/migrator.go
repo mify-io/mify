@@ -2,7 +2,7 @@ package migrate
 
 import (
 	"io/fs"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -11,8 +11,8 @@ import (
 )
 
 func MigrateSubstring(ctx *gencontext.GenContext, root string, prefix string, excludePrefix string, replace string) {
-	_ = filepath.Walk(root, func(path string, info fs.FileInfo, err error) error {
-		dat, err := ioutil.ReadFile(path)
+	_ = filepath.Walk(root, func(path string, info fs.FileInfo, _ error) error {
+		dat, err := os.ReadFile(path)
 		if err != nil {
 			ctx.Logger.Warn("can't read file for migration "+path, zap.Error(err))
 			return nil
@@ -27,7 +27,7 @@ func MigrateSubstring(ctx *gencontext.GenContext, root string, prefix string, ex
 			return nil
 		}
 
-		err = ioutil.WriteFile(path, []byte(newDat), info.Mode())
+		err = os.WriteFile(path, []byte(newDat), info.Mode())
 		if err != nil {
 			ctx.Logger.Warn("can't write file for migration "+path, zap.Error(err))
 			return nil
