@@ -10,6 +10,8 @@ RUN go build -a -installsuffix cgo -o {{.ServiceName}} ./cmd/{{.ServiceName}}
 
 FROM alpine:3.15 AS runtime
 ENV {{.GetApiEndpointEnvName}}=:80
+ENV {{.GetMaintenanceApiEndpointEnvName}}=:8000
 COPY --from=build /go/src/{{.ServiceName}} ./
 EXPOSE 80/tcp
+EXPOSE 8000/tcp
 ENTRYPOINT ["./{{.ServiceName}}"]

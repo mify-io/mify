@@ -14,6 +14,15 @@ var (
 	ErrTypeAssertionError = errors.New("unable to assert type")
 )
 
+type DefaultError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+func NewDefaultError(code int, message string) DefaultError {
+	return DefaultError{Code: code, Message: message}
+}
+
 // ParsingError indicates that an error has occurred when parsing request parameters
 type ParsingError struct {
 	Err error
@@ -45,13 +54,15 @@ type ErrorHandler func(w http.ResponseWriter, r *http.Request, err error, result
 func DefaultErrorHandler(w http.ResponseWriter, r *http.Request, err error, result *ServiceResponse) {
 	if _, ok := err.(*ParsingError); ok {
 		// Handle parsing errors
-		EncodeJSONResponse(err.Error(), func(i int) *int { return &i }(http.StatusBadRequest),{{#addResponseHeaders}} map[string][]string{},{{/addResponseHeaders}} w)
+		code := http.StatusBadRequest
+		EncodeJSONResponse(NewDefaultError(code, err.Error()), &code, {{#addResponseHeaders}} map[string][]string{},{{/addResponseHeaders}} w)
 	} else if _, ok := err.(*RequiredError); ok {
 		// Handle missing required errors
-		EncodeJSONResponse(err.Error(), func(i int) *int { return &i }(http.StatusUnprocessableEntity),{{#addResponseHeaders}} map[string][]string{},{{/addResponseHeaders}} w)
+		code := http.StatusUnprocessableEntity
+		EncodeJSONResponse(NewDefaultError(code, err.Error()), &code, {{#addResponseHeaders}} map[string][]string{},{{/addResponseHeaders}} w)
 	} else {
 		// Handle all other errors
-		EncodeJSONResponse(err.Error(), &result.Code,{{#addResponseHeaders}} result.Headers,{{/addResponseHeaders}} w)
+		EncodeJSONResponse(result.Body, &result.Code,{{#addResponseHeaders}} result.Headers,{{/addResponseHeaders}} w)
 	}
 }
 
@@ -61,8 +72,9 @@ func HandleRouterError(status int) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var requestBody []byte
 		var result ServiceResponse
-		result = Response(status, nil)
-		handlerErr := errors.New(http.StatusText(status))
+		errorMsg := http.StatusText(status)
+		result = Response(status, NewDefaultError(status, errorMsg))
+		handlerErr := errors.New(errorMsg)
 		ctxBuilder := GetMifyRequestContextBuilder(r)
 		defer LogHandler(ctxBuilder, requestBody, &result, &handlerErr)()
 		DefaultErrorHandler(w, r, handlerErr, &result)

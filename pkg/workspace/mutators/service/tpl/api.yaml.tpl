@@ -6,8 +6,11 @@ info:
   contact:
     name: Maintainer name
     email: Maintainer email
+# Add your local and cloud service url here for testing with Swagger UI.
+# You can also add prefix for all paths like this:
+#  - url: <service-url>/api
 servers:
-  - url: {{.ServiceName}}.example.com
+  - url: <service-url>/
 paths: {}
 # Example of a handler, uncomment and remove the above 'paths: {}' line.
 # Check Petstore OpenAPI example for more possible options:

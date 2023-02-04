@@ -267,7 +267,10 @@ func CloudUpdateKubeconfig(ctx *CliContext, environment string) error {
 		return err
 	}
 	wspc := ctx.MustGetWorkspaceDescription()
-	data, err := getKubeconfigData(ctx, wspc.Name, environment, accessToken)
+	if len(wspc.Config.ProjectName) == 0 {
+		return fmt.Errorf("failed to create kubeconfig, no project registered in cloud: %w", err)
+	}
+	data, err := getKubeconfigData(ctx, wspc.Config.ProjectName, environment, accessToken)
 	if err != nil {
 		return fmt.Errorf("failed to register project: %w", err)
 	}
@@ -302,7 +305,7 @@ func CloudUpdateKubeconfig(ctx *CliContext, environment string) error {
 
 	context := api.NewContext()
 	context.Cluster = clusterName
-	context.Namespace = wspc.Name + "-" + environment
+	context.Namespace = wspc.Config.ProjectName + "-" + environment
 	context.AuthInfo = data.ServiceAccount
 
 	user := api.NewAuthInfo()
@@ -319,4 +322,12 @@ func CloudUpdateKubeconfig(ctx *CliContext, environment string) error {
 		return err
 	}
 	return nil
+}
+
+func getKubeContextName(ctx *CliContext, env string) (string, error) {
+	wspc := ctx.MustGetWorkspaceDescription()
+	if len(wspc.Config.ProjectName) == 0 {
+		return "", fmt.Errorf("failed to get kubeconfig context, no project registered in cloud")
+	}
+	return "namespace-manager@mifykube-" + env, nil
 }
