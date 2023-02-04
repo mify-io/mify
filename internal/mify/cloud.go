@@ -12,6 +12,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/samber/lo"
 
+	"github.com/mify-io/mify/internal/mify/cloud/auth"
 	"github.com/mify-io/mify/pkg/cloudconfig"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/workspace/mutators/cloud"
@@ -28,7 +29,7 @@ func CloudInit(ctx *CliContext) error {
 		}
 	}
 
-	accessToken, err := resolveAccessToken(ctx)
+	accessToken, err := auth.ResolveAccessToken(ctx.Config.APIToken)
 	if err != nil {
 		return err
 	}
@@ -146,35 +147,6 @@ func obtainApiToken(ctx *CliContext) error {
 	return nil
 }
 
-func resolveAccessToken(ctx *CliContext) (string, error) {
-	accessToken, err := getAccessToken(ctx, ctx.Config.APIToken)
-	if err != nil {
-		return "", fmt.Errorf("token validation error: %w", err)
-	}
-
-	return accessToken, nil
-}
-
-func getAccessToken(ctx *CliContext, token string) (string, error) {
-	endpoint := fmt.Sprintf("%s/auth/token/service", cloudconfig.GetCloudApiURL())
-	var reqData struct {
-		RefreshToken string `json:"refresh_token"`
-	}
-	var respData struct {
-		AccessToken string `json:"access_token"`
-	}
-	reqData.RefreshToken = token
-	client := resty.New()
-	resp, err := client.R().SetBody(reqData).SetResult(&respData).Post(endpoint)
-	if err != nil {
-		return "", fmt.Errorf("request to get token failed: %w", err)
-	}
-	if resp.StatusCode() != http.StatusOK {
-		return "", fmt.Errorf("request to get token error: %s", resp.Status())
-	}
-	return respData.AccessToken, nil
-}
-
 type project struct {
 	Environment string `json:"environment"`
 	Id          string `json:"id"`
@@ -262,7 +234,7 @@ func getKubeconfigData(
 }
 
 func CloudUpdateKubeconfig(ctx *CliContext, environment string) error {
-	accessToken, err := resolveAccessToken(ctx)
+	accessToken, err := auth.ResolveAccessToken(ctx.Config.APIToken)
 	if err != nil {
 		return err
 	}

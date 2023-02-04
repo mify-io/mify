@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/mify-io/mify/internal/mify/cloud/auth"
 	"github.com/samber/lo"
 )
 
@@ -16,13 +17,19 @@ type SendStatsReq struct {
 	Events []Event `json:"events"`
 }
 
-const SendStatsThreashhold = 10
+const SendStatsThreashhold = 1
 
-func sendStatsToServer(url string, apiToken string, data []byte) error {
+// TODO: return logs when there will be a way to write them to file only
+
+func sendStatsToServer(url string, accessToken string, data []byte) error {
 	client := resty.New()
 	client.SetTimeout(5 * time.Second)
 	endpoint := fmt.Sprintf("%s/events/cli", url)
-	resp, err := client.R().SetAuthToken(apiToken).SetBody(data).Put(endpoint)
+	req := client.R().SetBody(data)
+	if accessToken != "" {
+		req = req.SetAuthToken(accessToken)
+	}
+	resp, err := req.Put(endpoint)
 	if err != nil {
 		return err
 	}
@@ -51,13 +58,13 @@ func (s *Collector) MaybeSendStats() error {
 		return nil
 	}
 
-	s.logger.Printf("about to send statistics to server: %v events", len(lines))
+	// s.logger.Printf("about to send statistics to server: %v events", len(lines))
 
 	events := lo.FilterMap(lines, func(line string, _ int) (Event, bool) {
 		var ev Event
 		err := json.Unmarshal([]byte(line), &ev)
 		if err != nil {
-			s.logger.Printf("stats queue file is corrupted, skipping saved event: %s", err)
+			//s.logger.Printf("stats queue file is corrupted, skipping saved event: %s", err)
 			return ev, false
 		}
 		return ev, true
@@ -68,7 +75,16 @@ func (s *Collector) MaybeSendStats() error {
 		return err
 	}
 
-	err = sendStatsToServer(s.apiUrl, s.apiToken, data)
+	accessToken := ""
+	if s.apiToken != "" {
+		accessToken, _ = auth.ResolveAccessToken(s.apiToken)
+		// accessToken, err = auth.ResolveAccessToken(s.apiToken)
+		// if err != nil {
+		//	s.logger.Printf("can't resolve access token: %s", err)
+		// }
+	}
+
+	err = sendStatsToServer(s.apiUrl, accessToken, data)
 	if err != nil {
 		return err
 	}

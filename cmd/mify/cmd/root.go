@@ -20,7 +20,7 @@ var (
 	appContext    *mify.CliContext
 )
 
-var MIFY_VERSION string
+var MIFY_VERSION string = "dev"
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -96,10 +96,12 @@ func PersistentPostRun(cmd *cobra.Command, args []string) {
 
 	appContext.InitStatsCollector(desc.GetStatsQueueFile())
 	appContext.StatsCollector.LogCobraCommandExecuted(cmd)
-	err := appContext.StatsCollector.MaybeSendStats()
-	if err != nil {
-		appContext.Logger.Printf("can't send stats: %s", err)
-	}
+	appContext.StatsCollector.MaybeSendStats()
+	// TODO: return logger when it will be possible to write log to file only
+	// err := appContext.StatsCollector.MaybeSendStats()
+	// if err != nil {
+	// 	appContext.Logger.Printf("can't send stats: %s", err)
+	// }
 }
 
 // initConfig reads in config file and ENV variables if set.
