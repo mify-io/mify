@@ -40,7 +40,7 @@ var updateKubeconfigCmd = &cobra.Command{
 }
 
 var deployCmd = &cobra.Command{
-	Use:   "deploy",
+	Use:   "deploy [service]...",
 	Short: "Deploy code to cloud",
 	Long:  `Deploy code to cloud`,
 	Run: func(cmd *cobra.Command, args []string) {
