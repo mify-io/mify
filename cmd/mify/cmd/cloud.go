@@ -11,6 +11,8 @@ import (
 var (
 	deployEnv   string
 	confEnv   string
+	shellEnv   string
+	forwardProxy string
 )
 
 var initCloudCmd = &cobra.Command{
@@ -49,6 +51,18 @@ var deployCmd = &cobra.Command{
 	},
 }
 
+var nsShellCmd = &cobra.Command{
+	Use:   "ns-shell",
+	Short: "Run shell in cloud namespace",
+	Long:  `Run shell in cloud namespace`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := mify.NsShell(appContext, shellEnv, forwardProxy); err != nil {
+			fmt.Fprintf(os.Stderr, "failed to start shell: %s\n", err)
+			os.Exit(2)
+		}
+	},
+}
+
 var cloudCmd = &cobra.Command{
 	Use:   "cloud",
 	Short: "Use Mify Cloud",
@@ -69,4 +83,10 @@ func init() {
 	cloudCmd.AddCommand(initCloudCmd)
 	cloudCmd.AddCommand(updateKubeconfigCmd)
 	cloudCmd.AddCommand(deployCmd)
+
+	cloudCmd.AddCommand(nsShellCmd)
+	nsShellCmd.PersistentFlags().StringVarP(&shellEnv, "environment", "e", "stage", "Target environment name")
+	nsShellCmd.PersistentFlags().StringVarP(&forwardProxy,
+		"forward-proxy", "L", "",
+		"Proxy remote address from pod, usage: bind-port:remote-host:remote-port")
 }

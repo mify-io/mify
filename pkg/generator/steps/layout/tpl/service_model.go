@@ -30,3 +30,7 @@ func NewServiceModel(ctx *gencontext.GenContext) *ServiceModel {
 func (c ServiceModel) GetApiEndpointEnvName() string {
 	return endpoints.MakeApiEndpointEnvName(c.ServiceName)
 }
+
+func (c ServiceModel) GetMaintenanceApiEndpointEnvName() string {
+	return endpoints.MakeMaintenanceEndpointEnvName(c.ServiceName)
+}

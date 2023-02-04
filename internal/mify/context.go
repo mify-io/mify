@@ -20,6 +20,7 @@ type Config struct {
 	APIToken          string `mapstructure:"MIFY_API_TOKEN"`
 	DisableUsageStats bool   `mapstructure:"MIFY_DISABLE_USAGE_STATS"`
 	InstanceID        string `mapstructure:"MIFY_INSTANCE_ID"`
+	SSHPublicKey      string `mapstructure:"SSH_PUBLIC_KEY"`
 }
 
 func (c Config) Equal(newConfig Config) bool {
@@ -30,6 +31,9 @@ func (c Config) Equal(newConfig Config) bool {
 		return false
 	}
 	if c.InstanceID != newConfig.InstanceID {
+		return false
+	}
+	if c.SSHPublicKey != newConfig.SSHPublicKey {
 		return false
 	}
 	return true
@@ -44,10 +48,12 @@ func NewDefaultConfig() Config {
 	viper.SetDefault("MIFY_API_TOKEN", "")
 	viper.SetDefault("MIFY_DISABLE_USAGE_STATS", false)
 	viper.SetDefault("MIFY_INSTANCE_ID", instanceID)
+	viper.SetDefault("SSH_PUBLIC_KEY", "")
 	return Config{
 		APIToken:          "",
 		DisableUsageStats: false,
 		InstanceID:        instanceID,
+		SSHPublicKey: "",
 	}
 }
 
@@ -55,6 +61,7 @@ func SaveConfig(config Config) error {
 	viper.Set("MIFY_API_TOKEN", config.APIToken)
 	viper.Set("MIFY_DISABLE_USAGE_STATS", config.DisableUsageStats)
 	viper.Set("MIFY_INSTANCE_ID", config.InstanceID)
+	viper.Set("SSH_PUBLIC_KEY", config.SSHPublicKey)
 
 	err := os.MkdirAll(GetConfigDirectory(), 0755)
 	if err != nil {

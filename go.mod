@@ -3,6 +3,7 @@ module github.com/mify-io/mify
 go 1.18
 
 require (
+	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/briandowns/spinner v1.18.0
 	github.com/docker/docker v20.10.12+incompatible
 	github.com/getkin/kin-openapi v0.88.0
@@ -21,7 +22,6 @@ require (
 )
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.6 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
