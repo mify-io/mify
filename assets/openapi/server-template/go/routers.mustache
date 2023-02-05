@@ -48,10 +48,11 @@ func NewRouter(mifyCtx *core.MifyServiceContext, routerConfig RouterConfig, rout
 {{#routers}}
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
-	router.Use(RequestContext(mifyCtx))
+	router.Use(RequestContextInitBuilder(mifyCtx))
 	router.Use(Recoverer())
 	router.Use(Metrics())
 	router.Use(CORS())
+	router.Use(RequestContextBuild())
 	for _, middleware := range routerConfig.Middlewares() {
 		router.Use(middleware)
 	}
@@ -61,8 +62,7 @@ func NewRouter(mifyCtx *core.MifyServiceContext, routerConfig RouterConfig, rout
 {{/routers}}
 	for _, api := range routers {
 		for _, route := range api.Routes() {
-			var handler http.Handler
-			handler = route.HandlerFunc
+			handler := route.HandlerFunc
 {{#routers}}
 			router.Method(route.Method, route.Pattern, handler)
 {{/routers}}
@@ -76,11 +76,9 @@ func NewRouter(mifyCtx *core.MifyServiceContext, routerConfig RouterConfig, rout
 func EncodeJSONResponse(i interface{}, status *int,{{#addResponseHeaders}} headers map[string][]string,{{/addResponseHeaders}} w http.ResponseWriter) error {
 	{{#addResponseHeaders}}
 	wHeader := w.Header()
-	if headers != nil {
-		for key, values := range headers {
-			for _, value := range values {
-				wHeader.Add(key, value)
-			}
+	for key, values := range headers {
+		for _, value := range values {
+			wHeader.Add(key, value)
 		}
 	}
 	wHeader.Set("Content-Type", "application/json; charset=UTF-8")

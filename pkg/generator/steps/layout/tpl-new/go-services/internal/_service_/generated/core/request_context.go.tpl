@@ -77,7 +77,7 @@ func (b *MifyRequestContextBuilder) ServiceContext() *MifyServiceContext {
 	return b.serviceContext
 }
 
-func (b *MifyRequestContextBuilder) Build(r *http.Request, rw http.ResponseWriter) (*MifyRequestContext, error) {
+func (b *MifyRequestContextBuilder) Build(r *http.Request, rw http.ResponseWriter) *MifyRequestContext {
 	return &MifyRequestContext{
 		mifyServiceContext: b.serviceContext,
 
@@ -86,7 +86,7 @@ func (b *MifyRequestContextBuilder) Build(r *http.Request, rw http.ResponseWrite
 		request:        r,
 		responseWriter: rw,
 		requestExtra:   b.requestExtra,
-	}, nil
+	}
 }
 
 type MifyRequestContext struct {
@@ -109,6 +109,20 @@ func (c *MifyRequestContext) WithGoContext(goCtx context.Context) *MifyRequestCo
 		requestId:          c.requestId,
 		logger:             c.logger,
 		request:            c.request.WithContext(goCtx),
+		responseWriter:     c.responseWriter,
+		requestExtra:       c.requestExtra,
+	}
+}
+
+// WithLogger returns a shallow copy of MifyRequestContext which allows
+// to pass different logger into nested functions, for instance to add
+// custom deadlines.
+func (c *MifyRequestContext) WithLogger(logger *zap.Logger) *MifyRequestContext {
+	return &MifyRequestContext{
+		mifyServiceContext: c.ServiceContext(),
+		requestId:          c.requestId,
+		logger:             logger,
+		request:            c.request,
 		responseWriter:     c.responseWriter,
 		requestExtra:       c.requestExtra,
 	}

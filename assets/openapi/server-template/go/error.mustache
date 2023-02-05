@@ -75,8 +75,8 @@ func HandleRouterError(status int) http.HandlerFunc {
 		errorMsg := http.StatusText(status)
 		result = Response(status, NewDefaultError(status, errorMsg))
 		handlerErr := errors.New(errorMsg)
-		ctxBuilder := GetMifyRequestContextBuilder(r)
-		defer LogHandler(ctxBuilder, requestBody, &result, &handlerErr)()
+		reqCtx := GetMifyRequestContext(r)
+		defer LogHandler(reqCtx, requestBody, &result, &handlerErr)()
 		DefaultErrorHandler(w, r, handlerErr, &result)
 	}
 }

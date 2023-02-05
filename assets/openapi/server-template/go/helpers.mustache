@@ -85,7 +85,7 @@ func getURLParam(r *http.Request, param string) string {
 
 // extract mify request context builder from http context
 func mustGetContextBuilder(r *http.Request) *core.MifyRequestContextBuilder {
-	ctxBuilder := r.Context().Value(MifyContextField).(*core.MifyRequestContextBuilder)
+	ctxBuilder := r.Context().Value(MifyContextBuilderField).(*core.MifyRequestContextBuilder)
 	if ctxBuilder == nil {
 		panic("Context builder wasn't found")
 	}
