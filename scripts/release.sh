@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 increment_version() {
     local version="$(echo "$1" | cut -c2-)"
