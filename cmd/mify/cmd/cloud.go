@@ -13,6 +13,7 @@ var (
 	confEnv   string
 	shellEnv   string
 	forwardProxy string
+	listenPort string
 )
 
 var initCloudCmd = &cobra.Command{
@@ -56,7 +57,7 @@ var nsShellCmd = &cobra.Command{
 	Short: "Run shell in cloud namespace",
 	Long:  `Run shell in cloud namespace`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := mify.NsShell(appContext, shellEnv, forwardProxy); err != nil {
+		if err := mify.NsShell(appContext, shellEnv, forwardProxy, listenPort); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to start shell: %s\n", err)
 			os.Exit(2)
 		}
@@ -89,4 +90,7 @@ func init() {
 	nsShellCmd.PersistentFlags().StringVarP(&forwardProxy,
 		"forward-proxy", "L", "",
 		"Proxy remote address from pod, usage: bind-port:remote-host:remote-port")
+	nsShellCmd.PersistentFlags().StringVarP(&listenPort,
+		"ssh-port", "P", "49222",
+		"port for connecting to pod via ssh, default: 49222")
 }

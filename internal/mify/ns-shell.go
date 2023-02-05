@@ -61,7 +61,7 @@ func getSSHKey(ctx *CliContext) (string, error) {
 	}
 }
 
-func NsShell(ctx *CliContext, env string, forwardProxy string) error {
+func NsShell(ctx *CliContext, env string, forwardProxy string, listenPort string) error {
 	sshkey, err := getSSHKey(ctx)
 	if err != nil {
 		return err
@@ -89,11 +89,10 @@ func NsShell(ctx *CliContext, env string, forwardProxy string) error {
 		fmt.Sprintf(
 			"grep -q -F \"%s\" ~/.ssh/authorized_keys 2>/dev/null || echo \"%s\" >> ~/.ssh/authorized_keys",
 			sshkey, sshkey),
-		).StdoutToString().Run()
+	).StdoutToString().Run()
 	if err != nil {
 		return err
 	}
-
 
 	var wg sync.WaitGroup
 	var fwdRes util.CommandResult
@@ -103,31 +102,36 @@ func NsShell(ctx *CliContext, env string, forwardProxy string) error {
 	go func() {
 		defer wg.Done()
 		fwdRes, fwdErr = util.NewCommand(goCtx,
-		"kubectl", "--context="+k8sContext,
-		"port-forward", podName, "2222:22",
+			"kubectl", "--context="+k8sContext,
+			"port-forward", podName, listenPort+":22",
 		).DisableStderr().DisableStdout().Run()
 	}()
 
 	attemps := 10
 	for {
-		_, err := util.NewCommand(goCtx, "ssh", "-q", "-p", "2222", "user@localhost", "exit").Run()
+		res, err := util.NewCommand(goCtx, "ssh", "-q", "-p", listenPort, "user@localhost", "exit").Run()
 		if err == nil {
 			break
 		}
+		if res.ExitCode == 255 {
+			if _, err := util.NewCommand(goCtx, "ssh-keygen", "-R", "[localhost]:"+listenPort).DisableStderr().Run(); err != nil {
+				return err
+			}
+		}
 		if err != nil && attemps == 0 {
-			return err
+			return fmt.Errorf("failed to connect to pod via ssh, please check your public key configuration: %w", err)
 		}
 		attemps -= 1
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	sshArgs := []string{"-p", "2222"}
+	sshArgs := []string{"-p", listenPort}
 	if forwardProxy != "" {
 		sshArgs = append(sshArgs, "-L", forwardProxy)
 	}
 
 	fmt.Printf("You can now connect to pod via ssh, run this command to create additional sessions:\n")
-	fmt.Printf("$ ssh -p 2222 user@localhost\n")
+	fmt.Printf("$ ssh -p %s user@localhost\n", listenPort)
 	fmt.Printf("============================\n")
 
 	sshArgs = append(sshArgs, "user@localhost")
