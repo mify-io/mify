@@ -5,13 +5,13 @@ import (
 )
 
 type appModel struct {
-	TplHeader          string
-	ServiceName        string
+	TplHeader   string
+	ServiceName string
 }
 
 func newAppModel(ctx *gencontext.GenContext) appModel {
 	return appModel{
-		TplHeader:          ctx.GetWorkspace().TplHeaderPy,
-		ServiceName:        ctx.GetMifySchema().ServiceName,
+		TplHeader:   ctx.GetWorkspace().TplHeaderPy,
+		ServiceName: ctx.GetMifySchema().ServiceName,
 	}
 }

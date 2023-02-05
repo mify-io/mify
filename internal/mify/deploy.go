@@ -33,13 +33,13 @@ func DeployMany(ctx *CliContext, deployEnv string, names []string) error {
 func deploy(ctx *CliContext, deployEnv string, serviceName string) error {
 	ctx.Logger.Printf("Deploying service %s to %s, environment: %s", serviceName,
 		ctx.workspaceDescription.Config.WorkspaceName, deployEnv)
-	err := ServiceGenerate(ctx, ctx.WorkspacePath, serviceName, false)
+	err := ServiceGenerate(ctx, ctx.WorkspacePath, serviceName, false, false)
 	if err != nil {
 		return err
 	}
 	// TODO: maybe separate logger
 	genContext, err := gencontext.NewGenContext(ctx.Ctx, serviceName,
-		*ctx.workspaceDescription, false)
+		*ctx.workspaceDescription, false, false, ctx.MifyVersion)
 	if err != nil {
 		return err
 	}

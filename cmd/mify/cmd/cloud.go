@@ -9,11 +9,11 @@ import (
 )
 
 var (
-	deployEnv   string
-	confEnv   string
-	shellEnv   string
+	deployEnv    string
+	confEnv      string
+	shellEnv     string
 	forwardProxy string
-	listenPort string
+	listenPort   string
 )
 
 var initCloudCmd = &cobra.Command{

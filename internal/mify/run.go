@@ -9,7 +9,7 @@ import (
 )
 
 func Run(ctx *CliContext, basePath string) error {
-	if err := ServiceGenerate(ctx, basePath, workspace.DevRunnerName, false); err != nil {
+	if err := ServiceGenerate(ctx, basePath, workspace.DevRunnerName, false, false); err != nil {
 		return err
 	}
 

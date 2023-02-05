@@ -6,15 +6,15 @@ import (
 )
 
 type dockerfileModel struct {
-	ServiceName    string
-	ApiEndpointEnv string
+	ServiceName               string
+	ApiEndpointEnv            string
 	MaintenanceApiEndpointEnv string
 }
 
 func newDockerfileModel(ctx *gencontext.GenContext) dockerfileModel {
 	return dockerfileModel{
-		ServiceName:    ctx.MustGetMifySchema().ServiceName,
-		ApiEndpointEnv: endpoints.MakeApiEndpointEnvName(ctx.GetServiceName()),
+		ServiceName:               ctx.MustGetMifySchema().ServiceName,
+		ApiEndpointEnv:            endpoints.MakeApiEndpointEnvName(ctx.GetServiceName()),
 		MaintenanceApiEndpointEnv: endpoints.MakeMaintenanceEndpointEnvName(ctx.GetServiceName()),
 	}
 }

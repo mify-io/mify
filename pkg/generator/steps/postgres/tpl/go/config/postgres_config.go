@@ -6,7 +6,7 @@ import (
 
 type PostgresConfigModel struct {
 	ConfigsImportPath string
-	DatabaseName string
+	DatabaseName      string
 }
 
 func NewPostgresConfigModel(ctx *gencontext.GenContext) PostgresConfigModel {

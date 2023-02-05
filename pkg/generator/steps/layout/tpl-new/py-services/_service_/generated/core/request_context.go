@@ -12,7 +12,7 @@ type requestContextModel struct {
 func newRequestContextModel(ctx *gencontext.GenContext) requestContextModel {
 	// TODO: move paths to description
 	return requestContextModel{
-		TplHeader:         ctx.GetWorkspace().TplHeaderPy,
+		TplHeader: ctx.GetWorkspace().TplHeaderPy,
 		// MetricsImportPath: fmt.Sprintf("%s/internal/pkg/generated/metrics", ctx.GetWorkspace().GetGoModule()),
 	}
 }

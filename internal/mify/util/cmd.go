@@ -9,16 +9,16 @@ import (
 )
 
 type CommandBuilder struct {
-	cmd *exec.Cmd
+	cmd       *exec.Cmd
 	stdoutBuf bytes.Buffer
 	stderrBuf bytes.Buffer
 }
 
 type CommandResult struct {
 	IsOtherError bool
-	ExitCode int
-	Stdout string
-	Stderr string
+	ExitCode     int
+	Stdout       string
+	Stderr       string
 }
 
 func NewCommand(ctx context.Context, cmdname string, args ...string) *CommandBuilder {
@@ -70,8 +70,7 @@ func (c *CommandBuilder) Run() (CommandResult, error) {
 	}
 	return CommandResult{
 		ExitCode: exitcode,
-		Stdout: c.stdoutBuf.String(),
-		Stderr: c.stderrBuf.String(),
+		Stdout:   c.stdoutBuf.String(),
+		Stderr:   c.stderrBuf.String(),
 	}, exitErr
 }
-

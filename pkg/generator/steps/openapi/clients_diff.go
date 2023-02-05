@@ -22,7 +22,7 @@ func (c clientsDiff) Empty() bool {
 		len(c.removed) == 0
 }
 
-func calcClientsDiff(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGenerator) (clientsDiff, error) {
+func calcClientsDiff(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGenerator, force bool) (clientsDiff, error) {
 	wrapError := func(err error) error {
 		return fmt.Errorf("can't calculate clients diff: %w", err)
 	}
@@ -57,7 +57,7 @@ func calcClientsDiff(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGenera
 			return clientsDiff{}, wrapError(err)
 		}
 
-		if needGenerate {
+		if needGenerate || force {
 			schemaChanged[cl] = struct{}{}
 		}
 	}

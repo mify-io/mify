@@ -22,9 +22,10 @@ type DefaultModel struct {
 	// TplHeader string
 	Clients []clientModel
 }
+
 func newClientModel(clientName string) clientModel {
 	return clientModel{
-		ServiceName: endpoints.SanitizeServiceName(clientName),
+		ServiceName:     endpoints.SanitizeServiceName(clientName),
 		EndpointEnvName: makeClientEnvName(clientName),
 	}
 }
@@ -36,6 +37,6 @@ func NewDefaultModel(ctx *gencontext.GenContext) DefaultModel {
 	}
 	return DefaultModel{
 		ServiceName: ctx.GetServiceName(),
-		Clients: clients,
+		Clients:     clients,
 	}
 }

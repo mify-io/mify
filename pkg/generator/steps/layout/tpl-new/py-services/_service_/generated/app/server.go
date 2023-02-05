@@ -6,8 +6,8 @@ import (
 )
 
 type serverModel struct {
-	TplHeader        string
-	ServiceName         string
+	TplHeader              string
+	ServiceName            string
 	ApiEndpointEnv         string
 	ApiEndpoint            string
 	MaintenanceEndpointEnv string
@@ -21,8 +21,8 @@ func newServerModel(ctx *gencontext.GenContext) (serverModel, error) {
 	}
 
 	return serverModel{
-		TplHeader: ctx.GetWorkspace().TplHeaderPy,
-		ServiceName: ctx.GetMifySchema().ServiceName,
+		TplHeader:              ctx.GetWorkspace().TplHeaderPy,
+		ServiceName:            ctx.GetMifySchema().ServiceName,
 		ApiEndpointEnv:         endpoints.MakeApiEndpointEnvName(ctx.GetServiceName()),
 		ApiEndpoint:            resolved.Api,
 		MaintenanceEndpointEnv: endpoints.MakeMaintenanceEndpointEnvName(ctx.GetServiceName()),

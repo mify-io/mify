@@ -16,7 +16,7 @@ import (
 
 type renderFlags struct {
 	skipExisting bool
-	migrate bool
+	migrate      bool
 }
 
 func NewFlags() renderFlags {
@@ -34,18 +34,18 @@ func (r renderFlags) Migrate() renderFlags {
 }
 
 type renderFile struct {
-	targetPath string
+	targetPath   string
 	templateName string
-	model any
-	flags renderFlags
+	model        any
+	flags        renderFlags
 }
 
 func NewFile(ctx *gencontext.GenContext, targetPath string) renderFile {
 	templateName := path.Base(targetPath) + ".tpl"
 	return renderFile{
-		targetPath: targetPath,
-		model: NewDefaultModel(ctx),
-		flags: NewFlags(),
+		targetPath:   targetPath,
+		model:        NewDefaultModel(ctx),
+		flags:        NewFlags(),
 		templateName: templateName,
 	}
 }

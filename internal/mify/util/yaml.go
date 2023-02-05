@@ -10,9 +10,8 @@ type YAMLData struct {
 	path string
 }
 
-
 func NewYAMLData(path string) YAMLData {
-	return YAMLData {
+	return YAMLData{
 		path: path,
 	}
 }
@@ -31,7 +30,7 @@ func (d *YAMLData) ReadFile(out interface{}) error {
 }
 
 func (d *YAMLData) SaveFile(in interface{}) error {
-	f, err := os.OpenFile(d.path, os.O_CREATE | os.O_TRUNC | os.O_WRONLY, 0644)
+	f, err := os.OpenFile(d.path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}

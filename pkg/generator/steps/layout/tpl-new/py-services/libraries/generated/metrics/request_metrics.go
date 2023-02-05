@@ -5,11 +5,11 @@ import (
 )
 
 type requestMetricsModel struct {
-	TplHeader      string
+	TplHeader string
 }
 
 func newRequestMetricsModel(ctx *gencontext.GenContext) requestMetricsModel {
 	return requestMetricsModel{
-		TplHeader:      ctx.GetWorkspace().TplHeaderPy,
+		TplHeader: ctx.GetWorkspace().TplHeaderPy,
 	}
 }

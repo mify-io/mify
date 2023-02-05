@@ -64,7 +64,6 @@ func prepareVirtualEnv(ctx *gencontext.GenContext, servicesPath string) error {
 		return fmt.Errorf("failed to prepare virtual env check if venv package installed, for ubuntu install `python3-venv`, error: %w", err)
 	}
 
-
 	pipReqCmd := exec.Command(virtualEnvDirName+"/bin/python3", "-m", "pip", "install", "-r", "requirements.txt")
 	pipReqCmd.Dir = servicesPath
 	pipReqCmd.Stderr = w

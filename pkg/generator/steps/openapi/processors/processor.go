@@ -12,7 +12,7 @@ const (
 )
 
 type GeneratorConfig struct {
-	TargetPath string
+	TargetPath  string
 	PackageName string
 }
 

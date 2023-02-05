@@ -58,7 +58,7 @@ func createServiceImpl(
 
 	conf := mifyconfig.ServiceConfig{
 		ServiceName: serviceName,
-		Template: template,
+		Template:    template,
 		Language:    language,
 	}
 

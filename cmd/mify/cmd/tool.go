@@ -11,7 +11,7 @@ import (
 var migrateCmd = &cobra.Command{
 	Use:   "migrate <service-name> <up [N]|down [N]> [-- -help -extra -args]",
 	Short: "Run database migration on service locally",
-	Long: `Run database migration on service locally`,
+	Long:  `Run database migration on service locally`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 2 {
 			_ = cmd.Help()

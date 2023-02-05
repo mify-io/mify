@@ -7,13 +7,35 @@ import (
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 )
 
+func isFullRegenerationNeeded(ctx *gencontext.GenContext) (bool, error) {
+	meta, err := getGenerationMeta(ctx)
+	if err != nil {
+		return false, err
+	}
+	if meta.MifyVersion != ctx.GetMifyVersion() {
+		return true, nil
+	}
+	if ctx.GetForceRegeneration() {
+		return true, nil
+	}
+	return false, nil
+}
+
 func generateServiceOpenAPI(ctx *gencontext.GenContext) error {
 	openapigen, err := NewOpenAPIGenerator(ctx)
 	if err != nil {
 		return err
 	}
 
-	serverNeedsRegeneration, err := checkServerNeedsRegeneration(ctx, &openapigen)
+	forceRegeneration, err := isFullRegenerationNeeded(ctx)
+	if err != nil {
+		return err
+	}
+	if forceRegeneration {
+		ctx.Logger.Infof("Will do full regeneration")
+	}
+
+	serverNeedsRegeneration, err := checkServerNeedsRegeneration(ctx, &openapigen, forceRegeneration)
 	if err != nil {
 		return err
 	}
@@ -22,7 +44,7 @@ func generateServiceOpenAPI(ctx *gencontext.GenContext) error {
 		ctx.Logger.Infof("Server side of '%s' service is actual. Skipping...", ctx.GetServiceName())
 	}
 
-	clientsDiff, err := calcClientsDiff(ctx, &openapigen)
+	clientsDiff, err := calcClientsDiff(ctx, &openapigen, forceRegeneration)
 	if err != nil {
 		return err
 	}
@@ -95,6 +117,10 @@ func doGeneration(
 		return fmt.Errorf("failed while updating mify schema: %w", err)
 	}
 
+	if err := writeGenerationMeta(ctx, GenerationMeta{MifyVersion: ctx.GetMifyVersion()}); err != nil {
+		return fmt.Errorf("failed while updating mify schema: %w", err)
+	}
+
 	return nil
 }
 
@@ -116,7 +142,7 @@ func generateServerSide(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGen
 	return nil
 }
 
-func checkServerNeedsRegeneration(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator) (bool, error) {
+func checkServerNeedsRegeneration(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, force bool) (bool, error) {
 	wrapError := func(err error) error {
 		return fmt.Errorf("can't check if server needs regeneration: %w", err)
 	}
@@ -131,7 +157,7 @@ func checkServerNeedsRegeneration(ctx *gencontext.GenContext, openapigen *OpenAP
 		return false, wrapError(err)
 	}
 
-	return needGenerateServer, nil
+	return needGenerateServer || force, nil
 }
 
 func generateClients(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, clientsDiff clientsDiff) error {
