@@ -5,14 +5,14 @@ import (
 )
 
 type mifyAppModel struct {
-	TplHeader      string
-	ServiceName    string
+	TplHeader   string
+	ServiceName string
 }
 
 func newMifyAppModel(ctx *gencontext.GenContext) mifyAppModel {
 	// TODO: move paths to description
 	return mifyAppModel{
-		TplHeader:      ctx.GetWorkspace().TplHeaderPy,
-		ServiceName:    ctx.GetServiceName(),
+		TplHeader:   ctx.GetWorkspace().TplHeaderPy,
+		ServiceName: ctx.GetServiceName(),
 	}
 }

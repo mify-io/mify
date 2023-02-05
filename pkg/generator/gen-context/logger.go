@@ -71,7 +71,7 @@ func initLogger(logDir string) *zap.Logger {
 		panic(err)
 	}
 
-	cores := []zapcore.Core {
+	cores := []zapcore.Core{
 		zapcore.NewCore(consoleEncoder, zapcore.Lock(os.Stderr), consoleLevelEnabler),
 		zapcore.NewCore(fileEncoder, zapcore.AddSync(logFile), fileLevelEnabler),
 	}

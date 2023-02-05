@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/generator/steps/schema/context"
-	"github.com/getkin/kin-openapi/openapi3"
 	"gopkg.in/yaml.v2"
 )
 

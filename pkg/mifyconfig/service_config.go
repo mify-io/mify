@@ -46,7 +46,7 @@ type PostgresConfig struct {
 
 type ServiceConfig struct {
 	Language ServiceLanguage `yaml:"language"`
-	Template string `yaml:"template,omitempty"`
+	Template string          `yaml:"template,omitempty"`
 
 	ServiceName string   `yaml:"service_name"`
 	Maintainers []string `yaml:"maintainers"`

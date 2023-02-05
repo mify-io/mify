@@ -53,7 +53,7 @@ func NewDefaultConfig() Config {
 		APIToken:          "",
 		DisableUsageStats: false,
 		InstanceID:        instanceID,
-		SSHPublicKey: "",
+		SSHPublicKey:      "",
 	}
 }
 

@@ -24,7 +24,7 @@ func (p *jsPostProcessor) GetServerGeneratorConfig(ctx *gencontext.GenContext) (
 	}
 	generatedPath := filepath.Join(basePath, targetPath, "generated")
 	return GeneratorConfig{
-		TargetPath: generatedPath,
+		TargetPath:  generatedPath,
 		PackageName: SERVER_PACKAGE_NAME,
 	}, nil
 }
@@ -39,7 +39,7 @@ func (p *jsPostProcessor) GetClientGeneratorConfig(ctx *gencontext.GenContext, c
 	generatedPath := filepath.Join(basePath, targetPath, "generated", "api", "clients", clientName)
 	packageName := endpoints.SanitizeServiceName(clientName) + "_client"
 	return GeneratorConfig{
-		TargetPath: generatedPath,
+		TargetPath:  generatedPath,
 		PackageName: packageName,
 	}, nil
 }

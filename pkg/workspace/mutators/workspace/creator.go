@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	SchemasDirName    = "schemas"
+	SchemasDirName = "schemas"
 )
 
 //go:embed tpl/gitignore.tpl

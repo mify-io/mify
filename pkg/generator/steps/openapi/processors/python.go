@@ -23,7 +23,7 @@ func newPythonProcessor() *pythonPostProcessor {
 func (p *pythonPostProcessor) GetServerGeneratorConfig(ctx *gencontext.GenContext) (GeneratorConfig, error) {
 	generatedPath := ctx.GetWorkspace().GetPythonServicesAbsPath()
 	return GeneratorConfig{
-		TargetPath: generatedPath,
+		TargetPath:  generatedPath,
 		PackageName: fmt.Sprintf("%s.%s.%s", endpoints.SanitizeServiceName(ctx.GetServiceName()), "generated", SERVER_PACKAGE_NAME),
 	}, nil
 }
@@ -31,7 +31,7 @@ func (p *pythonPostProcessor) GetServerGeneratorConfig(ctx *gencontext.GenContex
 func (p *pythonPostProcessor) GetClientGeneratorConfig(ctx *gencontext.GenContext, clientName string) (GeneratorConfig, error) {
 	generatedPath := ctx.GetWorkspace().GetPythonServicesAbsPath()
 	return GeneratorConfig{
-		TargetPath: generatedPath,
+		TargetPath:  generatedPath,
 		PackageName: fmt.Sprintf("%s.%s.%s.%s.%s", endpoints.SanitizeServiceName(ctx.GetServiceName()), "generated", SERVER_PACKAGE_NAME, "clients", clientName),
 	}, nil
 }

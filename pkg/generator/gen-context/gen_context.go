@@ -17,9 +17,11 @@ type GenContext struct {
 	Logger             *zap.SugaredLogger
 	executePoolFactory *ExecutePoolFactory
 
-	serviceName string
-	workspace   workspace.Description
-	migrate     bool
+	serviceName       string
+	workspace         workspace.Description
+	migrate           bool
+	forceRegeneration bool
+	mifyVersion       string
 
 	// Step contexts
 	schema     *schema_context.SchemaContext
@@ -35,7 +37,9 @@ func NewGenContext(
 	goContext context.Context,
 	serviceName string,
 	workspaceDescription workspace.Description,
-	migrate bool) (*GenContext, error) {
+	migrate bool,
+	forceRegeneration bool,
+	mifyVersion string) (*GenContext, error) {
 
 	logger := initLogger(workspaceDescription.GetLogsDirectory())
 	vcs, err := initVcsIntegration(workspaceDescription.BasePath)
@@ -49,6 +53,8 @@ func NewGenContext(
 		serviceName:       serviceName,
 		workspace:         workspaceDescription,
 		migrate:           migrate,
+		forceRegeneration: forceRegeneration,
+		mifyVersion:       mifyVersion,
 		EndpointsResolver: endpoints.NewEndpointsResolver(&workspaceDescription),
 		vcsIntegration:    vcs,
 	}, nil
@@ -72,6 +78,14 @@ func (c *GenContext) GetWorkspace() *workspace.Description {
 
 func (c *GenContext) GetMigrate() bool {
 	return c.migrate
+}
+
+func (c *GenContext) GetForceRegeneration() bool {
+	return c.forceRegeneration
+}
+
+func (c *GenContext) GetMifyVersion() string {
+	return c.mifyVersion
 }
 
 func (c *GenContext) GetVcsIntegration() *VcsIntegration {

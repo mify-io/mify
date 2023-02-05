@@ -5,8 +5,8 @@ import (
 )
 
 type serviceContextModel struct {
-	TplHeader          string
-	ServiceName        string
+	TplHeader   string
+	ServiceName string
 	//ConfigsImportPath  string
 	//LogsImportPath     string
 	//MetricsImportPath  string
@@ -23,8 +23,8 @@ func newServiceContextModel(ctx *gencontext.GenContext) serviceContextModel {
 	}
 
 	return serviceContextModel{
-		TplHeader:          ctx.GetWorkspace().TplHeaderPy,
-		ServiceName:        ctx.GetMifySchema().ServiceName,
+		TplHeader:   ctx.GetWorkspace().TplHeaderPy,
+		ServiceName: ctx.GetMifySchema().ServiceName,
 		//ConfigsImportPath:  fmt.Sprintf("%s/internal/pkg/generated/configs", ctx.GetWorkspace().GetGoModule()),
 		//LogsImportPath:     fmt.Sprintf("%s/internal/pkg/generated/logs", ctx.GetWorkspace().GetGoModule()),
 		//MetricsImportPath:  fmt.Sprintf("%s/internal/pkg/generated/metrics", ctx.GetWorkspace().GetGoModule()),

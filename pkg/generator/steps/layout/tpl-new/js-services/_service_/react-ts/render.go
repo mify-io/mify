@@ -6,8 +6,8 @@ import (
 	"path"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
-	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js-services/_service_/react-ts/src"
 	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js-services/_service_/react-ts/public"
+	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js-services/_service_/react-ts/src"
 	"github.com/mify-io/mify/pkg/util/render"
 )
 

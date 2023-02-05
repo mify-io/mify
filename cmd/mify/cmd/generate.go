@@ -12,6 +12,7 @@ import (
 
 var (
 	migrate bool
+	force   bool
 )
 
 // genCmd represents the gen command
@@ -27,7 +28,7 @@ var genCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := mify.ServiceGenerateMany(appContext, workspacePath, args, migrate); err != nil {
+		if err := mify.ServiceGenerateMany(appContext, workspacePath, args, migrate, force); err != nil {
 			if errors.Is(err, context.Canceled) {
 				return
 			}
@@ -41,5 +42,9 @@ func init() {
 	genCmd.Flags().BoolVarP(
 		&migrate,
 		"migrate", "m", true, "Should code migrations be applied?",
+	)
+	genCmd.Flags().BoolVarP(
+		&force,
+		"force", "f", false, "Force complete regeneration",
 	)
 }

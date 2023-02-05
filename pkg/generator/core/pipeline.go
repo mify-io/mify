@@ -29,6 +29,8 @@ func (p Pipeline) Execute(
 	serviceName string,
 	workspaceDescription workspace.Description,
 	migrate bool,
+	forceRegeneration bool,
+	mifyVersion string,
 	outChan chan StepExecResult) {
 
 	shouldRepeat := true
@@ -45,7 +47,9 @@ func (p Pipeline) Execute(
 
 		shouldRepeat = false
 
-		genContext, err := gencontext.NewGenContext(goContext, serviceName, workspaceDescription, migrate)
+		genContext, err := gencontext.NewGenContext(
+			goContext, serviceName, workspaceDescription,
+			migrate, forceRegeneration, mifyVersion)
 		if err != nil {
 			outChan <- StepExecResult{
 				SeqNo: -1,
