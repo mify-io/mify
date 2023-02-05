@@ -17,7 +17,7 @@ type SendStatsReq struct {
 	Events []Event `json:"events"`
 }
 
-const SendStatsThreashhold = 1
+const SendStatsThreashhold = 5
 
 // TODO: return logs when there will be a way to write them to file only
 
