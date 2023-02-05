@@ -20,7 +20,7 @@ func bodyPrinter(data []byte) []byte {
 	return data
 }
 
-func logRequest(ctxBuilder *core.MifyRequestContextBuilder, body []byte) {
+func logRequest(reqCtx *core.MifyRequestContext, body []byte) {
 	var fields []zap.Field
 	if body != nil {
 		fields = append(fields,
@@ -28,10 +28,10 @@ func logRequest(ctxBuilder *core.MifyRequestContextBuilder, body []byte) {
 			zap.ByteString("body", bodyPrinter(body)),
 		)
 	}
-	ctxBuilder.Logger().Info("started processing request", fields...)
+	reqCtx.Logger().Info("started processing request", fields...)
 }
 
-func logResponse(ctxBuilder *core.MifyRequestContextBuilder, startTime time.Time, resp ServiceResponse, respErr error) {
+func logResponse(reqCtx *core.MifyRequestContext, startTime time.Time, resp ServiceResponse, respErr error) {
 	var data []byte
 	var fields []zap.Field
 	data, err := json.Marshal(resp.Body)
@@ -50,14 +50,14 @@ func logResponse(ctxBuilder *core.MifyRequestContextBuilder, startTime time.Time
 			zap.ByteString("body", bodyPrinter(data)),
 		)
 	}
-	ctxBuilder.Logger().Info("finished processing request", fields...)
+	reqCtx.Logger().Info("finished processing request", fields...)
 }
 
 func LogHandler(
-	ctxBuilder *core.MifyRequestContextBuilder, requestBody []byte, resp *ServiceResponse, respErr *error) func() {
-	logRequest(ctxBuilder, requestBody)
+	reqCtx *core.MifyRequestContext, requestBody []byte, resp *ServiceResponse, respErr *error) func() {
+	logRequest(reqCtx, requestBody)
 	startTime := time.Now()
 	return func() {
-		logResponse(ctxBuilder, startTime, *resp, *respErr)
+		logResponse(reqCtx, startTime, *resp, *respErr)
 	}
 }

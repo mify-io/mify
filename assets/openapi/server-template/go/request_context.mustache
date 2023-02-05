@@ -11,11 +11,13 @@ import (
 	"{{goModule}}/internal/{{serviceName}}/generated/core"
 )
 
-type ctxKeyMifyContext int
+type ctxKeyMifyContextBuilder int
+const MifyContextBuilderField ctxKeyMifyContextBuilder = 0
 
+type ctxKeyMifyContext int
 const MifyContextField ctxKeyMifyContext = 0
 
-func RequestContext(sc *core.MifyServiceContext) func(next http.Handler) http.Handler {
+func RequestContextInitBuilder(sc *core.MifyServiceContext) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
@@ -24,9 +26,24 @@ func RequestContext(sc *core.MifyServiceContext) func(next http.Handler) http.Ha
 			mifyCtxBuilder.SetRequestID(middleware.GetReqID(r.Context()))
 			mifyCtxBuilder.SetProtocol(r.Proto)
 			mifyCtxBuilder.SetURLPath(r.URL.Path)
-			ctx := context.WithValue(r.Context(), MifyContextField, mifyCtxBuilder)
+			ctx := context.WithValue(r.Context(), MifyContextBuilderField, mifyCtxBuilder)
 
 			next.ServeHTTP(ww, r.WithContext(ctx))
+		}
+		return http.HandlerFunc(fn)
+	}
+}
+
+func RequestContextBuild() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			builder := GetMifyRequestContextBuilder(r)
+			mifyCtx := builder.Build(r, w)
+
+			ctx := context.WithValue(r.Context(), MifyContextField, mifyCtx)
+			ctx = context.WithValue(ctx, MifyContextBuilderField, nil)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
 		}
 		return http.HandlerFunc(fn)
 	}
@@ -36,5 +53,12 @@ func RequestContext(sc *core.MifyServiceContext) func(next http.Handler) http.Ha
 // middleware calls. This is useful for accessing sevice dependencies inside
 // middleware, while keeping the context flow intact.
 func GetMifyRequestContextBuilder(r *http.Request) *core.MifyRequestContextBuilder {
-	return r.Context().Value(MifyContextField).(*core.MifyRequestContextBuilder)
+	return r.Context().Value(MifyContextBuilderField).(*core.MifyRequestContextBuilder)
+}
+
+// GetRequestContext allows getting current request context in between
+// middleware calls. This is useful for accessing sevice dependencies inside
+// middleware, while keeping the context flow intact.
+func GetMifyRequestContext(r *http.Request) *core.MifyRequestContext {
+	return r.Context().Value(MifyContextField).(*core.MifyRequestContext)
 }

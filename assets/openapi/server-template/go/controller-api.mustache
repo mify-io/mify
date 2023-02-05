@@ -244,18 +244,10 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isArray}}
 
 	{{/allParams}}
+	reqCtx := GetMifyRequestContext(r)
+
 	var result ServiceResponse
-	builder := r.Context().Value(MifyContextField).(*core.MifyRequestContextBuilder)
-	defer LogHandler(builder, requestBody, &result, &handlerErr)()
-
-
-	reqCtx, err := builder.Build(r, w)
-	if err != nil {
-		handlerErr = err
-		result = Response(http.StatusInternalServerError, nil)
-		c.errorHandler(w, r, err, &result)
-		return
-	}
+	defer LogHandler(reqCtx, requestBody, &result, &handlerErr)()
 
 	var herr error
 	result, herr = c.service.{{nickname}}(reqCtx{{#allParams}}, {{paramName}}Param{{/allParams}})
