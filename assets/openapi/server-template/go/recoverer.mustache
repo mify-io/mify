@@ -21,7 +21,7 @@ func Recoverer() func(next http.Handler) http.Handler {
 					if rc == http.ErrAbortHandler {
 						panic(rc)
 					}
-					reqCtx := GetMifyRequestContext(r)
+					reqCtx := getMifyRequestContextBuilder(r)
 					err, ok := rc.(error)
 					if !ok {
 						err = fmt.Errorf("%v", r)
