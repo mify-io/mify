@@ -44,15 +44,15 @@ type Router interface {
 const errMsgRequiredMissing = "required parameter is missing"
 
 // NewRouter creates a new router for any number of api routers
-func NewRouter(mifyCtx *core.MifyServiceContext, routerConfig RouterConfig, routers ...Router) {{#routers}}chi.Router{{/routers}} {
+func NewRouter(mifyCtx *core.MifyServiceContext, routerConfig RouterConfig, reqExtraFactory core.RequestExtraFactory, routers ...Router) {{#routers}}chi.Router{{/routers}} {
 {{#routers}}
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
-	router.Use(RequestContextInitBuilder(mifyCtx))
+	router.Use(requestContextInitBuilder(mifyCtx))
 	router.Use(Recoverer())
 	router.Use(Metrics())
 	router.Use(CORS())
-	router.Use(RequestContextBuild())
+	router.Use(requestContextBuild(reqExtraFactory))
 	for _, middleware := range routerConfig.Middlewares() {
 		router.Use(middleware)
 	}

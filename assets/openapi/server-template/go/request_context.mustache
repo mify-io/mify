@@ -9,15 +9,13 @@ import (
 	"net/http"
 
 	"{{goModule}}/internal/{{serviceName}}/generated/core"
+	"{{goModule}}/internal/{{serviceName}}/generated/api/public"
 )
 
 type ctxKeyMifyContextBuilder int
 const MifyContextBuilderField ctxKeyMifyContextBuilder = 0
 
-type ctxKeyMifyContext int
-const MifyContextField ctxKeyMifyContext = 0
-
-func RequestContextInitBuilder(sc *core.MifyServiceContext) func(next http.Handler) http.Handler {
+func requestContextInitBuilder(sc *core.MifyServiceContext) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
@@ -34,13 +32,18 @@ func RequestContextInitBuilder(sc *core.MifyServiceContext) func(next http.Handl
 	}
 }
 
-func RequestContextBuild() func(next http.Handler) http.Handler {
+func requestContextBuild(requestExtraFactory core.RequestExtraFactory) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			builder := getMifyRequestContextBuilder(r)
+			reqExtra, err := requestExtraFactory(builder.ServiceContext())
+			if err != nil {
+				panic(err)
+			}
+			builder.SetRequestExtra(reqExtra)
 			mifyCtx := builder.Build(r, w)
 
-			ctx := context.WithValue(r.Context(), MifyContextField, mifyCtx)
+			ctx := context.WithValue(r.Context(), public.MifyContextField, mifyCtx)
 			ctx = context.WithValue(ctx, MifyContextBuilderField, nil)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -51,11 +54,4 @@ func RequestContextBuild() func(next http.Handler) http.Handler {
 
 func getMifyRequestContextBuilder(r *http.Request) *core.MifyRequestContextBuilder {
 	return r.Context().Value(MifyContextBuilderField).(*core.MifyRequestContextBuilder)
-}
-
-// GetRequestContext allows getting current request context in between
-// middleware calls. This is useful for accessing sevice dependencies inside
-// middleware, while keeping the context flow intact.
-func GetMifyRequestContext(r *http.Request) *core.MifyRequestContext {
-	return r.Context().Value(MifyContextField).(*core.MifyRequestContext)
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"{{.AppImportPath}}"
+	"{{.AppRouterImportPath}}"
 	"{{.InitImportPath}}"
 	"{{.CoreImportPath}}"
 	"{{.ApiImportPath}}"
@@ -22,7 +23,7 @@ type routerConfig struct {
 }
 
 func newRouterConfig(ctx *core.MifyServiceContext) *routerConfig {
-	conf := app.NewRouterConfig(ctx)
+	conf := router.NewRouterConfig(ctx)
 	return &routerConfig {
 		middlewares: conf.Middlewares,
 	}
@@ -69,10 +70,21 @@ func NewMifyServiceApp(goGontext context.Context) *MifyServiceApp {
 		panic(err)
 	}
 
+	reqExtraFactoryWrapper := func(ctx *core.MifyServiceContext) (interface{}, error) {
+		return app.NewRequestExtra(ctx)
+	}
+
 	return &MifyServiceApp{
 		context: serviceContext,
-		maintenanceRouter: openapi.NewRouter(serviceContext, newRouterConfig(serviceContext), maintenanceRouter{}),
-		apiRouter: openapi_init.Routes(serviceContext, newRouterConfig(serviceContext)),
+		maintenanceRouter: openapi.NewRouter(
+			serviceContext,
+			newRouterConfig(serviceContext),
+			func(ctx *core.MifyServiceContext) (interface{}, error) { return nil, nil },
+			maintenanceRouter{}),
+		apiRouter: openapi_init.Routes(
+			serviceContext,
+			newRouterConfig(serviceContext),
+			reqExtraFactoryWrapper),
 	}
 }
 

@@ -1,0 +1,20 @@
+{{>partial_header}}
+// vim: set ft=go:
+package {{packageName}}
+
+import (
+	"net/http"
+
+	"{{goModule}}/internal/{{serviceName}}/generated/core"
+)
+
+type ctxKeyMifyContext int
+
+const MifyContextField ctxKeyMifyContext = 0
+
+// GetRequestContext allows getting current request context in between
+// middleware calls. This is useful for accessing sevice dependencies inside
+// middleware, while keeping the context flow intact.
+func GetMifyRequestContext(r *http.Request) *core.MifyRequestContext {
+	return r.Context().Value(MifyContextField).(*core.MifyRequestContext)
+}

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"{{goModule}}/internal/{{serviceName}}/generated/core"
+	"{{goModule}}/internal/{{serviceName}}/generated/api/public"
 {{#routers}}
 {{/routers}}
 )
@@ -244,7 +245,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isArray}}
 
 	{{/allParams}}
-	reqCtx := GetMifyRequestContext(r)
+	reqCtx := public.GetMifyRequestContext(r)
 
 	var result ServiceResponse
 	defer LogHandler(reqCtx, requestBody, &result, &handlerErr)()

@@ -16,11 +16,11 @@ import (
 {{/paths}}{{/openAPI}}
 )
 
-func Routes(ctx *core.MifyServiceContext, routerConfig openapi.RouterConfig) {{#routers}}chi.Router{{/routers}} {
+func Routes(ctx *core.MifyServiceContext, routerConfig openapi.RouterConfig, reqExtraFactory core.RequestExtraFactory) {{#routers}}chi.Router{{/routers}} {
 {{#apiInfo}}{{#apis}}
 	{{classname}}Service := {{classFilename}}.New{{classname}}Service()
 	{{classname}}Controller := {{packageName}}.New{{classname}}Controller(ctx, {{classname}}Service)
 {{/apis}}{{/apiInfo}}
-	router := {{packageName}}.NewRouter(ctx, routerConfig, {{#apiInfo}}{{#apis}}{{classname}}Controller{{^-last}}, {{/-last}}{{/apis}}{{/apiInfo}})
+	router := {{packageName}}.NewRouter(ctx, routerConfig, reqExtraFactory, {{#apiInfo}}{{#apis}}{{classname}}Controller{{^-last}}, {{/-last}}{{/apis}}{{/apiInfo}})
 	return router
 }

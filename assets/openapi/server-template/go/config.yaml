@@ -18,6 +18,9 @@ files:
   init/routes.mustache:
     destinationFilename: routes.go
     folder: api/init
+  public/req_ctx_access.mustache:
+    destinationFilename: req_ctx_access.go
+    folder: public/req_ctx_access
   metrics.mustache:
     destinationFilename: metrics.go
     folder: api
