@@ -14,6 +14,8 @@ import (
 	"{{.MetricsImportPath}}"
 )
 
+type RequestExtraFactory func (ctx *MifyServiceContext) (interface{}, error)
+
 type MifyRequestContextBuilder struct {
 	requestId    string
 	protocol     string

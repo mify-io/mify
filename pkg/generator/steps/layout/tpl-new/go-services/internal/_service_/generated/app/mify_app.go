@@ -7,12 +7,13 @@ import (
 )
 
 type mifyAppModel struct {
-	TplHeader      string
-	ServiceName    string
-	AppImportPath  string
-	InitImportPath string
-	CoreImportPath string
-	ApiImportPath  string
+	TplHeader           string
+	ServiceName         string
+	AppImportPath       string
+	AppRouterImportPath string
+	InitImportPath      string
+	CoreImportPath      string
+	ApiImportPath       string
 }
 
 func newMifyAppModel(ctx *gencontext.GenContext) mifyAppModel {
@@ -23,6 +24,10 @@ func newMifyAppModel(ctx *gencontext.GenContext) mifyAppModel {
 		CoreImportPath: ctx.GetWorkspace().GetCoreIncludePath(ctx.MustGetMifySchema().ServiceName),
 		AppImportPath: fmt.Sprintf(
 			"%s/internal/%s/app",
+			ctx.GetWorkspace().GetGoModule(),
+			ctx.MustGetMifySchema().ServiceName),
+		AppRouterImportPath: fmt.Sprintf(
+			"%s/internal/%s/app/router",
 			ctx.GetWorkspace().GetGoModule(),
 			ctx.MustGetMifySchema().ServiceName),
 		InitImportPath: fmt.Sprintf(

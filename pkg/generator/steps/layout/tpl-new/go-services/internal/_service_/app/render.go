@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/go-services/internal/_service_/app/router"
 	"github.com/mify-io/mify/pkg/util/render"
 )
 
@@ -34,6 +35,10 @@ func Render(ctx *gencontext.GenContext) error {
 		serviceExtraModel, serviceExtraPath, migrationSettings)
 	if err != nil {
 		return render.WrapError(fmt.Sprintf("file %s", serviceExtraPath), err)
+	}
+
+	if err := router.Render(ctx); err != nil {
+		return render.WrapError("router", err)
 	}
 
 	return nil
