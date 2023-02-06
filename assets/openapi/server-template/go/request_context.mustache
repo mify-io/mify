@@ -37,7 +37,7 @@ func RequestContextInitBuilder(sc *core.MifyServiceContext) func(next http.Handl
 func RequestContextBuild() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			builder := GetMifyRequestContextBuilder(r)
+			builder := getMifyRequestContextBuilder(r)
 			mifyCtx := builder.Build(r, w)
 
 			ctx := context.WithValue(r.Context(), MifyContextField, mifyCtx)
@@ -49,10 +49,7 @@ func RequestContextBuild() func(next http.Handler) http.Handler {
 	}
 }
 
-// GetRequestContextBuilder allows getting current request context in between
-// middleware calls. This is useful for accessing sevice dependencies inside
-// middleware, while keeping the context flow intact.
-func GetMifyRequestContextBuilder(r *http.Request) *core.MifyRequestContextBuilder {
+func getMifyRequestContextBuilder(r *http.Request) *core.MifyRequestContextBuilder {
 	return r.Context().Value(MifyContextBuilderField).(*core.MifyRequestContextBuilder)
 }
 
