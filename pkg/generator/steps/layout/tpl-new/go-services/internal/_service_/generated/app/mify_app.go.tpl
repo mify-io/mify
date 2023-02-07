@@ -79,7 +79,7 @@ func NewMifyServiceApp(goGontext context.Context) *MifyServiceApp {
 		maintenanceRouter: openapi.NewRouter(
 			serviceContext,
 			newRouterConfig(serviceContext),
-			func(ctx *core.MifyServiceContext) (interface{}, error) { return nil, nil },
+			reqExtraFactoryWrapper,
 			maintenanceRouter{}),
 		apiRouter: openapi_init.Routes(
 			serviceContext,
