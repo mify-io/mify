@@ -39,7 +39,7 @@ Now we can finally implement the handler (`go-services/internal/counting-backend
 ```go
 // CounterNextGet - get next number
 func (s *CounterNextApiService) CounterNextGet(ctx *core.MifyRequestContext) (openapi.ServiceResponse, error) {
-	svcCtx := ctx.ServiceExtra().(*app.ServiceExtra) // get custom dependencies from context
+	svcCtx := apputil.GetServiceExtra(ctx.ServiceContext()) // get custom dependencies from context
 	currentNumber := svcCtx.Counter
 
 	svcCtx.Counter++
@@ -50,10 +50,10 @@ func (s *CounterNextApiService) CounterNextGet(ctx *core.MifyRequestContext) (op
 }
 ```
 
-Add import for `app.ServiceExtra` and remove unused ones:
+Add import for `apputil.GetServiceExtra` and remove unused ones:
 ```
 import (
-	"example.com/namespace/counting-project/go-services/internal/counting-backend/app"
+	"example.com/namespace/counting-project/go-services/internal/counting-backend/apputil"
 	"example.com/namespace/counting-project/go-services/internal/counting-backend/generated/api"
 	"example.com/namespace/counting-project/go-services/internal/counting-backend/generated/core"
 )

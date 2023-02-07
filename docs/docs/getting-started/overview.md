@@ -23,7 +23,7 @@ need to install before starting developing in your choosen template:
 - Go:
   - Go >= 1.18
 
-- Python:
+- Python (beta):
   - Python >= 3.8
   - python3-pip
   - python3-venv
