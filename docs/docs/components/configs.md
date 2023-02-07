@@ -1,18 +1,19 @@
 ---
-sidebar_position: 0
+sidebar_position: 3
 ---
 
-# Using configuration in your application
+# Configs
 
-All mify services have simple generated interface to read static configs.
+All Mify services have simple generated interface to read static (environment)
+and dynamic (Consul) configs.
 
-## Working with static configuration
+## Static configs
 
 A static configuration provider is responsible for interacting with any kind of configuration which can't
 be changed during application execution. If such configuration changes, it requires application restarting.
 Now, this provider supports only ENV configuration.
 
-Let's add such a configuration to `counting-backend` service.
+Let's add such a configuration to `counting-backend` service from our guides.
 First, we have to create a new struct that will describe possible values in our new configuration.
 For that, navigate to the file with the previously implemented API handler (`go-services/internal/counting-backend/handlers/counter/next/service.go`).
 
@@ -34,14 +35,14 @@ handler as shown below:
 ```go
 // CounterNextGet - get next number
 func (s *CounterNextApiService) CounterNextGet(ctx *core.MifyRequestContext) (openapi.ServiceResponse, error) {
-  svcCtx := ctx.ServiceExtra().(*app.ServiceExtra) // get custom dependencies from context
+  svcCtx := apputil.GetServiceExtra(ctx.ServiceContext()) // get custom dependencies from context
   currentNumber := svcCtx.Counter
 
   // NEW CODE
   cfg, err := core.GetStaticConfig[CountingAppConf](ctx)
-	if err != nil {
-		return openapi.ServiceResponse{}, err
-	}
+    if err != nil {
+        return openapi.ServiceResponse{}, err
+    }
 
   svcCtx.Counter += cfg.IncStep
   // END OF NEW CODE
@@ -57,7 +58,7 @@ func (s *CounterNextApiService) CounterNextGet(ctx *core.MifyRequestContext) (op
 Also, another method to access config exists: `MustGetStaticConfig`. This method doesn't return any error but raises
 `panic` if any error occurred.
 
-## Building and testing
+### Building and testing
 
 Now let's test our new code. Since we are using `envconfig`, we should specify the required env variable before
 the application is started. For doing that, just run your `counting-backend` like this:
@@ -72,3 +73,5 @@ $ curl 'http://localhost:33767/counter/next'
 $ curl 'http://localhost:33767/counter/next'
 {"number":3}
 ```
+
+Dynamic configs have the same interface as static configs.

@@ -12,16 +12,16 @@ to receive your token. Follow through the link and Sign in the Mify Cloud,
 after that you'll be notified by email when you'll be able to access the cloud
 console.
 
-When you'll get the access, you'll see dashboard with the next steps for
+When you'll get the access, at first you'll be prompted to create your organization.
+If you have no organization for your team, create it from here. If you want to
+join existing organization, ping us on Slack.
+
+After creating organization, you'll see dashboard with the next steps for
 getting the token: ![](/img/docs/cloud-get-token.png)
 
 Click on the "Generate New Service Token" button and copy result into the `mify
 cloud init` prompt.
 
-## Registering workspace
-
-After getting your token the tool will ask you for your unique project name, you can
-either use your workspace directory name or choose something else. Then, select
-environment, either `stage` or `prod`. When you get the message that you're
-successfully registered your project you are ready to deploy your services.
-
+`mify cloud init` will link your project and organization to your workspace
+and it'll update your `~/.kube/config` with credentials to connect to Mify Cloud's
+Kubernetes.

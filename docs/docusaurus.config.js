@@ -91,7 +91,7 @@ const config = {
             items: [
               {
                 label: 'Slack',
-                href: '#',
+                href: 'https://join.slack.com/t/mifyio/shared_invite/zt-1llnbiio6-lG45E696QOEVzHb0__Qqxw',
               },
               {
                 label: 'Stack Overflow',
