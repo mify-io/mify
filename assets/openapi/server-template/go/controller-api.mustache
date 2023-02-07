@@ -245,7 +245,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isArray}}
 
 	{{/allParams}}
-	reqCtx := public.GetMifyRequestContext(r)
+	reqCtx := openapi_public.GetMifyRequestContext(r)
 
 	var result ServiceResponse
 	defer LogHandler(reqCtx, requestBody, &result, &handlerErr)()

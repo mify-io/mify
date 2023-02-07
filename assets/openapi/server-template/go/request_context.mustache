@@ -43,7 +43,7 @@ func requestContextBuild(requestExtraFactory core.RequestExtraFactory) func(next
 			builder.SetRequestExtra(reqExtra)
 			mifyCtx := builder.Build(r, w)
 
-			ctx := context.WithValue(r.Context(), public.MifyContextField, mifyCtx)
+			ctx := context.WithValue(r.Context(), openapi_public.MifyContextField, mifyCtx)
 			ctx = context.WithValue(ctx, MifyContextBuilderField, nil)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
