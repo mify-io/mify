@@ -77,7 +77,7 @@ func HandleRouterError(status int) http.HandlerFunc {
 		errorMsg := http.StatusText(status)
 		result = Response(status, NewDefaultError(status, errorMsg))
 		handlerErr := errors.New(errorMsg)
-		reqCtx := public.GetMifyRequestContext(r)
+		reqCtx := openapi_public.GetMifyRequestContext(r)
 		defer LogHandler(reqCtx, requestBody, &result, &handlerErr)()
 		DefaultErrorHandler(w, r, handlerErr, &result)
 	}

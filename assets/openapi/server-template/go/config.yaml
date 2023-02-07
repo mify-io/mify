@@ -20,7 +20,7 @@ files:
     folder: api/init
   public/req_ctx_access.mustache:
     destinationFilename: req_ctx_access.go
-    folder: public/req_ctx_access
+    folder: api/public
   metrics.mustache:
     destinationFilename: metrics.go
     folder: api
