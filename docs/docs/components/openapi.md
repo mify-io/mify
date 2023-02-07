@@ -13,7 +13,7 @@ top.
 
 ## Middlewares and ServiceExtra
 
-In `internal/<service-name>/app/service_extra.go` you can see this layout:
+In `internal/<service-name>/app/router/router.go` you can see this layout:
 
 ```go
 // vim: set ft=go:
@@ -37,25 +37,12 @@ func NewRouterConfig(ctx *core.MifyServiceContext) *routerConfig {
 		},
 	}
 }
-
-type ServiceExtra struct {
-	// Append your dependencies here
-}
-
-func NewServiceExtra(ctx *core.MifyServiceContext) (*ServiceExtra, error) {
-	// Here you can do your custom service initialization, prepare dependencies
-	extra := &ServiceExtra{
-		// Here you can initialize your dependencies
-	}
-	return extra, nil
-}
 ```
 
 In `NewRouterConfig` you can add your custom middlewares e.g. for auth.
 
-Below it there is `ServiceExtra`. This is your go to place to add dependencies
-for components and handlers. The `ServiceExtra` struct will be available in handlers
-via `MifyRequestContext`.
+To add some dependencies which are bootstrapping for each request you can use file `internal/<service-name>/app/request_extra.go` and this dependency will be available in the `MifyRequestContext` struct.
+For dependencies which are bootstrapping for service one time during initialization you can use `internal/<service-name>/app/service_extra.go` and this dependency will be available in the `MifyServiceContext` struct (which is nested in `MifyRequestContext`)
 
 ## Swagger UI
 
