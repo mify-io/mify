@@ -96,9 +96,12 @@ Now run command to apply changed schema:
 mify generate counting-backend
 ```
 
-*NOTE: If you remove or change the name of the handler after you ran `mify
+:::caution
+If you remove or change the name of the handler after you ran `mify
 generate` you need to delete directory with generated files and then re-run
-`mify generate` command. Directory with generated files is located in
-`go-services/internal/counting-backend/generated`.*
+`mify generate` command.
+
+Directory with generated files is located in `go-services/internal/counting-backend/generated`.
+:::
 
 Now we have our handler and we are ready to implement the logic.

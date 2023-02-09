@@ -86,7 +86,7 @@ $ go install github.com/mify-io/mify/cmd/mify@latest
 
 ## Quick Start
 
-Create your first project: https://mify.io/docs/getting-started/create-project
+Create your first project: https://mify.io/docs
 
 Guide on how to create sample backend and frontend app: https://mify.io/docs/guides/overview
 
