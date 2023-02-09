@@ -283,7 +283,7 @@ func CloudUpdateKubeconfig(ctx *CliContext, environment string) error {
 	user := api.NewAuthInfo()
 	user.Token = string(token)
 
-	contextName := data.ServiceAccount + "@" + clusterName
+	contextName := data.ServiceAccount + "@" + clusterName + "-" + context.Namespace
 	kubeConfig.Clusters[clusterName] = cluster
 	kubeConfig.Contexts[contextName] = context
 	kubeConfig.AuthInfos[data.ServiceAccount] = user
@@ -301,5 +301,5 @@ func getKubeContextName(ctx *CliContext, env string) (string, error) {
 	if len(wspc.Config.ProjectName) == 0 {
 		return "", fmt.Errorf("failed to get kubeconfig context, no project registered in cloud")
 	}
-	return "namespace-manager@mifykube-" + env, nil
+	return fmt.Sprintf("namespace-manager@mifykube-%s-%s-%s", env, wspc.Config.ProjectName, env), nil
 }

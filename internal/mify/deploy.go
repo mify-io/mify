@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/mify-io/mify/internal/mify/util/docker"
+	"github.com/mify-io/mify/pkg/cloudconfig"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 )
 
@@ -67,6 +68,7 @@ func deploy(ctx *CliContext, deployEnv string, serviceName string) error {
 		Env: []string{
 			"MIFY_API_TOKEN=" + strings.TrimSpace(ctx.Config.APIToken),
 			"DEPLOY_ENVIRONMENT=" + deployEnv,
+			"MIFY_K8S_CONTROL_URL=" + strings.ReplaceAll(cloudconfig.GetCloudApiURL(), "/api", ""),
 		},
 		Tty: true,
 	}

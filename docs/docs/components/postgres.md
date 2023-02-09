@@ -77,7 +77,9 @@ After you created all migrations and tested them locally, when you run `mify
 cloud deploy <service-name>` it will automatically apply all migrations before
 deploying new version of the service.
 
-_NOTE:_ Ping us in Slack when you ready to use Postgres, we'll set it up for you.
+:::info
+Ping us in Slack when you ready to use Postgres, we'll set it up for you.
+:::
 
 ### Connecting to database in Mify Cloud
 

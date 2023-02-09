@@ -2,39 +2,26 @@
 sidebar_position: 1
 ---
 
-# Installation
+# Why Mify
 
-You can get the latest Mify CLI from [GitHub](https://github.com/mify-io/mify/releases).
+Starting a new project is a repetitive and unnecessarily complicated task.
+Every time you'll need to choose a language, find a framework, set up storage,
+configuration, logging, metrics, and many more things, duct tape it all
+together until it works. And it doesn't stop there, after all of that
+you'll need to write infrastructure code and configs to set up deployment.
 
-Before using it you need to install and start Docker which is used for running
-some code generation tasks, You can refer to Docker's
-[guide](https://docs.docker.com/get-docker/) for installation.
+But it doesn't have to be that way - Mify is designed to remove this repetitive
+work from a developer and generate everything required to just start writing
+meaningful code. With Mify these steps, which would take you months, are
+implemented in simple commands of a CLI tool.
 
-## Supported platforms
+### Why not use NoCode or Lambda
 
-Right now Mify should work on Linux, Mac and WSL.
+It's true that you can use no code or low-code solutions to skip these hurdles
+but these platforms only solve limited use cases, and it's hard to move out of
+them if you need something more, so after a while, you would have to throw away
+all of your work to continue expanding the project.
 
-## Development prerequisites
-
-At this moment Mify supports Go and Python language based templates for
-backends, and NuxtJS and React on Typescript for frontends, here's what you
-need to install before starting developing in your choosen template:
-
-- Go:
-  - Go >= 1.18
-
-- Python (beta):
-  - Python >= 3.8
-  - python3-pip
-  - python3-venv
-
-- NuxtJS, React:
-  - Node >= 18.12.1
-  - Yarn
-
-## Getting the last version
-
-You can always install mify from main branch using Go:
-```sh
-$ go install github.com/mify-io/mify/cmd/mify@latest
-```
+We believe in open platforms and Mify, which is an open-source tool, doesn't
+lock you in, in our generated code we strive to use the best industry practices
+which will help your project in the long term.
