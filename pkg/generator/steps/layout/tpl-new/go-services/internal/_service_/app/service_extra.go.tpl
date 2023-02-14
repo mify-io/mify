@@ -3,8 +3,6 @@
 package app
 
 import (
-	"net/http"
-
 	"{{.CoreInclude}}"
 )
 
