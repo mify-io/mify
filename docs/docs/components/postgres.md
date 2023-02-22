@@ -17,12 +17,57 @@ postgres:
 After that you will be able to get `pgxpool.Pool` from `MifyServiceContext`
 `Postgres()` method. You can use it to directly make queries or use in some library.
 
-Here's an example how you can use it:
+### Using without helpers
+
+Here's an example how you can use it, just run queries from pool, which is created on startup:
 ```go
 
 func (s *PathToApiService) PathToApiGet(ctx *core.MifyRequestContext) (openapi.ServiceResponse, error) {
     rows, err := ctx.Postgres().Query(ctx, "SELECT * FROM table");
     ...
+}
+```
+
+### Using with sqlc
+
+After adding postgres you will notice `sql-queries/<service_db_name>` directory
+inside `go-services`. Create any file with `.sql` extension and refer to
+`queries.sql.example` or sqlc [documentation](https://docs.sqlc.dev/en/latest/tutorials/getting-started-postgresql.html)
+for adding queries. After you add them, run `mify generate` to translate them
+to go. Generated helpers with lie in `postgres` package, here's an example of
+how to use them, assuming you followed sqlc tutorial:
+
+```go
+// Call this from service_extra.go
+func NewAuthorsStorage(ctx *core.MifyServiceContext) *AuthorsStorage {
+    return &AuthorsStorage{
+        pool: ctx.Postgres(),
+    }
+}
+
+func (s *AuthorsStorage) CreateAuthor(
+    ctx *core.MifyRequestContext, name string, bio string) (domain.Author, error) {
+    dbConn := postgres.New(s.pool)
+    tx, err := s.pool.BeginTx(ctx, pgx.TxOptions{})
+    if err != nil {
+        return domain.Author{}, err
+    }
+    defer tx.Rollback(ctx)
+    res, err := dbConn.WithTx(tx).CreateAuthor(ctx, postgres.CreateAuthorParams{
+        Name: name,
+        Bio: bio,
+    })
+    if err != nil {
+        return domain.Author{}, err
+    }
+    if err := tx.Commit(ctx); err != nil {
+        return domain.Author{}, err
+    }
+    return domain.Author{
+        ID: res.ID,
+        Name: res.Name,
+        Bio: res.Bio,
+    }, nil
 }
 ```
 

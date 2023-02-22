@@ -55,9 +55,15 @@ const config = {
             label: 'Docs',
           },
           {
-            href: '#',
+            type: 'doc',
+            docId: 'cloud/overview',
             position: 'right',
             label: 'Cloud',
+          },
+          {
+            href: 'https://mify.io/pricing',
+            label: 'Pricing',
+            position: 'right',
           },
           {
             href: 'https://github.com/mify-io/mify',

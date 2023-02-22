@@ -588,3 +588,11 @@ func (c *Description) GetMigrationsDirectory(databaseName string, lang mifyconfi
 	}
 	return "", ErrUnsupportedLanguage
 }
+
+func (c *Description) GetSqlQueriesDirectory(databaseName string, lang mifyconfig.ServiceLanguage) (string, error) {
+	switch lang {
+	case mifyconfig.ServiceLanguageGo:
+		return filepath.Join(c.GetGoServicesAbsPath(), "sql-queries", databaseName), nil
+	}
+	return "", ErrUnsupportedLanguage
+}
