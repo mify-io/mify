@@ -12,6 +12,7 @@ var (
 	addClientName      string
 	addServiceLanguage string
 	addFrontendType    string
+	addDatabaseEngine  string
 )
 
 var addServiceCmd = &cobra.Command{
@@ -71,11 +72,25 @@ var addApiGatewayCmd = &cobra.Command{
 	},
 }
 
+var addDatabase = &cobra.Command{
+	Use:   "database",
+	Short: "Add database",
+	Long:  `Add a database to workspace (default is Postgres)`,
+	Run: func(cmd *cobra.Command, args []string) {
+		for _, ival := range args {
+			if err := mify.AddPostgres(appContext, workspacePath, ival); err != nil {
+				fmt.Fprintf(os.Stderr, "failed to add postgres to service: %s\n", err)
+				os.Exit(2)
+			}
+		}
+	},
+}
+
 // addCmd represents the add command
 var addCmd = &cobra.Command{
 	Use:   "add",
-	Short: "Add <service|client|frontend>",
-	Long:  `Add a service, frontend or clients`,
+	Short: "Add <service|client|frontend|database>",
+	Long:  `Add a service, frontend or clients, or database`,
 	PersistentPreRun: func(*cobra.Command, []string) {
 		err := appContext.LoadWorkspace()
 		if err != nil {
@@ -107,8 +122,18 @@ func init() {
 		"Template (e.g. nuxtjs, react-ts)",
 	)
 
+	addDatabase.PersistentFlags().StringVarP(
+		&addDatabaseEngine,
+		"engine",
+		"e",
+		"postgres",
+		"DB Engine (Postgres, for now)",
+	)
+
 	addCmd.AddCommand(addServiceCmd)
 	addCmd.AddCommand(addClientCmd)
 	addCmd.AddCommand(addFrontendCmd)
 	addCmd.AddCommand(addApiGatewayCmd)
+	addCmd.AddCommand(addApiGatewayCmd)
+	addCmd.AddCommand(addDatabase)
 }
