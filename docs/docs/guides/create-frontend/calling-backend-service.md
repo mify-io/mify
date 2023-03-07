@@ -28,7 +28,7 @@ export default {
     }
   },
   async fetch() {
-    let countingBackend = this.$clients.countingBackend();
+    let countingBackend = this.$mifyContext.clients.countingBackend();
     try {
         var resp = await countingBackend.counterNextGet();
         this.counter = resp.number;

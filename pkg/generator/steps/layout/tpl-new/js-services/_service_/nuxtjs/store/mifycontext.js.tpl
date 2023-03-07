@@ -3,7 +3,7 @@ import MifyContext from '../generated/core/context'
 
 export function newContext() {
     return {
-        "config": MifyContext.getConfig(),
+        "config": MifyContext.config,
     }
 }
 
