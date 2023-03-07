@@ -229,6 +229,7 @@ func (g *OpenAPIGenerator) readSchema(ctx *gencontext.GenContext, schemaPath str
 	if err != nil {
 		return nil, err
 	}
+	openapi3.DefineStringFormat("uuid", openapi3.FormatOfStringForUUIDOfRFC4122)
 	err = openapiDoc.Validate(ctx.GetGoContext())
 	if err != nil {
 		return nil, err
