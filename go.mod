@@ -117,7 +117,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/stretchr/testify v1.8.0
 	go.uber.org/zap v1.20.0
-	golang.org/x/net v0.6.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
 	google.golang.org/genproto v0.0.0-20220126215142-9970aeb2e350 // indirect
 	google.golang.org/grpc v1.44.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
