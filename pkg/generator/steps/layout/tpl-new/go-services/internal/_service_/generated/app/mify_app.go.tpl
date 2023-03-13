@@ -45,7 +45,7 @@ func (r maintenanceRouter) Routes() openapi.Routes {
 	return []openapi.Route {
 		{
 			Name: "metrics",
-			Method: "post",
+			Method: "get",
 			Pattern: "/metrics",
 			HandlerFunc: func(rw http.ResponseWriter, r *http.Request) {
 				promhttp.Handler().ServeHTTP(rw, r)
