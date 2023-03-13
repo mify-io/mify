@@ -16,6 +16,8 @@ import (
 
 type RequestExtraFactory func (ctx *MifyServiceContext) (interface{}, error)
 
+var reqMetrics *metrics.RequestMetrics = metrics.NewRequestMetrics()
+
 type MifyRequestContextBuilder struct {
 	requestId    string
 	protocol     string
@@ -31,7 +33,7 @@ func NewMifyRequestContextBuilder(serviceContext *MifyServiceContext) *MifyReque
 	return &MifyRequestContextBuilder{
 		logger:         serviceContext.Logger(),
 		serviceContext: serviceContext,
-		metrics:        metrics.NewRequestMetrics(),
+		metrics:        reqMetrics,
 	}
 }
 
