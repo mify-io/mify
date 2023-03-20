@@ -99,6 +99,8 @@ func (p *goPostProcessor) PopulateServerHandlers(ctx *gencontext.GenContext, pat
 	pathsSet := map[string]string{}
 	for _, path := range paths {
 		ctx.Logger.Infof("pre path: %s", path)
+		path = strings.ReplaceAll(path, "{", "")
+		path = strings.ReplaceAll(path, "}", "")
 		pathsSet[toAPIFilename(path)] = path
 	}
 	ctx.Logger.Infof("paths: %v", pathsSet)
