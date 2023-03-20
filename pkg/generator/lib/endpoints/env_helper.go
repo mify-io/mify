@@ -44,3 +44,18 @@ func SnakeCaseToCamelCase(inputUnderScoreStr string, capitalize bool) (camelCase
 	}
 	return
 }
+
+func CamelCaseToSnakeCase(inputCamelCaseStr string) string {
+	var outputSnakeCaseStr string
+	for i, r := range inputCamelCaseStr {
+		if unicode.IsUpper(r) {
+			if i > 0 && unicode.IsLower(rune(inputCamelCaseStr[i-1])) {
+				outputSnakeCaseStr += "_"
+			}
+			outputSnakeCaseStr += string(unicode.ToLower(r))
+		} else {
+			outputSnakeCaseStr += string(r)
+		}
+	}
+	return outputSnakeCaseStr
+}

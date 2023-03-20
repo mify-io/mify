@@ -98,8 +98,7 @@ func (p *goPostProcessor) PopulateServerHandlers(ctx *gencontext.GenContext, pat
 	}
 	pathsSet := map[string]string{}
 	for _, path := range paths {
-		path = strings.ReplaceAll(path, "{", "")
-		path = strings.ReplaceAll(path, "}", "")
+		ctx.Logger.Infof("pre path: %s", path)
 		pathsSet[toAPIFilename(path)] = path
 	}
 	ctx.Logger.Infof("paths: %v", pathsSet)
@@ -218,22 +217,17 @@ func isReservedFilename(name string) bool {
 }
 
 var (
-	capitalLetterPattern = regexp.MustCompile(`([A-Z]+)([A-Z][a-z][a-z]+)`)
-	lowercasePattern     = regexp.MustCompile(`([a-z\d])([A-Z])`)
 	pkgSeparatorPattern  = regexp.MustCompile(`\.`)
 	dollarPattern        = regexp.MustCompile(`\$`)
 )
 
 // taken from openapi-generator
 func underscore(word string) string {
-	replacementPattern := "$1_$2"
 	// Replace package separator with slash.
-	result := pkgSeparatorPattern.ReplaceAllString(word, "/")
+	result := pkgSeparatorPattern.ReplaceAllString(word, "_")
 	// Replace $ with two underscores for inner classes.
 	result = dollarPattern.ReplaceAllString(result, "__")
-	// Replace capital letter with _ plus lowercase letter.
-	result = capitalLetterPattern.ReplaceAllString(result, replacementPattern)
-	result = lowercasePattern.ReplaceAllString(result, replacementPattern)
+	result = endpoints.CamelCaseToSnakeCase(result)
 	result = strings.ReplaceAll(result, "-", "_")
 	// replace space with underscore
 	result = strings.ReplaceAll(result, " ", "_")
@@ -246,7 +240,9 @@ func toAPIFilename(name string) string {
 	// NOTE: openapi-generator transforms tag to camelCase, we don't do that here
 	// we just remove slashes from path and then use openapi-generator logic
 	// to convert this path to filename.
-	api := strings.TrimPrefix(name, "/")
+	api := strings.ReplaceAll(name, "{", "")
+	api = strings.ReplaceAll(api, "}", "")
+	api = strings.TrimPrefix(api, "/")
 	api = strings.TrimSuffix(api, "/")
 	api = strings.ReplaceAll(api, "/", "_")
 	// replace - with _ e.g. created-at => created_at
