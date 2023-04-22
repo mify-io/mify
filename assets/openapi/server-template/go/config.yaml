@@ -36,6 +36,9 @@ files:
   recoverer.mustache:
     destinationFilename: recoverer.go
     folder: api
+  auth.mustache:
+    destinationFilename: auth.go
+    folder: api
 
 releaseNote: Release note
 httpUserAgent: User Agent
