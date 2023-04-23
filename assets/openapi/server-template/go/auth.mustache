@@ -1,0 +1,33 @@
+package openapi
+
+import "net/http"
+
+// AuthenticationHandler defines the required method for handling authentication.
+// You may implement it and inject this into a controller if
+// you would like authentication to be handled differently from the scheme described in openapi.
+// The handler generated based on openapi scheme will be passed in prev argument.
+type AuthenticationHandler func(prev *AuthenticationHandler, r *http.Request) (*ServiceResponse, error)
+
+// AuthorizationHandler defines the required method for handling authorization.
+// You may implement it and inject this into a controller if
+// you would like authorization to be handled differently from the scheme described in openapi
+// The handler generated based on openapi scheme will be passed in prev argument.
+type AuthorizationHandler func(prev *AuthorizationHandler, r *http.Request) (*ServiceResponse, error)
+
+// DefaultAuthenticationHandler does nothing and just forwards Authentication to inner openapiHandler which
+// will be injected in prev argument
+func DefaultAuthenticationHandler(prev *AuthenticationHandler, r *http.Request) (*ServiceResponse, error) {
+    if prev == nil {
+        return nil, nil
+    }
+    return (*prev)(nil, r)
+}
+
+// DefaultAuthenticationHandler does nothing and just forwards Authentication to inner openapiHandler which
+// will be injected in prev argument
+func DefaultAuthorizationHandler(prev *AuthorizationHandler, r *http.Request) (*ServiceResponse, error) {
+    if prev == nil {
+        return nil, nil
+    }
+    return (*prev)(nil, r)
+}
