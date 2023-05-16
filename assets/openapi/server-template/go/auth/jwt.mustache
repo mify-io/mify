@@ -1,0 +1,84 @@
+{{>partial_header}}
+// vim: set ft=go:
+package {{packageName}}_auth
+
+import (
+	"context"
+	"fmt"
+	"github.com/MicahParks/keyfunc/v2"
+	"github.com/golang-jwt/jwt/v5"
+	"net/http"
+	"net/url"
+	"strings"
+	"sync"
+)
+
+// JWTTokenContextKey is the key used in the request
+// context for storing parsed and validated jwt token
+type JWTTokenContextKey struct{}
+
+type JwtValidateParams struct {
+	Issuer   string
+	JwksUrl  string
+	Audience string
+}
+
+var jwksProviderOnce sync.Once
+var jwksProvider *keyfunc.JWKS
+
+func extractTokenFromHeader(r *http.Request) (string, error) {
+	authorizationHeader := r.Header.Get("Authorization")
+	if authorizationHeader == "" {
+		return "", &AuthenticationValidationError{Msg: "Authorization header missing"}
+	}
+
+	const bearerSchema = "Bearer "
+	if !strings.HasPrefix(authorizationHeader, bearerSchema) {
+		return "", &AuthenticationValidationError{Msg: "Invalid authorization header value. %s was expected"}
+	}
+
+	token := authorizationHeader[len(bearerSchema):]
+	if token == "" {
+		return "", &AuthenticationValidationError{Msg: "Authorization token is empty"}
+	}
+
+	return token, nil
+}
+
+func maybeInitJwksProvider(url string) error {
+	var res error
+	jwksProviderOnce.Do(func() {
+		jwks, err := keyfunc.Get(url, keyfunc.Options{
+				RefreshErrorHandler: func(err error) {
+				// TODO: log
+			},
+		})
+
+		jwksProvider = jwks
+		res = err
+	})
+
+	return res
+}
+
+func HandleJwtAuthentication(r *http.Request, params *JwtValidateParams) (*http.Request, error) {
+	token, err := extractTokenFromHeader(r)
+	if err != nil {
+		return r, err
+	}
+
+	err = maybeInitJwksProvider(params.JwksUrl)
+	if err != nil {
+		return r, err
+	}
+
+	parsedToken, err := jwt.Parse(token, jwksProvider.Keyfunc, jwt.WithAudience(params.Audience), jwt.WithIssuer(params.Issuer))
+	if err != nil {
+		return r, &AuthenticationValidationError{Msg: err.Error()}
+	}
+
+	return r.WithContext(context.WithValue(r.Context(), JWTTokenContextKey{}, parsedToken)), nil
+}
+
+// Avoid unused function error if no jwt authentication is used by user
+var _ interface{} = HandleJwtAuthentication

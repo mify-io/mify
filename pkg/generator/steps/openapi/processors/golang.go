@@ -57,16 +57,7 @@ func (p *goPostProcessor) ProcessServer(ctx *gencontext.GenContext) error {
 	return nil
 }
 
-func (p *goPostProcessor) ProcessClient(ctx *gencontext.GenContext, clientName string) error {
-	targetPath, err := ctx.GetWorkspace().GetServiceGeneratedAPIRelPath(ctx.GetServiceName(), ctx.MustGetMifySchema().Language)
-	if err != nil {
-		return err
-	}
-	generatedPath := filepath.Join(ctx.GetWorkspace().BasePath, targetPath, "generated", "api", "clients", clientName)
-	err = os.Remove(filepath.Join(generatedPath, "api"))
-	if err != nil {
-		return err
-	}
+func (p *goPostProcessor) ProcessClient(_ *gencontext.GenContext, _ string) error {
 	return nil
 }
 
@@ -219,8 +210,8 @@ func isReservedFilename(name string) bool {
 }
 
 var (
-	pkgSeparatorPattern  = regexp.MustCompile(`\.`)
-	dollarPattern        = regexp.MustCompile(`\$`)
+	pkgSeparatorPattern = regexp.MustCompile(`\.`)
+	dollarPattern       = regexp.MustCompile(`\$`)
 )
 
 // taken from openapi-generator

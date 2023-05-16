@@ -104,7 +104,7 @@ func (g *OpenAPIGenerator) PrepareSync(ctx *gencontext.GenContext) error {
 
 func (g *OpenAPIGenerator) Prepare(ctx *gencontext.GenContext) error {
 	const (
-		image = "openapitools/openapi-generator-cli:v6.2.0"
+		image = "openapitools/openapi-generator-cli:v6.6.0"
 	)
 
 	langStr := string(g.language)
@@ -403,7 +403,7 @@ func runOpenapiGenerator(
 	apiEndpoint string,
 	info OpenAPIGeneratorInfo) error {
 	const (
-		image = "openapitools/openapi-generator-cli:v6.2.0"
+		image = "openapitools/openapi-generator-cli:v6.6.0"
 	)
 	curUser, err := user.Current()
 	if err != nil {

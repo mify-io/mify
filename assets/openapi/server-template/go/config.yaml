@@ -39,6 +39,15 @@ files:
   auth.mustache:
     destinationFilename: auth.go
     folder: api
+  auth/auth.mustache:
+    destinationFilename: auth.go
+    folder: api/auth
+  auth/jwt.mustache:
+    destinationFilename: jwt.go
+    folder: api/auth
+  auth/security-schemas.mustache:
+    destinationFilename: security_schemas.go
+    folder: api/auth
 
 releaseNote: Release note
 httpUserAgent: User Agent

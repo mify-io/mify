@@ -8,6 +8,7 @@ import (
 
 	"{{goModule}}/internal/{{serviceName}}/generated/core"
 	"{{goModule}}/internal/{{serviceName}}/generated/api/public"
+	"{{goModule}}/internal/{{serviceName}}/generated/api/auth"
 {{#routers}}
 {{/routers}}
 )
@@ -80,6 +81,19 @@ func (c *{{classname}}Controller) Routes() Routes {
 {{/isDeprecated}}
 func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Request) {
 	var handlerErr error
+	{{#hasAuthMethods}}
+		{{#authMethods}}
+			r, success, err {{#-first}}:{{/-first}}= openapi_auth.Handle{{name}}Authentication(w, r)
+			if err != nil {
+				c.errorHandler(w, r, err, nil)
+				return
+			}
+			if !success {
+				return
+			}
+		{{/authMethods}}
+	{{/hasAuthMethods}}
+
 	var requestBody []byte
 	{{#hasFormParams}}
 	{{#isMultipart}}

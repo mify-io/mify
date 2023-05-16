@@ -3,9 +3,11 @@ module {{.ModuleName}}
 go 1.19
 
 require (
+	github.com/auth0/go-jwt-middleware/v2 v2.1.0
 	github.com/go-chi/chi/v5 v5.0.5
 	github.com/go-chi/cors v1.2.0
 	go.uber.org/zap v1.19.1
+	github.com/golang-jwt/jwt/v5 v5.0.0
 )
 
 require (
