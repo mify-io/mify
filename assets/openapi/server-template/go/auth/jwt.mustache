@@ -4,13 +4,12 @@ package {{packageName}}_auth
 
 import (
 	"context"
-	"fmt"
 	"github.com/MicahParks/keyfunc/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
-	"net/url"
 	"strings"
 	"sync"
+	"fmt"
 )
 
 // JWTTokenContextKey is the key used in the request
@@ -34,7 +33,7 @@ func extractTokenFromHeader(r *http.Request) (string, error) {
 
 	const bearerSchema = "Bearer "
 	if !strings.HasPrefix(authorizationHeader, bearerSchema) {
-		return "", &AuthenticationValidationError{Msg: "Invalid authorization header value. %s was expected"}
+		return "", &AuthenticationValidationError{Msg: fmt.Sprintf("Invalid authorization header value. '%s' was expected", bearerSchema)}
 	}
 
 	token := authorizationHeader[len(bearerSchema):]

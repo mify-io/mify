@@ -12,7 +12,7 @@ import (
 {{#authMethods}}
 {{#openIdConnectUrl}}
 var {{name}}JwtValidateParams *JwtValidateParams = nil
-var openIdSampleJwtValidateParamsOnce sync.Once
+var {{name}}JwtValidateParamsOnce sync.Once
 
 type WellKnownEndpoints struct {
 	JWKSURI string `json:"jwks_uri"`
@@ -39,15 +39,16 @@ func getWellKnownEndpoints(openConnectId string) (*WellKnownEndpoints, error) {
 
 func get{{name}}JwtParams() (*JwtValidateParams, error) {
 	var err error = nil
-	openIdSampleJwtValidateParamsOnce.Do(func() {
-		wellKnown, err := getWellKnownEndpoints("")
+	{{name}}JwtValidateParamsOnce.Do(func() {
+		var wellKnown *WellKnownEndpoints
+		wellKnown, err = getWellKnownEndpoints("{{openIdConnectUrl}}")
 		if err != nil {
 			return
 		}
 
 		openIdSampleJwtValidateParams = &JwtValidateParams{
 			JwksUrl:  wellKnown.JWKSURI,
-			Audience: "mifyio.us.auth0.com",
+			Audience: "{{vendorExtensions.x-mify-audience}}",
 		}
 	})
 
@@ -87,3 +88,10 @@ func Handle{{name}}Authentication(w http.ResponseWriter, r *http.Request) (*http
 }
 
 {{/authMethods}}
+
+
+// Hack to disable unused import error see https://github.com/mify-io/mify/issues/161
+var _ = json.NewDecoder
+var _ = fmt.Errorf
+var _ = http.Get
+var _ = sync.NewCond

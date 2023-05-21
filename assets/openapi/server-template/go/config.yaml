@@ -36,9 +36,6 @@ files:
   recoverer.mustache:
     destinationFilename: recoverer.go
     folder: api
-  auth.mustache:
-    destinationFilename: auth.go
-    folder: api
   auth/auth.mustache:
     destinationFilename: auth.go
     folder: api/auth
