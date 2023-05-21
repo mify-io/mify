@@ -36,9 +36,15 @@ files:
   recoverer.mustache:
     destinationFilename: recoverer.go
     folder: api
-  auth.mustache:
+  auth/auth.mustache:
     destinationFilename: auth.go
-    folder: api
+    folder: api/auth
+  auth/jwt.mustache:
+    destinationFilename: jwt.go
+    folder: api/auth
+  auth/security-schemas.mustache:
+    destinationFilename: security_schemas.go
+    folder: api/auth
 
 releaseNote: Release note
 httpUserAgent: User Agent

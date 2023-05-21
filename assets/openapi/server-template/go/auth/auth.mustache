@@ -1,0 +1,45 @@
+{{>partial_header}}
+// vim: set ft=go:
+package {{packageName}}_auth
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+)
+
+type AuthenticationHandler func(r *http.Request) (*http.Request, error)
+
+type AuthenticationValidationError struct {
+	Msg string
+}
+
+func (e *AuthenticationValidationError) Error() string {
+	return e.Msg
+}
+
+func HandleAuthentication(w http.ResponseWriter, r *http.Request, handler AuthenticationHandler) (*http.Request, bool, error) {
+	r, err := handler(r)
+	if err != nil {
+		var authenticationValidationError *AuthenticationValidationError
+		if errors.As(err, &authenticationValidationError) {
+			w.WriteHeader(http.StatusUnauthorized)
+
+			wHeader := w.Header()
+			wHeader.Set("Content-Type", "application/json; charset=UTF-8")
+			_, err := w.Write([]byte(fmt.Sprintf("{\"message\": \"%s\"}", authenticationValidationError.Msg)))
+			if err != nil {
+				return r, false, err
+			}
+
+			return r, false, nil
+		} else {
+			return r, false, err
+		}
+	}
+
+	return r, true, err
+}
+
+// Avoid unused function error if no authentication is used by user
+var _ interface{} = HandleAuthentication

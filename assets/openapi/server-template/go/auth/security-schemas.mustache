@@ -1,0 +1,97 @@
+{{>partial_header}}
+// vim: set ft=go:
+package {{packageName}}_auth
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"sync"
+)
+
+{{#authMethods}}
+{{#openIdConnectUrl}}
+var {{name}}JwtValidateParams *JwtValidateParams = nil
+var {{name}}JwtValidateParamsOnce sync.Once
+
+type WellKnownEndpoints struct {
+	JWKSURI string `json:"jwks_uri"`
+}
+
+func getWellKnownEndpoints(openConnectId string) (*WellKnownEndpoints, error) {
+	response, err := http.Get(openConnectId)
+	if err != nil {
+		return nil, fmt.Errorf("could not get well known endpoints from url %s: %w", openConnectId, err)
+	}
+
+	var wkEndpoints WellKnownEndpoints
+	if err = json.NewDecoder(response.Body).Decode(&wkEndpoints); err != nil {
+		return nil, fmt.Errorf("could not decode json body when getting well known endpoints: %w", err)
+	}
+
+	err = response.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return &wkEndpoints, nil
+}
+
+func get{{name}}JwtParams() (*JwtValidateParams, error) {
+	var err error = nil
+	{{name}}JwtValidateParamsOnce.Do(func() {
+		var wellKnown *WellKnownEndpoints
+		wellKnown, err = getWellKnownEndpoints("{{openIdConnectUrl}}")
+		if err != nil {
+			return
+		}
+
+		openIdSampleJwtValidateParams = &JwtValidateParams{
+			JwksUrl:  wellKnown.JWKSURI,
+			Audience: "{{vendorExtensions.x-mify-audience}}",
+		}
+	})
+
+	return openIdSampleJwtValidateParams, err
+}
+{{/openIdConnectUrl}}
+{{/authMethods}}
+
+{{#authMethods}}
+func Handle{{name}}Authentication(w http.ResponseWriter, r *http.Request) (*http.Request, bool, error) {
+{{#isBasicBasic}}
+	// This line is generated to fail compilation, because Basic schema is not supported
+	_basic_is_not_supported
+{{/isBasicBasic}}
+{{#isBasicBearer}}
+	// This line is generated to fail compilation, because Bearer schema is not supported
+	_bearer_is_not_supported
+{{/isBasicBearer}}
+{{#isOAuth}}
+	return HandleAuthentication(w, r, func(r *http.Request) (*http.Request, error) {
+		return HandleJwtAuthentication(r, &{{name}}JwtValidateParams)
+	})
+{{/isOAuth}}
+{{#isApiKey}}
+	// This line is generated to fail compilation, because ApiKey schema is not supported
+	_apiKey_is_not_supported
+{{/isApiKey}}
+{{#openIdConnectUrl}}
+	params, err := get{{name}}JwtParams()
+	if err != nil {
+		return r, false, err
+	}
+	return HandleAuthentication(w, r, func(r *http.Request) (*http.Request, error) {
+		return HandleJwtAuthentication(r, params)
+	})
+{{/openIdConnectUrl}}
+}
+
+{{/authMethods}}
+
+
+// Hack to disable unused import error see https://github.com/mify-io/mify/issues/161
+var _ = json.NewDecoder
+var _ = fmt.Errorf
+var _ = http.Get
+var _ = sync.NewCond

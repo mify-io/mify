@@ -8,6 +8,9 @@ import (
 
 	"{{goModule}}/internal/{{serviceName}}/generated/core"
 	"{{goModule}}/internal/{{serviceName}}/generated/api/public"
+{{#hasAuthMethods}}
+	"{{goModule}}/internal/{{serviceName}}/generated/api/auth"
+{{/hasAuthMethods}}
 {{#routers}}
 {{/routers}}
 )
@@ -16,8 +19,6 @@ import (
 type {{classname}}Controller struct {
 	ctx *core.MifyServiceContext
 	service {{classname}}Servicer
-	authenticationHandler AuthenticationHandler
-	authorizationHandler AuthorizationHandler
 	errorHandler ErrorHandler
 }
 
@@ -31,27 +32,11 @@ func With{{classname}}ErrorHandler(h ErrorHandler) {{classname}}Option {
 	}
 }
 
-// With{{classname}}AuthenticationHandler inject AuthenticationHandler into controller
-func With{{classname}}AuthenticationHandler(h AuthenticationHandler) {{classname}}Option {
-	return func(c *{{classname}}Controller) {
-		c.authenticationHandler = h
-	}
-}
-
-// With{{classname}}AuthorizationHandler inject AuthorizationHandler into controller
-func With{{classname}}AuthorizationHandler(h AuthorizationHandler) {{classname}}Option {
-	return func(c *{{classname}}Controller) {
-		c.authorizationHandler = h
-	}
-}
-
 // New{{classname}}Controller creates a default api controller
 func New{{classname}}Controller(ctx *core.MifyServiceContext, s {{classname}}Servicer, opts ...{{classname}}Option) Router {
 	controller := &{{classname}}Controller{
 		ctx:                   ctx,
 		service:               s,
-		authenticationHandler: DefaultAuthenticationHandler,
-		authorizationHandler:  DefaultAuthorizationHandler,
 		errorHandler:          DefaultErrorHandler,
 	}
 
@@ -80,6 +65,19 @@ func (c *{{classname}}Controller) Routes() Routes {
 {{/isDeprecated}}
 func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Request) {
 	var handlerErr error
+	{{#hasAuthMethods}}
+		{{#authMethods}}
+			r, success, err {{#-first}}:{{/-first}}= openapi_auth.Handle{{name}}Authentication(w, r)
+			if err != nil {
+				c.errorHandler(w, r, err, nil)
+				return
+			}
+			if !success {
+				return
+			}
+		{{/authMethods}}
+	{{/hasAuthMethods}}
+
 	var requestBody []byte
 	{{#hasFormParams}}
 	{{#isMultipart}}
@@ -269,18 +267,7 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	var result ServiceResponse
 	defer LogHandler(reqCtx, requestBody, &result, &handlerErr)()
 
-	authResult, herr := c.authenticationHandler(nil, r)
-	if authResult != nil {
-		result = *authResult
-	} else if herr == nil {
-		authResult, herr = c.authorizationHandler(nil, r)
-	}
-
-	if authResult != nil {
-		result = *authResult
-	} else if herr == nil {
-		result, herr = c.service.{{nickname}}(reqCtx{{#allParams}}, {{paramName}}Param{{/allParams}})
-	}
+	result, herr = c.service.{{nickname}}(reqCtx{{#allParams}}, {{paramName}}Param{{/allParams}})
 
 	// If an error occurred, encode the error with the status code
 	if herr != nil {
