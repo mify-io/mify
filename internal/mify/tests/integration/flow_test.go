@@ -40,11 +40,11 @@ func TestFullFlow1(t *testing.T) {
 	assert.NoError(t, ctx.LoadWorkspace())
 
 	approval.NewSubtest()
-	require.NoError(t, mify.CreateService(ctx, basePath, "go", "service1"))
+	require.NoError(t, mify.CreateService(ctx, basePath, "go", "", "service1"))
 	approval.EndSubtest(tempDir)
 
 	approval.NewSubtest()
-	require.NoError(t, mify.CreateService(ctx, basePath, "go", "service2"))
+	require.NoError(t, mify.CreateService(ctx, basePath, "go", "", "service2"))
 	approval.EndSubtest(tempDir)
 
 	approval.NewSubtest()
@@ -80,7 +80,7 @@ func TestFullFlow1(t *testing.T) {
 	approval.EndSubtest(tempDir)
 
 	approval.NewSubtest()
-	require.NoError(t, mify.CreateService(ctx, basePath, "python", "service3"))
+	require.NoError(t, mify.CreateService(ctx, basePath, "python", "", "service3"))
 	approval.EndSubtest(tempDir)
 
 	approval.NewSubtest()
@@ -89,6 +89,10 @@ func TestFullFlow1(t *testing.T) {
 
 	approval.NewSubtest()
 	require.NoError(t, mify.AddPostgres(ctx, basePath, "service1"))
+	approval.EndSubtest(tempDir)
+
+	approval.NewSubtest()
+	require.NoError(t, mify.CreateService(ctx, basePath, "js", "expressjs", "service4"))
 	approval.EndSubtest(tempDir)
 
 	approval.SetIgnoreFunc(ignoreFunc)
