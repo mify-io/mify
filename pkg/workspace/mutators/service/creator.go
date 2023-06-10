@@ -15,10 +15,15 @@ import (
 //go:embed tpl/api.yaml.tpl
 var apiSchemaTemplate string
 
-func CreateService(mutContext *mutators.MutatorContext, language mifyconfig.ServiceLanguage, serviceName string) error {
+func CreateService(mutContext *mutators.MutatorContext, language mifyconfig.ServiceLanguage, template string, serviceName string) error {
 	mutContext.GetLogger().Printf("Creating service '%s' ...", serviceName)
 
-	return createServiceImpl(mutContext, language, serviceName, "", true)
+	err := validateLangAndTemplateForService(language, template)
+	if err != nil {
+		return err
+	}
+
+	return createServiceImpl(mutContext, language, serviceName, template, true)
 }
 
 func CreateFrontend(mutContext *mutators.MutatorContext, template string, name string) error {
@@ -41,7 +46,7 @@ func CreateApiGateway(mutContext *mutators.MutatorContext) error {
 		return fmt.Errorf("api gateway already exists, skipping creation")
 	}
 
-	err = CreateService(mutContext, mifyconfig.ServiceLanguageGo, workspace.ApiGatewayName)
+	err = CreateService(mutContext, mifyconfig.ServiceLanguageGo, "", workspace.ApiGatewayName)
 	if err != nil {
 		return err
 	}
@@ -92,4 +97,15 @@ func checkServiceExists(mutContext *mutators.MutatorContext, serviceName string)
 		return false, err
 	}
 	return len(files) > 0, nil
+}
+
+func validateLangAndTemplateForService(language mifyconfig.ServiceLanguage, template string) error {
+	switch language {
+	case mifyconfig.ServiceLanguageJs:
+		if template != "expressjs" {
+			return fmt.Errorf("unsupported template '%s' for language '%s'", template, language)
+		}
+	}
+
+	return nil
 }

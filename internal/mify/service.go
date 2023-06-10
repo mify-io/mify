@@ -6,9 +6,9 @@ import (
 	"github.com/mify-io/mify/pkg/workspace/mutators/service"
 )
 
-func CreateService(ctx *CliContext, basePath string, language string, name string) error {
+func CreateService(ctx *CliContext, basePath string, language string, template string, name string) error {
 	mutCtx := ctx.MustGetMutatorContext()
-	err := service.CreateService(mutCtx, mifyconfig.ServiceLanguage(language), name)
+	err := service.CreateService(mutCtx, mifyconfig.ServiceLanguage(language), template, name)
 	if err != nil {
 		return err
 	}
