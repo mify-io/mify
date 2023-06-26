@@ -1,8 +1,10 @@
 package processors
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -48,7 +50,7 @@ func (p *jsPostProcessor) GetClientGeneratorConfig(ctx *gencontext.GenContext, c
 }
 
 func (p *jsPostProcessor) ProcessServer(ctx *gencontext.GenContext) error {
-	return nil
+	return p.moveOutFiles(ctx)
 }
 
 func (p *jsPostProcessor) ProcessClient(ctx *gencontext.GenContext, clientName string) error {
@@ -261,4 +263,40 @@ func (p *jsPostProcessor) constructImportPrefix(depth int) string {
 	}
 
 	return sb.String()
+}
+
+func (p *jsPostProcessor) moveOutFiles(ctx *gencontext.GenContext) error {
+	serviceRootPath := ctx.GetWorkspace().GetJsServiceRootAbs(ctx.GetServiceName())
+	generatedPath := ctx.GetWorkspace().GetJsGeneratedAbsPath(ctx.GetServiceName(), "expressjs")
+
+	err := p.moveFileIfNotExists(generatedPath, serviceRootPath, "package.json")
+	if err != nil {
+		return err
+	}
+
+	err = p.moveFileIfNotExists(generatedPath, serviceRootPath, ".eslintrc.json")
+	if err != nil {
+		return err
+	}
+
+	err = p.moveFileIfNotExists(generatedPath, serviceRootPath, "index.js")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *jsPostProcessor) moveFileIfNotExists(fromPath string, toPath string, fileName string) error {
+	from := path.Join(fromPath, fileName)
+	to := path.Join(toPath, fileName)
+
+	_, err := os.Stat(to)
+	if err == nil {
+		return os.Remove(from)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+
+	return os.Rename(from, to)
 }
