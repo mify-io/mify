@@ -11,8 +11,8 @@ import (
 
 {{#authMethods}}
 {{#openIdConnectUrl}}
-var {{name}}JwtValidateParams *JwtValidateParams = nil
-var {{name}}JwtValidateParamsOnce sync.Once
+var {{name.toLowerCase}}JwtValidateParams *JwtValidateParams = nil
+var {{name.toLowerCase}}JwtValidateParamsOnce sync.Once
 
 type WellKnownEndpoints struct {
 	JWKSURI string `json:"jwks_uri"`
@@ -39,20 +39,20 @@ func getWellKnownEndpoints(openConnectId string) (*WellKnownEndpoints, error) {
 
 func get{{name}}JwtParams() (*JwtValidateParams, error) {
 	var err error = nil
-	{{name}}JwtValidateParamsOnce.Do(func() {
+	{{name.toLowerCase}}JwtValidateParamsOnce.Do(func() {
 		var wellKnown *WellKnownEndpoints
 		wellKnown, err = getWellKnownEndpoints("{{openIdConnectUrl}}")
 		if err != nil {
 			return
 		}
 
-		openIdSampleJwtValidateParams = &JwtValidateParams{
+		{{name.toLowerCase}}JwtValidateParams = &JwtValidateParams{
 			JwksUrl:  wellKnown.JWKSURI,
 			Audience: "{{vendorExtensions.x-mify-audience}}",
 		}
 	})
 
-	return openIdSampleJwtValidateParams, err
+	return {{name.toLowerCase}}JwtValidateParams, err
 }
 {{/openIdConnectUrl}}
 {{/authMethods}}
