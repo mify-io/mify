@@ -8,12 +8,12 @@ import (
 
 	"{{goModule}}/internal/{{serviceName}}/generated/core"
 	"{{goModule}}/internal/{{serviceName}}/generated/api/public"
-{{#hasAuthMethods}}
 	"{{goModule}}/internal/{{serviceName}}/generated/api/auth"
-{{/hasAuthMethods}}
 {{#routers}}
 {{/routers}}
 )
+
+var _ *openapi_auth.AuthenticationHandler = nil // To avoid unused import error
 
 // {{classname}}Controller binds http requests to an api service and writes the service results to the http response
 type {{classname}}Controller struct {
