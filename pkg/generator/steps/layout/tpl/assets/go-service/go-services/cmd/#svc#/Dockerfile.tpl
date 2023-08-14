@@ -4,6 +4,7 @@ COPY . .
 
 ENV CGO_ENABLED=0
 ENV GOARCH=amd64
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 RUN go get -d -v ./...
 
 RUN go build -a -installsuffix cgo -o {{.ServiceName}} ./cmd/{{.ServiceName}}

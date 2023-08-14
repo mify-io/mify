@@ -15,8 +15,14 @@ func Render(ctx *gencontext.GenContext) error {
 		return nil
 	}
 	if ctx.GetMifySchema().Template == "react-ts" {
-		if err := reactts.Render(ctx); err != nil {
-			return render.WrapError("reactts", err)
+		if err := reactts.Render(ctx, false); err != nil {
+			return render.WrapError("react-ts", err)
+		}
+		return nil
+	}
+	if ctx.GetMifySchema().Template == "react-ts-nginx" {
+		if err := reactts.Render(ctx, true); err != nil {
+			return render.WrapError("react-ts-nginx", err)
 		}
 		return nil
 	}

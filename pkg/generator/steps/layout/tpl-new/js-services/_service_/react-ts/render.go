@@ -14,19 +14,25 @@ import (
 //go:embed *.tpl
 var templates embed.FS
 
-func Render(ctx *gencontext.GenContext) error {
+func Render(ctx *gencontext.GenContext, dockerNginx bool) error {
 	if err := src.Render(ctx); err != nil {
 		return err
 	}
 	if err := public.Render(ctx); err != nil {
 		return err
 	}
+	dockerfile := render.NewFile(ctx, ctx.GetWorkspace().GetJsDockerfileAbsPath(ctx.GetServiceName()))
+	if dockerNginx {
+		dockerfile = render.NewFile(ctx, ctx.GetWorkspace().GetJsDockerfileAbsPath(ctx.GetServiceName())).
+			SetTemplateName("Dockerfile-nginx.tpl")
+	}
+
 	return render.RenderMany(
 		templates,
 		render.NewFile(ctx, ctx.GetWorkspace().GetJsServicePackageJsonAbsPath(ctx.GetServiceName())).
 			SetFlags(render.NewFlags().SkipExisting()),
 		render.NewFile(ctx, path.Join(ctx.GetWorkspace().GetJsServiceAbsPath(ctx.GetServiceName()), "tsconfig.json")).
 			SetFlags(render.NewFlags().SkipExisting()),
-		render.NewFile(ctx, ctx.GetWorkspace().GetJsDockerfileAbsPath(ctx.GetServiceName())),
+		dockerfile,
 	)
 }
