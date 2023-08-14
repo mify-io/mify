@@ -10,6 +10,7 @@ import (
 	"github.com/mify-io/mify/pkg/workspace"
 	"github.com/mify-io/mify/pkg/workspace/mutators"
 	"github.com/mify-io/mify/pkg/workspace/mutators/service/tpl"
+	"github.com/samber/lo"
 )
 
 //go:embed tpl/api.yaml.tpl
@@ -29,7 +30,12 @@ func CreateService(mutContext *mutators.MutatorContext, language mifyconfig.Serv
 func CreateFrontend(mutContext *mutators.MutatorContext, template string, name string) error {
 	mutContext.GetLogger().Printf("Creating frontend '%s' ...", name)
 
-	if template == "nuxtjs" || template == "react-ts" {
+	templates := []string{
+		"nuxtjs",
+		"react-ts",
+		"react-ts-nginx",
+	}
+	if lo.Contains(templates, template) {
 		return createServiceImpl(mutContext, mifyconfig.ServiceLanguageJs, name, template, false)
 	}
 
