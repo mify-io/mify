@@ -57,3 +57,26 @@ html[data-theme='dark'] .docusaurus-highlight-code-line {
 .theme-doc-sidebar-menu {
     margin-bottom: 50px;
 }
+
+.installation {
+    border: 2px var(--ifm-color-primary) solid;
+    border-radius: 16px;
+    padding: 5px 20px;
+    margin-bottom: 20px;
+}
+
+.download-block {
+    margin-bottom: 15px;
+    border: 2px #ccc solid;
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+}
+
+.download-info {
+    flex-grow: 1;
+}
+
+.download-button {
+    align-self: center;
+}

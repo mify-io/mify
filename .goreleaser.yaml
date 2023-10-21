@@ -1,0 +1,103 @@
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    # you may remove this if you don't need go generate
+    - go generate ./...
+builds:
+  - binary: mify
+    main: ./cmd/mify
+    env:
+      - CGO_ENABLED=0
+    goarch:
+      - amd64
+      - arm64
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -s -w -X github.com/mify-io/mify/cmd/mify/cmd.MIFY_VERSION={{.Version}}
+
+universal_binaries:
+  - replace: true
+
+archives:
+  - format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of uname.
+    name_template: >-
+      {{ .ProjectName }}-
+      {{- .Os }}-
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+    - goos: windows
+      format: zip
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+nfpms:
+  - id: mify
+    package_name: mify
+    file_name_template: "{{ .ConventionalFileName }}"
+    vendor: Mify
+    homepage: https://mify.io/
+    maintainer: Ivan Chebykin <ivan.chebykin@mify.io>
+    description: |-
+      Mify CLI - service infrastructure generator tool
+    license: Apache 2.0
+    formats:
+      - deb
+      - rpm
+      - archlinux
+
+brews:
+  -
+    name: mify
+
+    homepage: https://mify.io/
+    description: |-
+      Mify CLI - service infrastructure generator tool
+    license: Apache 2.0
+    skip_upload: false
+    folder: Formula
+    repository:
+      owner: mify-io
+      name: homebrew-tap
+
+release:
+  draft: true
+  replace_existing_draft: true
+  mode: replace
+  name_template: "Mify v{{.Version}}"
+
+  header: "## What's Changed\n### Features\n### Bugfixes\n"
+
+
+  #  Welcome to this new release!
+
+  # Footer for the release body.
+  #
+  # Templates: allowed
+  #footer: |
+  #  ## Thanks
+
+  #  Those were the changes on {{ .Tag }}!
+
+
+
+# The lines beneath this are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj

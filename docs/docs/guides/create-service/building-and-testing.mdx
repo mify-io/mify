@@ -2,22 +2,64 @@
 sidebar_position: 2
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+
 # Building and Testing
 
-Now that we have the code, we can test the handler.
+Now that we have the code, we can test the handler:
 
-Get into `go-services` directory and install dependencies:
+<Tabs groupId="languages">
+<TabItem value="go" label="Go">
+
+Install dependencies:
 
 ```
-$ cd go-services
-$ go mod tidy
+cd go-services
+go mod tidy
 ```
 
 Build and run the service:
 
 ```
-$ go run ./cmd/counting-backend
+go run ./cmd/counting-backend
 ```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+Install dependencies:
+
+```
+cd py-services
+. ./venv/bin/activate
+```
+
+Run the service:
+
+```
+python3 -m counting_backend
+```
+
+</TabItem>
+<TabItem value="js" label="ExpressJS">
+
+Install dependencies:
+
+```
+cd js-services/counting-backend
+yarn install
+```
+
+Run the service:
+
+```
+yarn dev
+```
+
+</TabItem>
+</Tabs>
 
 If everything is ok you will see service logs:
 ```

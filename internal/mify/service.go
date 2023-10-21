@@ -8,12 +8,12 @@ import (
 
 func CreateService(ctx *CliContext, basePath string, language string, template string, name string) error {
 	mutCtx := ctx.MustGetMutatorContext()
-	err := service.CreateService(mutCtx, mifyconfig.ServiceLanguage(language), template, name)
+	conf, err := service.CreateService(mutCtx, mifyconfig.ServiceLanguage(language), template, name)
 	if err != nil {
 		return err
 	}
 
-	return ServiceGenerate(ctx, basePath, name, false, false)
+	return ServiceGenerate(ctx, basePath, conf.ServiceName, false, false)
 }
 
 func CreateFrontend(ctx *CliContext, basePath string, template string, name string) error {

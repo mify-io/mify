@@ -17,21 +17,21 @@ Legend:
 
 ## Backend services
 
-| Features                 | Go Template | Python Template (Beta) |
-|--------------------------|-------------|------------------------|
-| OpenAPI                  |✅           | ✅                     |
-| Static Configs           |✅           | ✅                     |
-| Dynamic Configs          |✅           | ✅                     |
-| Postgres                 |✅           | ⏰                     |
-| Structured logging       |✅           | ✅                     |
-| OpenAPI server metrics   |✅           | ✅                     |
-| OpenAPI clients metrics  |✅           | ✅                     |
-| Graceful shutdown        |⏰           | ⏰                     |
-| Authentication           |⏰           | ⏰                     |
-| Periodic tasks           |⏰           | ⏰                     |
-| API Gateway              |⏰           | ⏰                     |
-| Message queues           |⏰           | ⏰                     |
-| mify run helper          |🟨           | ⏰                     |
+| Features                 | Go Template | Python Template (Beta) | NodeJS Template (Beta) |
+|--------------------------|-------------|------------------------|------------------------|
+| OpenAPI                  |✅           | ✅                     | ✅                     |
+| Static Configs           |✅           | ✅                     | ⏰                     |
+| Dynamic Configs          |✅           | ✅                     | ⏰                     |
+| Postgres                 |✅           | ⏰                     | ⏰                     |
+| Structured logging       |✅           | ✅                     | ✅                     |
+| OpenAPI server metrics   |✅           | ✅                     | ⏰                     |
+| OpenAPI clients metrics  |✅           | ✅                     | ⏰                     |
+| Authentication           |✅           | ⏰                     | 🟨                     |
+| Graceful shutdown        |⏰           | ⏰                     | ⏰                     |
+| Periodic tasks           |⏰           | ⏰                     | ⏰                     |
+| API Gateway              |⏰           | ⏰                     | ⏰                     |
+| Message queues           |⏰           | ⏰                     | ⏰                     |
+| mify run helper          |🟨           | ⏰                     | ⏰                     |
 
 ## Frontend services
 
@@ -39,14 +39,14 @@ Legend:
 |--------------------------|-------------------|------------------|
 | OpenAPI Clients          |✅                 | ✅               |
 | Static Configs           |🟨                 | 🟨               |
+| Authentication           |🟨                 | 🟨               |
 | Structured logging       |⏰                 | ⏰               |
-| Authentication           |⏰                 | ⏰               |
 
 ## Other
 
-| Features                 | Status            |
-|--------------------------|-------------------|
-| Cron jobs                |⏰                 |
+| Features                          | Status            |
+|-----------------------------------|-------------------|
+| Support for cron job service type |⏰                 |
 
 ## Mify Cloud
 

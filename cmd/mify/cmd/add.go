@@ -11,7 +11,8 @@ import (
 var (
 	addClientName      string
 	addServiceLanguage string
-	template           string
+	backendTemplate    string
+	frontendTemplate   string
 	addDatabaseEngine  string
 )
 
@@ -22,7 +23,7 @@ var addServiceCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {
-			if err := mify.CreateService(appContext, workspacePath, addServiceLanguage, template, ival); err != nil {
+			if err := mify.CreateService(appContext, workspacePath, addServiceLanguage, backendTemplate, ival); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to create service: %s\n", err)
 				os.Exit(2)
 			}
@@ -52,7 +53,7 @@ var addFrontendCmd = &cobra.Command{
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, ival := range args {
-			if err := mify.CreateFrontend(appContext, workspacePath, template, ival); err != nil {
+			if err := mify.CreateFrontend(appContext, workspacePath, frontendTemplate, ival); err != nil {
 				fmt.Fprintf(os.Stderr, "failed to create service: %s\n", err)
 				os.Exit(2)
 			}
@@ -113,7 +114,7 @@ func init() {
 		"language", "l", "go", "Choose language for service: go, python, js",
 	)
 	addServiceCmd.PersistentFlags().StringVarP(
-		&template,
+		&backendTemplate,
 		"template",
 		"t",
 		"expressjs",
@@ -122,11 +123,11 @@ func init() {
 
 	// TODO: limit witn enum
 	addFrontendCmd.PersistentFlags().StringVarP(
-		&template,
+		&frontendTemplate,
 		"template",
 		"t",
-		"nuxtjs",
-		"Template (e.g. nuxtjs, react-ts, expressjs)",
+		"react-ts",
+		"Template (e.g. nuxtjs, react-ts)",
 	)
 
 	addDatabase.PersistentFlags().StringVarP(

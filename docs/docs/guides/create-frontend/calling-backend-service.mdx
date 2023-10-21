@@ -1,0 +1,90 @@
+---
+sidebar_position: 1
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Getting the number from backend service
+
+For frontend Mify provides two templates:
+
+- React with Typescript and Redux.
+- [NuxtJS](https://nuxtjs.org/) template which is based on
+Vue and also provides support for Server Side + Client Side rendering. Here is a good description of page loading lifecycle: https://nuxtjs.org/docs/concepts/nuxt-lifecycle.
+
+Let's edit the index page and add call to our backend:
+<Tabs groupId="frontend-languages">
+<TabItem value="react-ts" label="React">
+
+```tsx title="js-services/counter-display/src/App.tsx"
+import React, {useEffect, useState} from 'react';
+import { useAppSelector } from './app/hooks';
+import Context from './generated/core/context';
+import './App.css';
+
+function App() {
+    var [number, setNumber] = useState('');
+    var ctx = useAppSelector((rootState) => rootState.mifyState.value)
+    console.log(ctx.clients)
+    useEffect(() => {
+        const callBackend = async (ctx: Context) => {
+          var response = await ctx.clients.countingBackend().counterNextGet()
+          setNumber(response.number)
+        }
+        callBackend(ctx)
+    }, [ctx])
+  return (
+    <div className="App">
+      <header className="App-header">
+        <p>
+          Counter: {number}
+        </p>
+      </header>
+    </div>
+  );
+}
+
+export default App;
+```
+
+</TabItem>
+<TabItem value="nuxtjs" label="NuxtJS">
+
+```html title="js-services/counter-display/pages/index.vue"
+<template>
+  <div>
+  <Sample/>
+  Counter: {{counter}}
+  </div>
+</template>
+
+<script>
+
+export default {
+  name: 'Index',
+  data () {
+    return {
+      counter: 0,
+    }
+  },
+  async fetch() {
+    let countingBackend = this.$mifyContext.clients.countingBackend();
+    try {
+        var resp = await countingBackend.counterNextGet();
+        this.counter = resp.number;
+    } catch (e) {
+        console.log(e);
+    }
+  }
+}
+</script>
+```
+
+</TabItem>
+</Tabs>
+
+We're added call to backend to the fetch stage and after receiving the number
+we add it to the component data which can be accesses in a template.
+
+Now we're ready for final testing.

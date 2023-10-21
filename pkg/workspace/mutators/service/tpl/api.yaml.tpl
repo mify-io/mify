@@ -5,7 +5,7 @@ info:
   description: Service description
   contact:
     name: Maintainer name
-    email: test@mify.io # Replace with your email
+    email: maintainer@example.com # Replace with your email
 # Add your local and cloud service url here for testing with Swagger UI.
 # You can also add prefix for all paths like this:
 #  - url: <service-url>/api
