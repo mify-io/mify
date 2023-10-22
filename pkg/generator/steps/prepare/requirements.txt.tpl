@@ -16,4 +16,4 @@ python_dateutil >= 2.5.3
 setuptools >= 21.0.0
 urllib3 >= 1.15.1
 typing-extensions >= 4.4.0
-python-consul >= 1.1.0
+python-consul2 >= 0.1.5

@@ -1,0 +1,34 @@
+---
+sidebar_position: 0
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Generating Frontend Layout
+
+Time to implement frontend, same as with backend service we begin with adding it
+to our workspace:
+
+<Tabs groupId="frontend-languages">
+<TabItem value="react-ts" label="React">
+
+```
+mify add frontend --template react-ts counter-display
+```
+
+</TabItem>
+<TabItem value="nuxtjs" label="NuxtJS">
+
+```
+mify add frontend --template nuxtjs counter-display
+```
+
+</TabItem>
+</Tabs>
+
+To access backend we also need to add client to our frontend:
+
+```
+mify add client counter-display --to counting-backend
+```

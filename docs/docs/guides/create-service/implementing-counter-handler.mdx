@@ -1,0 +1,151 @@
+---
+sidebar_position: 1
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Implementing Counter Handler
+
+## Storage for counter
+
+Before implementing handler we want to store our current counter somewhere.
+For the purpose of this tutorial we would store it in memory, but where should we define it?
+
+Every handler needs some common dependencies, like logger, config, clients, and
+for that Mify provides `MifyRequestContext` struct (not for ExpressJS yet, though). It also supports custom
+dependencies, and this is where we can put our counter, so let's do it!
+
+Here are the files you need to update for each language:
+
+<Tabs groupId="languages">
+<TabItem value="go" label="Go">
+
+```go title="go-services/internal/counting-backend/app/service_extra.go"
+type ServiceExtra struct {
+    // Append your dependencies here
+    Counter int
+}
+
+func NewServiceExtra(ctx *core.MifyServiceContext) (*ServiceExtra, error) {
+    // Here you can do your custom service initialization, prepare dependencies
+    extra := &ServiceExtra{
+        // Here you can initialize your dependencies
+        Counter: 0,
+    }
+    return extra, nil
+}
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python title="py-services/counting_backend/app/service_extra.py"
+# vim: set ft=python:
+class ServiceExtra:
+    def __init__(self, service_context):
+        self._counter = 0
+
+    @property
+    def counter(self):
+        return self._counter
+
+    @counter.setter
+    def counter(self, value):
+        self._counter = value
+```
+
+</TabItem>
+<TabItem value="js" label="ExpressJS">
+So for ExpressJS we don't have MifyRequestContext yet, for now go to the next step
+where we'll just update the handler.
+</TabItem>
+</Tabs>
+
+## Getting counter in handler
+
+Now we can finally implement the handler:
+
+<Tabs groupId="languages">
+<TabItem value="go" label="Go">
+
+```go title="go-services/internal/counting-backend/handlers/counter/next/service.go"
+// CounterNextGet - get next number
+func (s *CounterNextApiService) CounterNextGet(ctx *core.MifyRequestContext) (openapi.ServiceResponse, error) {
+    svcCtx := apputil.GetServiceExtra(ctx.ServiceContext()) // get custom dependencies from context
+    currentNumber := svcCtx.Counter
+
+    svcCtx.Counter++
+
+    return openapi.Response(200, openapi.CounterNextResponse{
+        Number: int32(currentNumber),
+    }), nil
+}
+```
+
+Add import for `apputil.GetServiceExtra` and remove unused ones:
+```
+import (
+    "example.com/namespace/counting-project/go-services/internal/counting-backend/apputil"
+    "example.com/namespace/counting-project/go-services/internal/counting-backend/generated/api"
+    "example.com/namespace/counting-project/go-services/internal/counting-backend/generated/core"
+)
+```
+
+</TabItem>
+<TabItem value="python" label="Python">
+
+```python title="py-services/counting_backend/handlers/counter/next/service.py"
+# vim: set ft=python:
+from counting_backend.generated.core.request_context import MifyRequestContext
+
+
+async def counter_next_get(ctx: MifyRequestContext, ):
+    """
+    get next number
+    """
+    count = ctx.service_context.service_extra.counter
+    ctx.service_context.service_extra.counter = count + 1
+    return {"number": count}
+```
+
+</TabItem>
+<TabItem value="js" label="ExpressJS">
+
+```js title="js-services/counting-backend/handlers/counter/next/service.js"
+/* eslint-disable no-unused-vars */
+const Service = require('../../service');
+
+let number = 0;
+
+/**
+* get next number
+*
+* returns CounterNextResponse
+* */
+const counterNextGET = () => new Promise(
+  async (resolve, reject) => {
+    try {
+      const cur = number;
+      number += 1;
+      resolve(Service.successResponse({
+        number: cur,
+      }));
+    } catch (e) {
+      reject(Service.rejectResponse(
+        e.message || 'Invalid input',
+        e.status || 405,
+      ));
+    }
+  },
+);
+
+module.exports = {
+  counterNextGET,
+};
+```
+
+</TabItem>
+
+
+</Tabs>

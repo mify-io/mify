@@ -2,16 +2,46 @@
 sidebar_position: 0
 ---
 
-# Generating Skeleton with API
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Generating Service Layout with API
 
 First we need to add service to workspace:
+
+<Tabs groupId="languages">
+<TabItem value="go" label="Go">
+
 ```
-$ mify add service counting-backend
+mify add service --language go counting-backend
 ```
 
-For this tutorial we're using Go service template which tries to follow this
-layout (https://github.com/golang-standards/project-layout). This is not
+</TabItem>
+<TabItem value="python" label="Python">
+
+```
+mify add service --language python counting_backend
+```
+
+</TabItem>
+<TabItem value="js" label="ExpressJS">
+
+```
+mify add service --language js counting-backend
+```
+
+</TabItem>
+</Tabs>
+
+This command generates different layouts based on language that you've choosen:
+
+- Go service template it tries to follow this
+[layout](https://github.com/golang-standards/project-layout). This is not
 an official standard project layout, because Go doesn't have one, but it's pretty common.
+
+- Python service module based on Connexion and aiohttp.
+
+- NodeJS service is based on ExpressJS framework.
 
 Now we need to define the API for this service. Open OpenAPI schema file, which
 is located at `schemas/counting-backend/api/api.yaml` and you will see this
@@ -25,9 +55,12 @@ info:
   description: Service description
   contact:
     name: Maintainer name
-    email: Maintainer email
+    email: maintainer@example.com # Replace with your email
+# Add your local and cloud service url here for testing with Swagger UI.
+# You can also add prefix for all paths like this:
+#  - url: <service-url>/api
 servers:
-  - url: counting-backend.example.com
+  - url: <service-url>/
 paths: {}
 # Example of a handler, uncomment and remove the above 'paths: {}' line.
 # Check Petstore OpenAPI example for more possible options:
@@ -64,9 +97,12 @@ info:
   description: Service description
   contact:
     name: Maintainer name
-    email: Maintainer email
+    email: maintainer@example.com # Replace with your email
+# Add your local and cloud service url here for testing with Swagger UI.
+# You can also add prefix for all paths like this:
+#  - url: <service-url>/api
 servers:
-  - url: counting-backend.example.com
+  - url: <service-url>/
 paths:
   /counter/next:
     get:
@@ -93,7 +129,7 @@ components:
 Now run command to apply changed schema:
 
 ```
-mify generate counting-backend
+mify generate
 ```
 
 :::caution
@@ -101,7 +137,11 @@ If you remove or change the name of the handler after you ran `mify
 generate` you need to delete directory with generated files and then re-run
 `mify generate` command.
 
-Directory with generated files is located in `go-services/internal/counting-backend/generated`.
+Directory with generated files is located in different paths based on language:
+
+- Go: `go-services/internal/counting-backend/generated`
+- Python: `py-services/counting_backend/generated`
+- ExpressJS: `js-services/counting-backend/generated`
 :::
 
 Now we have our handler and we are ready to implement the logic.

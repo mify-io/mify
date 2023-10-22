@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/mify-io/mify/pkg/generator/lib/endpoints"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/util/render"
 	"github.com/mify-io/mify/pkg/workspace"
@@ -16,12 +17,12 @@ import (
 //go:embed tpl/api.yaml.tpl
 var apiSchemaTemplate string
 
-func CreateService(mutContext *mutators.MutatorContext, language mifyconfig.ServiceLanguage, template string, serviceName string) error {
+func CreateService(mutContext *mutators.MutatorContext, language mifyconfig.ServiceLanguage, template string, serviceName string) (mifyconfig.ServiceConfig, error) {
 	mutContext.GetLogger().Printf("Creating service '%s' ...", serviceName)
 
 	err := validateLangAndTemplateForService(language, template)
 	if err != nil {
-		return err
+		return mifyconfig.ServiceConfig{}, err
 	}
 
 	return createServiceImpl(mutContext, language, serviceName, template, true)
@@ -36,7 +37,8 @@ func CreateFrontend(mutContext *mutators.MutatorContext, template string, name s
 		"react-ts-nginx",
 	}
 	if lo.Contains(templates, template) {
-		return createServiceImpl(mutContext, mifyconfig.ServiceLanguageJs, name, template, false)
+		_, err := createServiceImpl(mutContext, mifyconfig.ServiceLanguageJs, name, template, false)
+		return err
 	}
 
 	return fmt.Errorf("unknown template %s", template)
@@ -52,7 +54,7 @@ func CreateApiGateway(mutContext *mutators.MutatorContext) error {
 		return fmt.Errorf("api gateway already exists, skipping creation")
 	}
 
-	err = CreateService(mutContext, mifyconfig.ServiceLanguageGo, "", workspace.ApiGatewayName)
+	_, err = CreateService(mutContext, mifyconfig.ServiceLanguageGo, "", workspace.ApiGatewayName)
 	if err != nil {
 		return err
 	}
@@ -65,7 +67,10 @@ func createServiceImpl(
 	language mifyconfig.ServiceLanguage,
 	serviceName string,
 	template string,
-	addOpenApi bool) error {
+	addOpenApi bool) (mifyconfig.ServiceConfig, error) {
+	if language == mifyconfig.ServiceLanguagePython {
+		serviceName = endpoints.SanitizeServiceName(serviceName)
+	}
 
 	conf := mifyconfig.ServiceConfig{
 		ServiceName: serviceName,
@@ -75,7 +80,7 @@ func createServiceImpl(
 
 	err := conf.Dump(mutContext.GetDescription().GetMifySchemaAbsPath(serviceName))
 	if err != nil {
-		return err
+		return mifyconfig.ServiceConfig{}, err
 	}
 
 	if addOpenApi {
@@ -85,11 +90,11 @@ func createServiceImpl(
 			tpl.NewApiSchemaModel(serviceName),
 			openapiSchemaPath)
 		if err != nil {
-			return err
+			return mifyconfig.ServiceConfig{}, err
 		}
 	}
 
-	return nil
+	return conf, nil
 }
 
 func checkServiceExists(mutContext *mutators.MutatorContext, serviceName string) (bool, error) {

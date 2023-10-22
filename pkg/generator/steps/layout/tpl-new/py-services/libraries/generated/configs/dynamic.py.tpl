@@ -10,8 +10,7 @@ class MifyDynamicConfig:
     class ConsulConf:
         CONSUL_PORT: int = 8500
         CONSUL_HOST: str = '127.0.0.1'
-
-    def __init__(self, static_config):
+def __init__(self, static_config):
         config = static_config.get_config(self.ConsulConf)
 
         self._configs = {}
@@ -50,11 +49,9 @@ class MifyDynamicConfig:
         self._pollers.append(self._loop.create_task(self._poll_config(conf_class)))
         return self._configs[conf_name]
 
-
     def close(self):
         for poller in self._pollers:
             poller.cancel()
-        self._consul.close()
 
     def get_config(self, conf_class: type):
         return self._add_or_get_config(conf_class)

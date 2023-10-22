@@ -45,11 +45,13 @@
 - OpenAPI http server generation
 - Built-in Prometheus metrics
 - Structured logging
-- Multiple language code generation (Right now it's Go and Python for backend, NuxtJS, React on Typescript based frontends)
+- Multiple language code generation (Right now it's Go, Python and ExpressJS for backend, NuxtJS, React on Typescript based frontends)
 
 ## Installation
 
-You can get the latest Mify CLI from [Releases](https://github.com/mify-io/mify/releases).
+Check out our [docs for the installation guide](https://mify.io/docs/#installing-mify).
+
+Alternatively you can get the latest Mify CLI from [Releases](https://github.com/mify-io/mify/releases).
 
 Before using it you need to install and start Docker which is used for running
 some code generation tasks, You can refer to Docker's
@@ -61,7 +63,7 @@ Right now Mify should work on Linux, Mac and WSL.
 
 ### Development prerequisites
 
-At this moment Mify supports Go and Python language based templates for
+At this moment Mify supports Go, Python and ExpressJS based templates for
 backends, and NuxtJS and React on Typescript for frontends, here's what you
 need to install before starting developing in your choosen template:
 
@@ -73,7 +75,7 @@ need to install before starting developing in your choosen template:
   - python3-pip
   - python3-venv
 
-- NuxtJS, React:
+- NuxtJS, React, ExpressJS:
   - Node >= 18.12.1
   - Yarn
 
