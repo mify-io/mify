@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/briandowns/spinner v1.18.0
-	github.com/docker/docker v20.10.24+incompatible
+	github.com/docker/docker v24.0.7+incompatible
 	github.com/getkin/kin-openapi v0.88.0
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/google/uuid v1.2.0
