@@ -9,9 +9,8 @@ from {{packageName}} import util
 {{#operations}}
 {{#operation}}
 
-
 # import_start
-from {{serviceName}}.handlers{{path}}.service import {{operationId}} as _service
+from {{serviceName}}.handlers{{vendorExtensions.x-pythonic-path}}.service import {{operationId}} as _service
 # import_end
 
 

@@ -137,6 +137,7 @@ func (p *pythonPostProcessor) PopulateServerHandlers(ctx *gencontext.GenContext,
 	for _, path := range paths {
 		path = strings.ReplaceAll(path, "{", "")
 		path = strings.ReplaceAll(path, "}", "")
+		path = strings.ReplaceAll(path, "-", "_")
 		pathsSet[p.toAPIFilename(path)] = path
 	}
 	ctx.Logger.Infof("paths: %v", pathsSet)

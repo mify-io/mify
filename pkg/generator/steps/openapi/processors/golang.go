@@ -332,6 +332,8 @@ func createServerHandlersFile(ctx *gencontext.GenContext, serviceFile string, ta
 			"rune":        {},
 			"byte":        {},
 			"interface{}": {},
+			"any":         {},
+			"time.Time":   {},
 		}
 	)
 
@@ -399,7 +401,7 @@ func createServerHandlersFile(ctx *gencontext.GenContext, serviceFile string, ta
 
 	out, err := format.Source(buf.Bytes())
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to format handler file: %s: %w", targetFile, err)
 	}
 
 	err = os.WriteFile(targetFile, out, 0666)

@@ -10,7 +10,8 @@ class MifyDynamicConfig:
     class ConsulConf:
         CONSUL_PORT: int = 8500
         CONSUL_HOST: str = '127.0.0.1'
-def __init__(self, static_config):
+
+    def __init__(self, static_config):
         config = static_config.get_config(self.ConsulConf)
 
         self._configs = {}

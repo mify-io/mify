@@ -120,6 +120,26 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{/isInteger}}{{/isLong}}
 	{{/isPathParam}}
 	{{#isQueryParam}}
+	{{#isDateTime}}
+	{{#required}}
+	if !query.Has("{{baseName}}"){
+		c.errorHandler(w, r, &RequiredError{"{{baseName}}"}, nil)
+		return
+	}
+	{{paramName}}ParamRaw, err := parseTime(query.Get("{{baseName}}"))
+	if err != nil {
+		c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+		return
+	}
+	{{/required}}
+	{{^required}}
+	{{paramName}}ParamRaw, err := parseTime(query.Get("{{baseName}}"))
+	if err != nil {
+			c.errorHandler(w, r, &ParsingError{Err: err}, nil)
+			return
+	}
+	{{/required}}
+	{{/isDateTime}}
 	{{#isLong}}
 	{{paramName}}ParamRaw, err := parseInt64Parameter(query.Get("{{baseName}}"), {{required}})
 	if err != nil {
@@ -147,7 +167,9 @@ func (c *{{classname}}Controller) {{nickname}}(w http.ResponseWriter, r *http.Re
 	{{^isLong}}
 	{{^isInteger}}
 	{{^isBoolean}}
+	{{^isDateTime}}
 	{{paramName}}ParamRaw := {{#isArray}}strings.Split({{/isArray}}query.Get("{{baseName}}"){{#isArray}}, ","){{/isArray}}
+	{{/isDateTime}}
 	{{/isBoolean}}
 	{{/isInteger}}
 	{{/isLong}}
