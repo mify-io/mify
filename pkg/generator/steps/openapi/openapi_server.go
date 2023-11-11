@@ -147,6 +147,8 @@ func (g *OpenAPIGenerator) makeServerEnrichedSchema(ctx *gencontext.GenContext, 
 			pathStr = strings.ReplaceAll(pathStr, "{", "")
 			pathStr = strings.ReplaceAll(pathStr, "}", "")
 			method["tags"] = []string{pathStr}
+			pythonicPath := strings.ReplaceAll(pathStr, "-", "_")
+			method["x-pythonic-path"] = pythonicPath
 			methods[m] = method
 		}
 	}
