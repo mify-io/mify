@@ -4,6 +4,8 @@ enableMinimalUpdate: true
 globalProperties:
   apiDocs: false
   modelDocs: false
+  apiTests: false
+  modelTests: false
 additionalProperties:
   addResponseHeaders: true
   enumClassPrefix: true

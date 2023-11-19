@@ -3,7 +3,6 @@ package openapi
 import (
 	"fmt"
 
-	"github.com/containerd/containerd/log"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 )
 
@@ -167,7 +166,7 @@ func generateClients(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, c
 
 	for clientName := range clientsDiff.removed {
 		executePool.EnqueExecution(func() error {
-			log.L.Tracef("Removing client '%s' from service '%s' ...", clientName, ctx.GetServiceName())
+			ctx.Logger.Debugf("Removing client '%s' from service '%s' ...", clientName, ctx.GetServiceName())
 
 			err := openapigen.RemoveClient(ctx, clientName)
 			if err != nil {
@@ -180,7 +179,7 @@ func generateClients(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, c
 
 	for clientName := range clientsDiff.added {
 		executePool.EnqueExecution(func() error {
-			log.L.Tracef("Adding client '%s' to service '%s' ...", clientName, ctx.GetServiceName())
+			ctx.Logger.Debugf("Adding client '%s' to service '%s' ...", clientName, ctx.GetServiceName())
 
 			if err := openapigen.GenerateClient(ctx, clientName); err != nil {
 				return fmt.Errorf("failed to generate client for: %s: %w", clientName, err)
@@ -192,7 +191,7 @@ func generateClients(ctx *gencontext.GenContext, openapigen *OpenAPIGenerator, c
 
 	for clientName := range clientsDiff.schemaChanged {
 		executePool.EnqueExecution(func() error {
-			log.L.Tracef("Regenerating client '%s' in service '%s' ...", clientName, ctx.GetServiceName())
+			ctx.Logger.Debugf("Regenerating client '%s' in service '%s' ...", clientName, ctx.GetServiceName())
 
 			if err := openapigen.GenerateClient(ctx, clientName); err != nil {
 				return fmt.Errorf("failed to generate client for: %s: %w", clientName, err)

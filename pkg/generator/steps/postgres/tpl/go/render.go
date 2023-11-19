@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	sqlc "github.com/kyleconroy/sqlc/pkg/cli"
+	sqlc "github.com/sqlc-dev/sqlc/pkg/cli"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/generator/steps/postgres/tpl/go/config"
 	"github.com/mify-io/mify/pkg/util/render"
