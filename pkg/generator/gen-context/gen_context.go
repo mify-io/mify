@@ -22,6 +22,7 @@ type GenContext struct {
 	migrate           bool
 	forceRegeneration bool
 	mifyVersion       string
+	isVerboseOutput   bool
 
 	// Step contexts
 	schema     *schema_context.SchemaContext
@@ -39,13 +40,19 @@ func NewGenContext(
 	workspaceDescription workspace.Description,
 	migrate bool,
 	forceRegeneration bool,
-	mifyVersion string) (*GenContext, error) {
+	mifyVersion string,
+	verboseOutput bool,
+) (*GenContext, error) {
 
-	logger := initLogger(workspaceDescription.GetLogsDirectory())
+	logger := initLogger(workspaceDescription.GetLogsDirectory(), verboseOutput)
 	vcs, err := initVcsIntegration(workspaceDescription.BasePath)
 	if err != nil {
 		return nil, err
 	}
+	logger = logger.With(
+		zap.String("service_name", serviceName),
+	)
+	logger.Debug("Created new generator context")
 
 	return &GenContext{
 		goContext:         goContext,
@@ -55,6 +62,7 @@ func NewGenContext(
 		migrate:           migrate,
 		forceRegeneration: forceRegeneration,
 		mifyVersion:       mifyVersion,
+		isVerboseOutput:   verboseOutput,
 		EndpointsResolver: endpoints.NewEndpointsResolver(&workspaceDescription),
 		vcsIntegration:    vcs,
 	}, nil
@@ -86,6 +94,10 @@ func (c *GenContext) GetForceRegeneration() bool {
 
 func (c *GenContext) GetMifyVersion() string {
 	return c.mifyVersion
+}
+
+func (c *GenContext) GetIsVerboseOutput() bool {
+	return c.isVerboseOutput
 }
 
 func (c *GenContext) GetVcsIntegration() *VcsIntegration {

@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"go.uber.org/zap"
 )
 
@@ -149,7 +150,7 @@ func Run(
 			return
 		}
 
-		_, err = io.Copy(dockerLogs, out)
+		_, err = stdcopy.StdCopy(dockerLogs, dockerLogs, out)
 		if err != nil {
 			logger.Errorf("Failed to read container logs: %s", err)
 			return

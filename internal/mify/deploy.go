@@ -40,7 +40,7 @@ func deploy(ctx *CliContext, deployEnv string, serviceName string) error {
 	}
 	// TODO: maybe separate logger
 	genContext, err := gencontext.NewGenContext(ctx.Ctx, serviceName,
-		*ctx.workspaceDescription, false, false, ctx.MifyVersion)
+		*ctx.workspaceDescription, false, false, ctx.MifyVersion, ctx.IsVerbose)
 	if err != nil {
 		return err
 	}

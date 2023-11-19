@@ -41,7 +41,7 @@ func ToolMigrate(
 	if err != nil {
 		return err
 	}
-	genContext, err := gencontext.NewGenContext(ctx.Ctx, serviceName, workspace, false, false, ctx.MifyVersion)
+	genContext, err := gencontext.NewGenContext(ctx.Ctx, serviceName, workspace, false, false, ctx.MifyVersion, ctx.IsVerbose)
 	if err != nil {
 		return fmt.Errorf("failed to initialize: %w", err)
 	}
