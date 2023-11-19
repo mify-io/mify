@@ -10,7 +10,9 @@ import (
 )
 
 func getCommitOpts(repo *git.Repository) (git.CommitOptions, error) {
-	o := git.CommitOptions{}
+	o := git.CommitOptions{
+		AllowEmptyCommits: true,
+	}
 	cfg, err := repo.ConfigScoped(config.SystemScope)
 	if err != nil {
 		return o, err
