@@ -51,7 +51,10 @@ func calcClientsDiff(ctx *gencontext.GenContext, openAPIGenerator *OpenAPIGenera
 			continue
 		}
 
-		schemaDirPath := ctx.GetWorkspace().GetApiSchemaDirRelPath(cl)
+		schemaDirPath, err := ctx.GetWorkspace().GetUniversalApiSchemaDirRelPath(cl)
+		if err != nil {
+			return clientsDiff{}, wrapError(err)
+		}
 		needGenerate, err := openAPIGenerator.NeedGenerateClient(ctx, schemaDirPath)
 		if err != nil {
 			return clientsDiff{}, wrapError(err)

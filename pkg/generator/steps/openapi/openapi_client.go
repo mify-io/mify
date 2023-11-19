@@ -10,6 +10,7 @@ import (
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/generator/lib/endpoints"
 	"github.com/mify-io/mify/pkg/generator/steps/openapi/processors"
+	"github.com/mify-io/mify/pkg/mifyconfig"
 )
 
 func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *gencontext.GenContext, schemaPath string) (string, error) {
@@ -41,7 +42,7 @@ func (g *OpenAPIGenerator) makeClientEnrichedSchema(ctx *gencontext.GenContext, 
 	return g.saveEnrichedSchema(ctx, doc, schemaPath, CACHE_CLIENT_SUBDIR)
 }
 
-func (g *OpenAPIGenerator) getServiceBasePath(ctx *gencontext.GenContext, schemaPath string) (string, error) {
+func (g *OpenAPIGenerator) getServiceBasePath(ctx *gencontext.GenContext, schemaPath string, isExternal bool) (string, error) {
 	doc, err := g.readSchema(ctx, schemaPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read schema: %s: %w", schemaPath, err)
@@ -56,7 +57,12 @@ func (g *OpenAPIGenerator) getServiceBasePath(ctx *gencontext.GenContext, schema
 	}
 	srv := servers[0].(map[interface{}]interface{})
 	ctx.Logger.Infof("processing server: %s", srv["url"])
-	u, err := url.Parse("//" + srv["url"].(string))
+	urlStr := "//" + srv["url"].(string)
+	if isExternal {
+		urlStr = srv["url"].(string)
+		return urlStr, nil
+	}
+	u, err := url.Parse(urlStr)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse server url %s: %w", srv["url"], err)
 	}
@@ -64,12 +70,28 @@ func (g *OpenAPIGenerator) getServiceBasePath(ctx *gencontext.GenContext, schema
 	return u.Path, nil
 }
 
-func (g *OpenAPIGenerator) doGenerateClient(
-	ctx *gencontext.GenContext, clientName string, schemaPath string) error {
+func (g *OpenAPIGenerator) makeServiceEndpoint(
+	ctx *gencontext.GenContext, clientName string, schemaPath string) (string, error) {
+	cfg, err := mifyconfig.ReadServiceConfig(ctx.GetWorkspace().BasePath, clientName)
+	if err != nil {
+		return "", err
+	}
+	basePath, err := g.getServiceBasePath(ctx, schemaPath, cfg.IsExternal)
+	if err != nil {
+		return "", err
+	}
+	if cfg.IsExternal {
+		return basePath, err
+	}
 	endpoints, err := ctx.EndpointsResolver.ResolveEndpoints(clientName)
 	if err != nil {
-		return err
+		return "", err
 	}
+	return endpoints.Api + basePath, err
+}
+
+func (g *OpenAPIGenerator) doGenerateClient(
+	ctx *gencontext.GenContext, clientName string, schemaPath string) error {
 
 	postProcessor, err := processors.NewPostProcessor(g.language)
 	if err != nil {
@@ -81,13 +103,13 @@ func (g *OpenAPIGenerator) doGenerateClient(
 		return err
 	}
 
-	basePath, err := g.getServiceBasePath(ctx, schemaPath)
+	serviceEndpoint, err := g.makeServiceEndpoint(ctx, clientName, schemaPath)
 	if err != nil {
 		return err
 	}
 
 	err = runOpenapiGenerator(ctx, g.basePath, schemaPath, g.clientAssetsPath,
-		generatorConf.TargetPath, generatorConf.PackageName, clientName, endpoints.Api+basePath, g.info)
+		generatorConf.TargetPath, generatorConf.PackageName, clientName, serviceEndpoint, g.info)
 	if err != nil {
 		return fmt.Errorf("failed to run openapi-generator: %w", err)
 	}

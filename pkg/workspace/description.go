@@ -14,13 +14,14 @@ import (
 )
 
 const (
-	ApiGatewayName    = "api-gateway"
-	MainApiSchemaName = "api.yaml"
-	MifySchemaName    = "service.mify.yaml"
-	CloudSchemaName   = "cloud.mify.yaml"
-	GoServicesDirName = "go-services"
-	DevRunnerName     = "dev-runner"
-	TmpSubdir         = "services"
+	ApiGatewayName     = "api-gateway"
+	MainApiSchemaName  = "api.yaml"
+	MifySchemaName     = "service.mify.yaml"
+	CloudSchemaName    = "cloud.mify.yaml"
+	GoServicesDirName  = "go-services"
+	DevRunnerName      = "dev-runner"
+	TmpSubdir          = "services"
+	ExternalSchemasDir = "mify-external"
 )
 
 var (
@@ -82,6 +83,9 @@ func (c Description) GetApiServices() []string {
 		if !f.IsDir() {
 			continue
 		}
+		if f.Name() == ExternalSchemasDir {
+			continue
+		}
 		services = append(services, f.Name())
 	}
 	return services
@@ -96,6 +100,9 @@ func (c Description) GetFrontendServices() ([]string, error) {
 
 	for _, f := range files {
 		if !f.IsDir() {
+			continue
+		}
+		if f.Name() == ExternalSchemasDir {
 			continue
 		}
 
@@ -190,6 +197,58 @@ func (c Description) GetApiSchemaAbsPath(serviceName string, schemaName string) 
 // Abs path to api_generated.yaml
 func (c Description) GetApiSchemaGenAbsPath(serviceName string) string {
 	return path.Join(c.BasePath, "schemas", serviceName, "api/api_generated.yaml")
+}
+
+func (c Description) GetExternalSchemasRootRelPath() string {
+	return path.Join(c.GetSchemasRootRelPath(), ExternalSchemasDir)
+}
+
+func (c Description) GetExternalSchemasRootAbsPath() string {
+	return path.Join(c.BasePath, c.GetExternalSchemasRootRelPath())
+}
+
+func (c Description) GetExternalSchemasRelPath(serviceName string) string {
+	return path.Join(c.GetExternalSchemasRootRelPath(), serviceName)
+}
+
+func (c Description) GetExternalSchemasAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetSchemasRelPath(serviceName))
+}
+
+func (c Description) GetExternalApiSchemaDirRelPath(serviceName string) string {
+	return path.Join(c.GetExternalSchemasRootRelPath(), serviceName, "api")
+}
+
+func (c Description) GetExternalApiSchemaDirAbsPath(serviceName string) string {
+	return path.Join(c.BasePath, c.GetExternalApiSchemaDirRelPath(serviceName))
+}
+
+func (c Description) GetExternalApiSchemaAbsPath(serviceName string, schemaName string) string {
+	return path.Join(c.BasePath, c.GetExternalApiSchemaDirRelPath(serviceName), schemaName)
+}
+
+func (c Description) GetUniversalApiSchemaAbsPath(serviceName string, schemaName string) (string, error) {
+	svcSchema := c.GetApiSchemaAbsPath(serviceName, schemaName)
+	if _, err := os.Stat(svcSchema); err == nil {
+		return svcSchema, nil
+	}
+	externalSvcSchema := c.GetExternalApiSchemaAbsPath(serviceName, schemaName)
+	if _, err := os.Stat(externalSvcSchema); err == nil {
+		return externalSvcSchema, nil
+	}
+	return "", ErrNoSuchService
+}
+
+func (c Description) GetUniversalApiSchemaDirRelPath(serviceName string) (string, error) {
+	svcSchemaDir := c.GetApiSchemaDirAbsPath(serviceName)
+	if _, err := os.Stat(svcSchemaDir); err == nil {
+		return c.GetApiSchemaDirRelPath(serviceName), nil
+	}
+	externalSvcSchemaDir := c.GetExternalApiSchemaDirAbsPath(serviceName)
+	if _, err := os.Stat(externalSvcSchemaDir); err == nil {
+		return c.GetExternalApiSchemaDirRelPath(serviceName), nil
+	}
+	return "", ErrNoSuchService
 }
 
 func (c *Description) GetRepository() string {
