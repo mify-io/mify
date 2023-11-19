@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/mify-io/mify/pkg/util/logging"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -50,13 +51,16 @@ func newFileEncoderConfig() zapcore.EncoderConfig {
 	}
 }
 
-func initLogger(logDir string) *zap.Logger {
+func initLogger(logDir string, verboseOutput bool) *zap.Logger {
 	err := createLogDir(logDir)
 	if err != nil {
 		panic(err)
 	}
 
 	consoleLevelEnabler := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		if verboseOutput {
+			return lvl >= zap.DebugLevel
+		}
 		return lvl >= zap.ErrorLevel
 	})
 	fileLevelEnabler := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
@@ -66,7 +70,7 @@ func initLogger(logDir string) *zap.Logger {
 	consoleEncoder := zapcore.NewConsoleEncoder(newConsoleEncoderConfig())
 	fileEncoder := zapcore.NewConsoleEncoder(newFileEncoderConfig())
 
-	logFile, err := os.OpenFile(filepath.Join(logDir, "mify.log"), os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+	logFile, err := logging.NewLogFile(filepath.Join(logDir, "mify.log"))
 	if err != nil {
 		panic(err)
 	}

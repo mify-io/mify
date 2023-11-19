@@ -20,6 +20,7 @@ import (
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/generator/lib/endpoints"
 	"github.com/mify-io/mify/pkg/mifyconfig"
+	"github.com/mify-io/mify/pkg/util/logging"
 	"github.com/mify-io/mify/pkg/util/threading"
 	"github.com/otiai10/copy"
 	"gopkg.in/yaml.v2"
@@ -499,7 +500,7 @@ func createLogFile(ctx *gencontext.GenContext, fileName string) (*os.File, error
 	logsDir := ctx.GetWorkspace().GetLogsDirectory()
 	logFile := path.Join(logsDir, fmt.Sprintf("%s-%s", ctx.GetServiceName(), fileName))
 
-	f, err := os.OpenFile(logFile, os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0600)
+	f, err := logging.NewLogFile(logFile)
 	if err != nil {
 		panic(err)
 	}

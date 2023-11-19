@@ -42,7 +42,7 @@ func ServiceGenerate(ctx *CliContext, basePath string, name string, migrate bool
 
 	outChan := make(chan core.StepExecResult)
 
-	go genPipeline.Execute(ctx.Ctx, name, descr, migrate, force, ctx.MifyVersion, outChan)
+	go genPipeline.Execute(ctx.Ctx, name, descr, migrate, force, ctx.MifyVersion, ctx.IsVerbose, outChan)
 
 	for {
 		stepResult := <-outChan
