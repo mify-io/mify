@@ -1,4 +1,4 @@
-{{- .Workspace.TplHeader}}
+{{- .TplHeader}}
 // vim: set ft=go:
 
 package metrics

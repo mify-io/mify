@@ -4,6 +4,7 @@ import (
 	_ "embed"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
+	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/go-services/cmd"
 	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/go-services/internal"
 	"github.com/mify-io/mify/pkg/util/render"
 )
@@ -29,6 +30,9 @@ func Render(ctx *gencontext.GenContext) error {
 
 	if err := internal.Render(ctx); err != nil {
 		return render.WrapError("app", err)
+	}
+	if err := cmd.Render(ctx); err != nil {
+		return render.WrapError("cmd", err)
 	}
 
 	return nil
