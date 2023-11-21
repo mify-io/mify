@@ -1,11 +1,11 @@
-{{- .Workspace.TplHeader}}
+{{- .TplHeader }}
 // vim: set ft=go:
 
 package main
 
 import (
 	"context"
-	"{{ .Workspace.GetAppIncludePath .ServiceName -}}"
+	"{{ .Workspace.PackageName }}/internal/{{ .ServiceName }}/generated/app"
 )
 
 func main() {
