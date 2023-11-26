@@ -11,6 +11,7 @@ import (
 
 	"github.com/mify-io/mify/internal/mify/util"
 	"github.com/mify-io/mify/pkg/mifyconfig"
+	tplhelpers "github.com/mify-io/mify/pkg/workspace/tpl-helpers"
 )
 
 const (
@@ -42,6 +43,26 @@ type Description struct {
 	TplHeaderPy string
 }
 
+type Path struct {
+	relPath string
+	absPath string
+}
+
+func NewPath(c Description, relPath string) Path {
+	return Path{
+		relPath: relPath,
+		absPath: path.Join(c.BasePath, relPath),
+	}
+}
+
+func (p Path) Rel() string {
+	return p.relPath
+}
+
+func (p Path) Abs() string {
+	return p.absPath
+}
+
 func InitDescription(workspacePath string) (Description, error) {
 	wrapError := func(err error) error {
 		return fmt.Errorf("can't initialize description: %w", err)
@@ -59,6 +80,20 @@ func InitDescription(workspacePath string) (Description, error) {
 	if err != nil {
 		return Description{}, wrapError(err)
 	}
+
+	return InitDescriptionFromConfig(workspacePath, conf)
+}
+
+func InitDescriptionFromConfig(workspacePath string, conf mifyconfig.WorkspaceConfig) (Description, error) {
+	wrapError := func(err error) error {
+		return fmt.Errorf("can't initialize description: %w", err)
+	}
+
+	if len(workspacePath) == 0 {
+		return Description{}, wrapError(fmt.Errorf("empty workspacePath"))
+	}
+
+	conf.GeneratorParams = tplhelpers.PopulateGeneratorParams(conf)
 
 	res := Description{
 		Name:        filepath.Base(workspacePath), // TODO: validate
@@ -604,6 +639,12 @@ func (c Description) GetGoPostgresConfigRelPath(serviceName string) string {
 
 func (c Description) GetGoPostgresConfigAbsPath(serviceName string) string {
 	return path.Join(c.BasePath, c.GetGoPostgresConfigRelPath(serviceName))
+}
+
+// mify-generated path
+
+func (c Description) GetMifyGenerated(serviceConfig *mifyconfig.ServiceConfig) MifyGenerated {
+	return newMifyGenerated(c, serviceConfig)
 }
 
 // User app

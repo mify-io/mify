@@ -18,7 +18,7 @@ const (
 //go:embed tpl/gitignore.tpl
 var gitignoreTemplate string
 
-func CreateWorkspace(mutContext *mutators.MutatorContext, dirAbsPath string, name string) error {
+func CreateWorkspace(mutContext *mutators.MutatorContext, dirAbsPath string, name string, conf mifyconfig.WorkspaceConfig) error {
 	wrapErr := func(err error) error {
 		return fmt.Errorf("error while creating workspace: %w", err)
 	}
@@ -45,17 +45,16 @@ func CreateWorkspace(mutContext *mutators.MutatorContext, dirAbsPath string, nam
 		return wrapErr(err)
 	}
 
-	if err := createYaml(name, baseAbsPath); err != nil {
+	if err := mifyconfig.SaveWorkspaceConfig(baseAbsPath, conf); err != nil {
 		return wrapErr(err)
 	}
 	return nil
 }
 
-func createYaml(name, dir string) error {
-	conf := mifyconfig.WorkspaceConfig{
+func MakeInitialWorkspaceConfig(name string) mifyconfig.WorkspaceConfig {
+	return mifyconfig.WorkspaceConfig{
 		WorkspaceName: name,
 		GitHost:       "example.com",
 		GitNamespace:  "namespace",
 	}
-	return mifyconfig.SaveWorkspaceConfig(dir, conf)
 }

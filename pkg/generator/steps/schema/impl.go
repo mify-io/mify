@@ -126,6 +126,10 @@ func extractMifySchema(ctx *gencontext.GenContext, forService string) (*mifyconf
 		config.Postgres.DatabaseName = makeDefaultDatabaseName(config.ServiceName)
 	}
 
+	if config.Components.Layout == nil {
+		config.Components.Layout = mifyconfig.MakeDefaultComponent()
+	}
+
 	return config, nil
 }
 

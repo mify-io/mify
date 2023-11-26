@@ -12,26 +12,43 @@ import (
 const (
 	WorkspaceConfigName = "workspace.mify.yaml"
 
-	GoServicesRoot     = "go-services"
-	PythonServicesRoot = "py-services"
-	JsServicesRoot     = "js-services"
+	GoServicesRoot       = "go-services"
+	PythonServicesRoot   = "py-services"
+	JsServicesRoot       = "js-services"
+	MifyGeneratedDirName = "mify-generated"
 )
 
+var (
+	ErrWorkspaceNotExists = errors.New("workspace doesn't exists")
+)
+
+type GeneratorTemplateParams struct {
+	MifyGeneratedPath    string           `yaml:"mify_generated_path,omitempty"`
+	MifyGeneratedPackage string           `yaml:"mify_generated_package,omitempty"`
+	DevRunner            *ComponentConfig `yaml:"dev_runner,omitempty"`
+}
+
+type GeneratorParams struct {
+	Template map[ServiceLanguage]GeneratorTemplateParams `yaml:"template,omitempty"`
+}
+
 type WorkspaceConfig struct {
-	WorkspaceName  string   `yaml:"workspace_name"`
-	GitHost        string   `yaml:"git_host"`
-	GitNamespace   string   `yaml:"git_namespace"`
-	GitRepository  string   `yaml:"git_repository,omitempty"`
-	OrganizationID string   `yaml:"organization_id,omitempty"`
-	ProjectName    string   `yaml:"project_name,omitempty"`
-	Environments   []string `yaml:"environments"`
+	WorkspaceName   string          `yaml:"workspace_name"`
+	GitHost         string          `yaml:"git_host"`
+	GitNamespace    string          `yaml:"git_namespace"`
+	GitRepository   string          `yaml:"git_repository,omitempty"`
+	OrganizationID  string          `yaml:"organization_id,omitempty"`
+	ProjectName     string          `yaml:"project_name,omitempty"`
+	Environments    []string        `yaml:"environments,omitempty"`
+	GeneratorParams GeneratorParams `yaml:"generator_params,omitempty"`
 }
 
 func ReadWorkspaceConfig(path string) (WorkspaceConfig, error) {
 	workspaceConfFile, err := os.ReadFile(filepath.Join(path, WorkspaceConfigName))
 
 	if errors.Is(err, os.ErrNotExist) {
-		return WorkspaceConfig{}, fmt.Errorf("workspace config not found at path: %s", path)
+		return WorkspaceConfig{},
+			fmt.Errorf("%w: workspace config not found at path: %s", ErrWorkspaceNotExists, path)
 	}
 	if err != nil {
 		return WorkspaceConfig{}, err
@@ -81,5 +98,5 @@ func FindWorkspaceConfigPathInLocation(curDir string) (string, error) {
 		}
 		curDir = filepath.Dir(curDir)
 	}
-	return "", fmt.Errorf("unable to find workspace.mify.yaml, current or any parent directory is not a workspace")
+	return "", fmt.Errorf("%w: unable to find workspace.mify.yaml, current or any parent directory is not a workspace", ErrWorkspaceNotExists)
 }
