@@ -90,10 +90,6 @@ func NewOpenAPIGenerator(ctx *gencontext.GenContext) (OpenAPIGenerator, error) {
 }
 
 func (g *OpenAPIGenerator) PrepareSync(ctx *gencontext.GenContext) error {
-	if g.prepared {
-		return nil
-	}
-
 	return threading.DoUnderLock(&g.prepareMutex, func() error {
 		if g.prepared {
 			return nil

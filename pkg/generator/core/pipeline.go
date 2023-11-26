@@ -6,6 +6,7 @@ import (
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/workspace"
+	"go.uber.org/zap"
 )
 
 const (
@@ -14,7 +15,7 @@ const (
 
 type StepExecResult struct {
 	SeqNo int
-	Step  *Step
+	StepName string
 	Error error
 }
 
@@ -41,7 +42,7 @@ func (p Pipeline) Execute(
 		if iteration == maxRepeatsCount {
 			outChan <- StepExecResult{
 				SeqNo: -1,
-				Step:  nil,
+				StepName: "",
 				Error: fmt.Errorf("max number %d of pipeline execution repeats has been reached", maxRepeatsCount),
 			}
 		}
@@ -54,25 +55,30 @@ func (p Pipeline) Execute(
 		if err != nil {
 			outChan <- StepExecResult{
 				SeqNo: -1,
-				Step:  nil,
+				StepName: "",
 				Error: fmt.Errorf("can't initialize generate pipeline: %w", err),
 			}
 			break
 		}
 
+		logger := genContext.Logger
 		for stepSeqNo, step := range p.steps {
-			genContext.Logger.Infof("Starting step '%s'", step.Name())
-			result, err := step.Execute(genContext)
-
+			genContext.Logger = logger.With(
+				zap.String("step_name", step.Name()),
+			)
 			execRes := StepExecResult{
 				SeqNo: stepSeqNo,
-				Step:  &step,
+				StepName:  step.Name(),
 			}
+			outChan <- execRes
+
+			genContext.Logger.Infof("Starting step")
+			result, err := step.Execute(genContext)
 
 			if err != nil {
 				execRes.Error = fmt.Errorf("step '%s' failed with error: %w", step.Name(), err)
 			}
-			genContext.Logger.Infof("Finished step '%s'", step.Name())
+			genContext.Logger.Infof("Finished step")
 
 			outChan <- execRes
 

@@ -46,7 +46,7 @@ func ServiceGenerate(ctx *CliContext, basePath string, name string, migrate bool
 
 	for {
 		stepResult := <-outChan
-		pg.ReportStep(&stepResult)
+		pg.ReportStep(stepResult)
 
 		if stepResult.Error != nil {
 			return stepResult.Error
