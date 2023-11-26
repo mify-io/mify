@@ -19,6 +19,10 @@ func (s LayoutStep) Name() string {
 }
 
 func (s LayoutStep) Execute(ctx *gencontext.GenContext) (core.StepResult, error) {
+	if ctx.GetMifySchema() != nil && !ctx.MustGetMifySchema().Components.Layout.Enabled {
+		ctx.Logger.Info("skipping disabled step")
+		return core.Done, nil
+	}
 	if err := execute(ctx); err != nil {
 		return core.Done, err
 	}

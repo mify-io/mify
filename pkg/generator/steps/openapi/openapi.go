@@ -21,6 +21,7 @@ import (
 	"github.com/mify-io/mify/pkg/generator/lib/endpoints"
 	"github.com/mify-io/mify/pkg/mifyconfig"
 	"github.com/mify-io/mify/pkg/util/logging"
+	"github.com/mify-io/mify/pkg/util/render"
 	"github.com/mify-io/mify/pkg/util/threading"
 	"github.com/otiai10/copy"
 	"gopkg.in/yaml.v2"
@@ -429,6 +430,7 @@ func runOpenapiGenerator(
 	templatePathRel := strings.Replace(templatePath, basePath, "", 1)
 	schemaPathRel := strings.Replace(schemaPath, basePath, "", 1)
 	targetDirRel := strings.Replace(targetDir, basePath, "", 1)
+	defaultModel := render.NewDefaultModel(ctx)
 	args := []string{
 		"generate",
 		"-c", filepath.Join("/repo", templatePathRel, "config.yaml"),
@@ -439,6 +441,8 @@ func runOpenapiGenerator(
 		"-p", "servicePackageName=" + endpoints.SanitizeServiceName(info.ServiceName),
 		"-p", "clientName=" + clientName,
 		"-p", "clientEndpointEnv=" + MakeClientEnvName(clientName),
+		"-p", "mifyGeneratedCommonPackage=" + defaultModel.Workspace.MifyGeneratedCommonPackage,
+		"-p", "mifyGeneratedServicePackage=" + defaultModel.Workspace.MifyGeneratedServicePackage,
 		"-p", fmt.Sprintf("serviceEndpoint=%s", apiEndpoint),
 		"--package-name", packageName,
 	}

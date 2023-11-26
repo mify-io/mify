@@ -49,12 +49,21 @@ type PostgresConfig struct {
 	DatabaseName string `yaml:"database_name,omitempty"`
 }
 
+type ComponentConfig struct {
+	Enabled bool `yaml:"enabled,omitempty"`
+}
+
+type ComponentsConfig struct {
+	Layout *ComponentConfig `yaml:"layout,omitempty"`
+}
+
 type ServiceConfig struct {
 	Language ServiceLanguage `yaml:"language"`
 	Template string          `yaml:"template,omitempty"`
 
 	ServiceName string   `yaml:"service_name"`
 	Maintainers []string `yaml:"maintainers"`
+	Components ComponentsConfig `yaml:"components,omitempty"`
 
 	OpenAPI  ServiceOpenAPIConfig `yaml:"openapi,omitempty"`
 	Postgres PostgresConfig       `yaml:"postgres,omitempty"`
@@ -83,6 +92,12 @@ func ReadServiceCfg(path string) (*ServiceConfig, error) {
 	}
 
 	return &data, nil
+}
+
+func MakeDefaultComponent() *ComponentConfig {
+	return &ComponentConfig{
+		Enabled: true,
+	}
 }
 
 func tryReadExternalService(workspaceDir, serviceName string) (*ServiceConfig, error) {

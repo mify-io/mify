@@ -29,6 +29,11 @@ type DefaultModel struct {
 	serviceLanguage mifyconfig.ServiceLanguage
 }
 
+type ModelWrapper[T any] struct {
+	DefaultModel
+	Model T
+}
+
 func newClientModel(clientName string) clientModel {
 	return clientModel{
 		ServiceName:     endpoints.SanitizeServiceName(clientName),
@@ -48,6 +53,13 @@ func NewDefaultModel(ctx *gencontext.GenContext) DefaultModel {
 		Workspace: NewWorkspaceModel(ctx),
 		Service: NewServiceModel(ctx),
 		serviceLanguage: ctx.MustGetMifySchema().Language,
+	}
+}
+
+func NewModel[T any](ctx *gencontext.GenContext, model T) ModelWrapper[T] {
+	return ModelWrapper[T]{
+		NewDefaultModel(ctx),
+		model,
 	}
 }
 

@@ -23,7 +23,7 @@ func CreateWorkspace(ctx *CliContext, parentDir string, name string, vcs string)
 	}
 	mutCtx := mutators.NewMutatorContext(ctx.Ctx, ctx.Logger, nil)
 
-	err := workspace.CreateWorkspace(mutCtx, parentDir, name)
+	err := workspace.CreateWorkspace(mutCtx, parentDir, name, workspace.MakeInitialWorkspaceConfig(name))
 	if err != nil {
 		return err
 	}
