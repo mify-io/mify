@@ -17,12 +17,12 @@ type StaticConfig interface {
 	MustGetPtr(cfg interface{}) interface{}
 }
 
-type ClientConf struct {
+type {{packageName}}ClientConf struct {
 	ServiceUrl string `envconfig:"{{clientEndpointEnv}}" default:"{{serviceEndpoint}}"`
 }
 
-func getClientConf(conf StaticConfig) *ClientConf {
-	return conf.MustGetPtr((*ClientConf)(nil)).(*ClientConf)
+func getClientConf(conf StaticConfig) *{{packageName}}ClientConf {
+	return conf.MustGetPtr((*{{packageName}}ClientConf)(nil)).(*{{packageName}}ClientConf)
 }
 
 type contextKey string
@@ -127,6 +127,13 @@ type Configuration struct {
 	{{/withCustomMiddlewareFunction}}
 }
 
+func normalizeServiceUrl(url string) string {
+	if strings.HasPrefix(url, "http://") {
+		return url
+	}
+	return "http://"+url
+}
+
 // NewConfiguration returns a new Configuration object
 func NewConfiguration(conf StaticConfig) *Configuration {
 	cfg := getClientConf(conf)
@@ -140,7 +147,7 @@ func NewConfiguration(conf StaticConfig) *Configuration {
 		Servers:          ServerConfigurations{
 		{{/-first}}
 			{
-				URL: "http://"+cfg.ServiceUrl,
+				URL: normalizeServiceUrl(cfg.ServiceUrl),
 				Description: "{{{description}}}{{^description}}No description provided{{/description}}",
 				{{#variables}}
 				{{#-first}}
