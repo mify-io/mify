@@ -12,6 +12,9 @@ func validateCtx(ctx *gencontext.GenContext) error {
 	if ctx.GetServiceName() == workspace.DevRunnerName {
 		return nil // Dev runner shouldn't have any scheme
 	}
+	if ctx.MustGetMifySchema().IsExternal {
+		return nil // Dev runner shouldn't have any scheme
+	}
 
 	schemas := ctx.GetSchemaCtx().GetAllSchemas()
 	serviceSchemas, ok := schemas[ctx.GetServiceName()]

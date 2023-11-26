@@ -173,7 +173,7 @@ func (g *OpenAPIGenerator) GenerateServer(ctx *gencontext.GenContext) error {
 		return fmt.Errorf("failed to generate server: %w", err)
 	}
 
-	err = updateGenerationTime(ctx, ctx.GetServiceName(), filepath.Dir(schemaPath))
+	err = updateGenerationTime(ctx, ctx.GetServiceName(), schemaDir, filepath.Dir(schemaPath))
 	if err != nil {
 		return err
 	}
@@ -186,7 +186,10 @@ func (g *OpenAPIGenerator) GenerateClient(ctx *gencontext.GenContext, clientName
 	if len(g.clientAssetsPath) == 0 {
 		return fmt.Errorf("failed to generate client: no generator available for language: %s", g.language)
 	}
-	inputSchemaPath := ctx.GetWorkspace().GetApiSchemaAbsPath(clientName, "api.yaml")
+	inputSchemaPath, err := ctx.GetWorkspace().GetUniversalApiSchemaAbsPath(clientName, "api.yaml")
+	if err != nil {
+		return fmt.Errorf("failed to generate client: %w", err)
+	}
 	schemaPath, err := g.makeClientEnrichedSchema(ctx, inputSchemaPath)
 	if err != nil {
 		return fmt.Errorf("failed to generate client: %w", err)
@@ -196,8 +199,12 @@ func (g *OpenAPIGenerator) GenerateClient(ctx *gencontext.GenContext, clientName
 	if err != nil {
 		return fmt.Errorf("failed to generate client: %w", err)
 	}
+	schemaDir, err := ctx.GetWorkspace().GetUniversalApiSchemaDirRelPath(clientName)
+	if err != nil {
+		return fmt.Errorf("failed to generate client: %w", err)
+	}
 
-	err = updateGenerationTime(ctx, clientName, filepath.Dir(schemaPath))
+	err = updateGenerationTime(ctx, clientName, schemaDir, filepath.Dir(schemaPath))
 	if err != nil {
 		return err
 	}
@@ -309,11 +316,10 @@ func makeFileUpdateMap(ctx *gencontext.GenContext, schemaDir string, tmpSchemaDi
 	return fileMap, nil
 }
 
-func updateGenerationTime(ctx *gencontext.GenContext, targetServiceName string, tmpSchemaDir string) error {
-	schemaDir := ctx.GetWorkspace().GetApiSchemaDirRelPath(targetServiceName)
-	ctx.Logger.Infof("updating generation time in: %s", schemaDir)
+func updateGenerationTime(ctx *gencontext.GenContext, targetServiceName string, svcSchemaDir string, tmpSchemaDir string) error {
+	ctx.Logger.Infof("updating generation time in: %s", svcSchemaDir)
 
-	fileMap, err := makeFileUpdateMap(ctx, schemaDir, tmpSchemaDir)
+	fileMap, err := makeFileUpdateMap(ctx, svcSchemaDir, tmpSchemaDir)
 	if err != nil {
 		return fmt.Errorf("failed to write file update times: %w", err)
 	}

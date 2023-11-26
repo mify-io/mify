@@ -1,6 +1,7 @@
 package mifyconfig
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -28,6 +29,10 @@ var LanguagesList = []ServiceLanguage{
 	ServiceLanguageJs,
 }
 
+var (
+	ErrNoSuchService = errors.New("no such service")
+)
+
 type ServiceOpenAPIClientConfig struct{}
 
 type ServiceOpenAPIConfig struct {
@@ -53,11 +58,17 @@ type ServiceConfig struct {
 
 	OpenAPI  ServiceOpenAPIConfig `yaml:"openapi,omitempty"`
 	Postgres PostgresConfig       `yaml:"postgres,omitempty"`
+
+	IsExternal bool `yaml:"-"`
 }
 
 func ReadServiceCfg(path string) (*ServiceConfig, error) {
 	wrapErr := func(err error) error {
 		return fmt.Errorf("failed to read service config: %w", err)
+	}
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return nil, wrapErr(ErrNoSuchService)
 	}
 
 	rawData, err := os.ReadFile(path)
@@ -74,12 +85,33 @@ func ReadServiceCfg(path string) (*ServiceConfig, error) {
 	return &data, nil
 }
 
+func tryReadExternalService(workspaceDir, serviceName string) (*ServiceConfig, error) {
+	wrapErr := func(err error) error {
+		return fmt.Errorf("failed to read external service config: %w", err)
+	}
+	externalSchemaPath := path.Join(workspaceDir, "schemas", "mify-external", serviceName, "api", "api.yaml")
+	if _, err := os.Stat(externalSchemaPath); os.IsNotExist(err) {
+		return nil, wrapErr(ErrNoSuchService)
+	}
+	return &ServiceConfig{
+		ServiceName: serviceName,
+		IsExternal:  true,
+	}, nil
+}
+
 // TODO: remove (use ReadServiceCfg)
 func ReadServiceConfig(workspaceDir string, serviceName string) (ServiceConfig, error) {
 	schemaDir := path.Join(workspaceDir, "schemas", serviceName)
 	path := filepath.Join(schemaDir, ServiceConfigName)
 
 	cfg, err := ReadServiceCfg(path)
+	if err == nil {
+		return *cfg, nil
+	}
+	if err != nil && !errors.Is(err, ErrNoSuchService) {
+		return ServiceConfig{}, err
+	}
+	cfg, err = tryReadExternalService(workspaceDir, serviceName)
 	if err != nil {
 		return ServiceConfig{}, err
 	}
