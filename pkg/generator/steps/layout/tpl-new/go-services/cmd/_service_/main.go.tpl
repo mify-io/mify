@@ -5,7 +5,7 @@ package main
 
 import (
 	"context"
-	"{{ .Workspace.PackageName }}/internal/{{ .ServiceName }}/generated/app"
+	"{{ .Workspace.MifyGeneratedServicePackage }}/app"
 )
 
 func main() {

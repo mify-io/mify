@@ -6,8 +6,8 @@ import (
 {{#routers}}
 	"github.com/go-chi/chi/v5"
 {{/routers}}
-	"{{goModule}}/internal/{{serviceName}}/generated/api"
-	"{{goModule}}/internal/{{serviceName}}/generated/core"
+	"{{mifyGeneratedServicePackage}}/api"
+	"{{mifyGeneratedServicePackage}}/core"
 
 {{#openAPI}}{{#paths}}
 {{#entrySet}}

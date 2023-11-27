@@ -1,23 +1,25 @@
 package config
 
 import (
-	_ "embed"
+	"embed"
 	"path"
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/util/render"
 )
 
-//go:embed postgres_config.go.tpl
-var postgresConfigTemplate string
+//go:embed *.tpl
+var templates embed.FS
 
 func Render(ctx *gencontext.GenContext) error {
 	postgresConfigModel := NewPostgresConfigModel(ctx)
-	// TODO: move path to description
-	postgresConfigPath := path.Join(ctx.GetWorkspace().GetGoPostgresConfigAbsPath(ctx.GetMifySchema().ServiceName), "config.go")
-	if err := render.RenderTemplate(postgresConfigTemplate, postgresConfigModel, postgresConfigPath); err != nil {
-		return render.WrapError("postgres config", err)
-	}
+	basePath := path.Join(
+		ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs(),
+		"postgres",
+	)
 
-	return nil
+	return render.RenderMany(
+		templates,
+		render.NewFile(ctx, path.Join(basePath, "config.go")).SetModel(render.NewModel(ctx, postgresConfigModel)),
+	)
 }

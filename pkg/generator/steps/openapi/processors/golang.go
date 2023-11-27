@@ -25,13 +25,7 @@ func newGoProcessor() *goPostProcessor {
 }
 
 func (p *goPostProcessor) GetServerGeneratorConfig(ctx *gencontext.GenContext) (GeneratorConfig, error) {
-	basePath := ctx.GetWorkspace().BasePath
-	targetPath, err := ctx.GetWorkspace().GetServiceGeneratedAPIRelPath(
-		ctx.GetServiceName(), ctx.MustGetMifySchema().Language)
-	if err != nil {
-		return GeneratorConfig{}, err
-	}
-	generatedPath := filepath.Join(basePath, targetPath, "generated")
+	generatedPath := ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs()
 	return GeneratorConfig{
 		TargetPath:  generatedPath,
 		PackageName: SERVER_PACKAGE_NAME,
@@ -39,13 +33,12 @@ func (p *goPostProcessor) GetServerGeneratorConfig(ctx *gencontext.GenContext) (
 }
 
 func (p *goPostProcessor) GetClientGeneratorConfig(ctx *gencontext.GenContext, clientName string) (GeneratorConfig, error) {
-	basePath := ctx.GetWorkspace().BasePath
-	targetPath, err := ctx.GetWorkspace().GetServiceGeneratedAPIRelPath(
-		ctx.GetServiceName(), ctx.MustGetMifySchema().Language)
-	if err != nil {
-		return GeneratorConfig{}, err
-	}
-	generatedPath := filepath.Join(basePath, targetPath, "generated", "api", "clients", clientName)
+	generatedPath := filepath.Join(
+		ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs(),
+		"api",
+		"clients",
+		clientName,
+	)
 	packageName := endpoints.SanitizeServiceName(clientName) + "_client"
 	return GeneratorConfig{
 		TargetPath:  generatedPath,
@@ -71,8 +64,10 @@ func (p *goPostProcessor) PopulateServerHandlers(ctx *gencontext.GenContext, pat
 	if err != nil {
 		return err
 	}
-	generatedPath := filepath.Join(ctx.GetWorkspace().BasePath, targetDir, "generated")
-	apiPath := filepath.Join(generatedPath, "api")
+	apiPath := filepath.Join(
+		ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs(),
+		"api",
+	)
 	handlersPath := filepath.Join(ctx.GetWorkspace().BasePath, targetDir, "handlers")
 	err = sanitizeServerHandlersImports(ctx, apiPath)
 	if err != nil {
@@ -129,13 +124,10 @@ func (p *goPostProcessor) PopulateServerHandlers(ctx *gencontext.GenContext, pat
 }
 
 func (p *goPostProcessor) Format(ctx *gencontext.GenContext) error {
-	targetDir, err := ctx.GetWorkspace().GetServiceGeneratedAPIRelPath(
-		ctx.GetServiceName(), ctx.MustGetMifySchema().Language)
-	if err != nil {
-		return err
-	}
-	generatedPath := filepath.Join(ctx.GetWorkspace().BasePath, targetDir, "generated")
-	apiPath := filepath.Join(generatedPath, "api")
+	apiPath := filepath.Join(
+		ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs(),
+		"api",
+	)
 	return filepath.WalkDir(apiPath, func(path string, d fs.DirEntry, ferr error) error {
 		if d == nil {
 			return fmt.Errorf("failed to format: %s: %w", apiPath, ferr)
