@@ -437,46 +437,6 @@ func (c *Description) GetPythonServicesAbsPath() string {
 	return path.Join(c.BasePath, c.GetPythonServicesRelPath())
 }
 
-func (c *Description) GetPythonServicesLibrariesGeneratedRelPath() string {
-	return path.Join(c.GetPythonServicesRelPath(), "libraries/generated")
-}
-
-func (c *Description) GetPythonServicesLibrariesGeneratedConfigsRelPath() string {
-	return path.Join(c.GetPythonServicesLibrariesGeneratedRelPath(), "configs")
-}
-
-func (c *Description) GetPythonServicesLibrariesGeneratedLogsRelPath() string {
-	return path.Join(c.GetPythonServicesLibrariesGeneratedRelPath(), "logs")
-}
-
-func (c *Description) GetPythonServicesLibrariesGeneratedMetricsRelPath() string {
-	return path.Join(c.GetPythonServicesLibrariesGeneratedRelPath(), "metrics")
-}
-
-func (c *Description) GetPythonServicesLibrariesGeneratedAbsPath() string {
-	return path.Join(c.BasePath, c.GetPythonServicesLibrariesGeneratedRelPath())
-}
-
-func (c *Description) GetPythonServicesLibrariesGeneratedConfigsAbsPath() string {
-	return path.Join(c.BasePath, c.GetPythonServicesLibrariesGeneratedConfigsRelPath())
-}
-
-func (c *Description) GetPythonServicesLibrariesGeneratedLogsAbsPath() string {
-	return path.Join(c.BasePath, c.GetPythonServicesLibrariesGeneratedLogsRelPath())
-}
-
-func (c *Description) GetPythonServicesLibrariesGeneratedMetricsAbsPath() string {
-	return path.Join(c.BasePath, c.GetPythonServicesLibrariesGeneratedMetricsRelPath())
-}
-
-func (c *Description) GetPythonGeneratedRelPath(serviceName string) string {
-	return path.Join(mifyconfig.PythonServicesRoot, serviceName, "generated")
-}
-
-func (c *Description) GetPythonServiceRelPath(serviceName string) string {
-	return path.Join(c.GetPythonServicesRelPath(), serviceName)
-}
-
 func (c *Description) GetPythonServiceSubAbsPath(serviceName string, filename string) string {
 	return path.Join(c.GetPythonServicesAbsPath(), serviceName, filename)
 }
@@ -485,32 +445,12 @@ func (c *Description) GetPythonAppRelPath(serviceName string) string {
 	return path.Join(c.GetPythonServicesRelPath(), serviceName, "app")
 }
 
-func (c *Description) GetPythonGeneratedAppPath(serviceName string) string {
-	return path.Join(c.GetPythonServicesAbsPath(), serviceName, "generated/app")
-}
-
-func (c *Description) GetPythonGeneratedAppRelPath(serviceName string) string {
-	return path.Join(c.GetPythonGeneratedRelPath(serviceName), "app")
-}
-
-func (c *Description) GetPythonGeneratedAbsPath(serviceName string) string {
-	return path.Join(c.BasePath, c.GetPythonGeneratedRelPath(serviceName))
-}
-
 func (c *Description) GetPythonAppSubRelPath(serviceName string, fileName string) string {
 	return path.Join(c.GetPythonAppRelPath(serviceName), fileName)
 }
 
 func (c *Description) GetPythonAppSubAbsPath(serviceName string, fileName string) string {
 	return path.Join(c.BasePath, c.GetPythonAppSubRelPath(serviceName, fileName))
-}
-
-func (c *Description) GetPythonServiceGeneratedCoreRelPath(serviceName string) string {
-	return path.Join(c.GetPythonServicesRelPath(), serviceName, "generated/core")
-}
-
-func (c *Description) GetPythonServiceGeneratedOpenAPIRelPath(serviceName string) string {
-	return path.Join(c.GetPythonServicesRelPath(), serviceName, "generated/openapi")
 }
 
 func (c *Description) GetDevRunnerRelPath() string {
@@ -635,14 +575,6 @@ func (c *Description) GetGeneratedAppPath(serviceName string) string {
 
 func (c *Description) GetAppRelPath(serviceName string) string {
 	return path.Join(c.GetGoServicesRelPath(), "internal", serviceName, "app")
-}
-
-func (c Description) GetGoPostgresConfigRelPath(serviceName string) string {
-	return path.Join(c.GetGoServicesRelPath(), "internal", serviceName, "generated", "postgres")
-}
-
-func (c Description) GetGoPostgresConfigAbsPath(serviceName string) string {
-	return path.Join(c.BasePath, c.GetGoPostgresConfigRelPath(serviceName))
 }
 
 // mify-generated path

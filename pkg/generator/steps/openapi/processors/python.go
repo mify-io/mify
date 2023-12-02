@@ -20,24 +20,33 @@ func newPythonProcessor() *pythonPostProcessor {
 	return &pythonPostProcessor{}
 }
 
+func getGeneratedPath(ctx *gencontext.GenContext) string {
+	if ctx.MustGetMifySchema().Components.Layout.Enabled {
+		return ctx.GetWorkspace().GetPythonServicesAbsPath()
+	}
+	return ctx.GetWorkspace().BasePath
+}
+
 func (p *pythonPostProcessor) GetServerGeneratorConfig(ctx *gencontext.GenContext) (GeneratorConfig, error) {
-	generatedPath := ctx.GetWorkspace().GetPythonServicesAbsPath()
+	generatedPath := getGeneratedPath(ctx)
+	packagePath := ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePackage()
 	return GeneratorConfig{
 		TargetPath:  generatedPath,
-		PackageName: fmt.Sprintf("%s.%s.%s", endpoints.SanitizeServiceName(ctx.GetServiceName()), "generated", SERVER_PACKAGE_NAME),
+		PackageName: fmt.Sprintf("%s.%s", packagePath, SERVER_PACKAGE_NAME),
 	}, nil
 }
 
 func (p *pythonPostProcessor) GetClientGeneratorConfig(ctx *gencontext.GenContext, clientName string) (GeneratorConfig, error) {
-	generatedPath := ctx.GetWorkspace().GetPythonServicesAbsPath()
+	generatedPath := getGeneratedPath(ctx)
+	packagePath := ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePackage()
 	return GeneratorConfig{
 		TargetPath:  generatedPath,
-		PackageName: fmt.Sprintf("%s.%s.%s.%s.%s", endpoints.SanitizeServiceName(ctx.GetServiceName()), "generated", SERVER_PACKAGE_NAME, "clients", clientName),
+		PackageName: fmt.Sprintf("%s.%s.clients.%s", packagePath, SERVER_PACKAGE_NAME, endpoints.SanitizeServiceName(clientName)),
 	}, nil
 }
 
 func (p *pythonPostProcessor) ProcessServer(ctx *gencontext.GenContext) error {
-	generatedPath := ctx.GetWorkspace().GetPythonServicesAbsPath()
+	generatedPath := getGeneratedPath(ctx)
 	ignoreFilePath := filepath.Join(generatedPath, ".openapi-generator-ignore")
 	openAPIGeneratorDir := filepath.Join(generatedPath, ".openapi-generator")
 	if err := os.Remove(ignoreFilePath); err != nil {
@@ -57,9 +66,11 @@ func (p *pythonPostProcessor) ProcessServer(ctx *gencontext.GenContext) error {
 
 func (p *pythonPostProcessor) ProcessClient(ctx *gencontext.GenContext, clientName string) error {
 	generatedPath := filepath.Join(
-		ctx.GetWorkspace().GetPythonServicesAbsPath(),
-		endpoints.SanitizeServiceName(ctx.GetServiceName()),
-		"generated", SERVER_PACKAGE_NAME, "clients", clientName)
+		ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs(),
+		SERVER_PACKAGE_NAME,
+		"clients",
+		clientName,
+	)
 	// TODO: remove after https://github.com/OpenAPITools/openapi-generator/issues/13648 is fixed
 	err := filepath.WalkDir(generatedPath, func(p string, d fs.DirEntry, e error) error {
 		if d == nil {
@@ -121,8 +132,10 @@ func (p *pythonPostProcessor) PopulateServerHandlers(ctx *gencontext.GenContext,
 	if err != nil {
 		return err
 	}
-	generatedPath := filepath.Join(ctx.GetWorkspace().BasePath, targetDir, "generated")
-	apiPath := filepath.Join(generatedPath, "openapi")
+	apiPath := filepath.Join(
+		ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs(),
+		"openapi",
+	)
 	handlersPath := filepath.Join(ctx.GetWorkspace().BasePath, targetDir, "handlers")
 	services, err := filepath.Glob(filepath.Join(apiPath, handlerGlob))
 	if err != nil {
@@ -204,7 +217,7 @@ func (p *pythonPostProcessor) createServerHandlersFile(ctx *gencontext.GenContex
 
 func processControllers(ctx *gencontext.GenContext) error {
 	controllersPath := filepath.Join(ctx.GetWorkspace().BasePath,
-		ctx.GetWorkspace().GetPythonServiceGeneratedOpenAPIRelPath(ctx.GetServiceName()), "controllers")
+		ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Rel(), "openapi", "controllers")
 	controllers, err := filepath.Glob(filepath.Join(controllersPath, "*_controller.py"))
 	if err != nil {
 		return err

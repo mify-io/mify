@@ -1,10 +1,10 @@
 package workspace
 
 import (
-	"fmt"
 	"path"
 
 	"github.com/mify-io/mify/pkg/mifyconfig"
+	tplhelpers "github.com/mify-io/mify/pkg/workspace/tpl-helpers"
 )
 
 type MifyGenerated struct {
@@ -38,9 +38,9 @@ func (c MifyGenerated) GetPackage() string {
 }
 
 func (c MifyGenerated) GetCommonPackage() string {
-	return fmt.Sprintf("%s/common", c.GetPackage())
+	return tplhelpers.HelpersMap[c.lang].GetCommonPackage(c.GetPackage())
 }
 
 func (c MifyGenerated) GetServicePackage() string {
-	return fmt.Sprintf("%s/services/%s", c.GetPackage(), c.serviceName)
+	return tplhelpers.HelpersMap[c.lang].GetServicePackage(c.GetPackage(), c.serviceName)
 }
