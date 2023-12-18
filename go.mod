@@ -6,7 +6,6 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/adrg/xdg v0.4.0
 	github.com/briandowns/spinner v1.18.0
-	github.com/containerd/containerd v1.7.9
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/getkin/kin-openapi v0.88.0
 	github.com/go-git/go-git/v5 v5.10.0
@@ -23,7 +22,6 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/vbauerster/mpb/v7 v7.3.2
 	go.uber.org/zap v1.25.0
-	golang.org/x/text v0.13.0
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/client-go v0.26.2
 )
@@ -39,7 +37,6 @@ require (
 	github.com/benbjohnson/clock v1.3.5 // indirect
 	github.com/bytecodealliance/wasmtime-go/v14 v14.0.0 // indirect
 	github.com/cloudflare/circl v1.3.3 // indirect
-	github.com/containerd/log v0.1.0 // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/cubicdaiya/gonp v1.0.4 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
@@ -49,6 +46,7 @@ require (
 	github.com/docker/distribution v2.8.3+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
+	github.com/emicklei/go-restful/v3 v3.10.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
@@ -104,7 +102,6 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/riza-io/grpc-go v0.2.0 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
-	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/skeema/knownhosts v1.2.0 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
@@ -114,14 +111,15 @@ require (
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/exp v0.0.0-20230724220655-d98519c11495 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.11.0 // indirect
 	golang.org/x/sync v0.4.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/term v0.13.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/term v0.15.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	golang.org/x/tools v0.13.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
