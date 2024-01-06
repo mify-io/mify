@@ -17,18 +17,18 @@ RUN yarn && yarn build
 
 FROM nginx:1.25.1-alpine
 
-COPY <<EOF /etc/nginx/conf.d/default.conf
-RUN cat server_tokens off;
-server {
-    listen       80;
-    server_name  localhost;
-    location / {
-        root   /usr/share/nginx/html;
-        index  index.html index.htm;
-        try_files $uri /index.html;
+COPY <<-"EOT" /etc/nginx/conf.d/default.conf
+    server_tokens off;
+    server {
+        listen       80;
+        server_name  localhost;
+        location / {
+            root   /usr/share/nginx/html;
+            index  index.html index.htm;
+            try_files $uri /index.html;
+        }
     }
-}
-EOF
+EOT
 
 COPY --from=builder /app/build /usr/share/nginx/html
 
