@@ -1,9 +1,9 @@
 {{>licenseInfo}}
 // vim: set ft=javascript:
 
-import ApiClient from './ApiClient';
-{{#models}}import {{#model}}{{classFilename}}{{/model}} from './{{#modelPackage}}{{.}}/{{/modelPackage}}{{importPath}}';
-{{/models}}{{#apiInfo}}{{#apis}}import {{importPath}} from './{{#apiPackage}}{{.}}/{{/apiPackage}}{{importPath}}';
+import ApiClient from './ApiClient.js';
+{{#models}}import {{#model}}{{classFilename}}{{/model}} from './{{#modelPackage}}{{.}}/{{/modelPackage}}{{importPath}}.js';
+{{/models}}{{#apiInfo}}{{#apis}}import {{importPath}} from './{{#apiPackage}}{{.}}/{{/apiPackage}}{{importPath}}.js';
 {{/apis}}{{/apiInfo}}
 
 {{#emitJSDoc}}/**{{#projectDescription}}

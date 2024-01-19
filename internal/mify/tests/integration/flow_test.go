@@ -19,7 +19,7 @@ func init() {
 
 func ignoreFunc(path string) bool {
 	// TODO: think about how to improve ignore pattern (maybe ignore based on diff text)
-	return strings.HasSuffix(path, "generated/api/clients/service1/ApiClient.js") ||
+	return strings.HasSuffix(path, "api/clients/service1/ApiClient.js") ||
 		strings.HasSuffix(path, "api/clients/service2/configuration.go") ||
 		strings.HasSuffix(path, "app/server.go") ||
 		strings.HasSuffix(path, "app/server.py") ||
