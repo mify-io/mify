@@ -15,8 +15,8 @@ func NewSqlcModel(ctx *gencontext.GenContext) (sqlcModel, error) {
 	// NOTE: sqlc doesn't support absolute paths, these are relative to sqlc.yaml
 	// location, so go-services/internal/<service-name>/generated/postgres
 	return sqlcModel{
-		MigrationsDir: "../../../../migrations/"+dbName,
-		QueriesDir: "../../../../sql-queries/"+dbName,
+		MigrationsDir: "../../../../../migrations/"+dbName,
+		QueriesDir: "../../../../../sql-queries/"+dbName,
 		OutDir: ".",
 	}, nil
 }

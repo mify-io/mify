@@ -1,6 +1,7 @@
 package workspace
 
 import (
+	"errors"
 	"time"
 
 	"github.com/go-git/go-git/v5"
@@ -53,6 +54,9 @@ func getCommitOpts(repo *git.Repository) (git.CommitOptions, error) {
 
 func InitGit(mutContext *mutators.MutatorContext) error {
 	repo, err := git.PlainInit(mutContext.GetDescription().BasePath, false)
+	if err != nil && errors.Is(err, git.ErrRepositoryAlreadyExists) {
+		return nil
+	}
 	if err != nil {
 		return err
 	}

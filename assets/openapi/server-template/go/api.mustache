@@ -5,7 +5,7 @@ package {{packageName}}
 import (
 	"net/http"{{#apiInfo}}{{#apis}}{{#imports}}
 	"{{import}}"{{/imports}}{{/apis}}{{/apiInfo}}
-	"{{goModule}}/internal/{{serviceName}}/generated/core"
+	"{{mifyGeneratedServicePackage}}/core"
 )
 
 // hack to keep imports used if there are no routes in api

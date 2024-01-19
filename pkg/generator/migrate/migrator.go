@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -18,7 +19,7 @@ func MigrateSubstring(ctx *gencontext.GenContext, root string, prefix string, ex
 			return nil
 		}
 
-		if strings.Contains(string(dat), excludePrefix) {
+		if len(excludePrefix) > 0 && strings.Contains(string(dat), excludePrefix) {
 			return nil
 		}
 
@@ -35,4 +36,19 @@ func MigrateSubstring(ctx *gencontext.GenContext, root string, prefix string, ex
 
 		return nil
 	})
+}
+
+func FileContainsString(path string, str string) (bool, error) {
+	dat, err := os.ReadFile(path)
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+
+	if strings.Contains(string(dat), str) {
+		return true, nil
+	}
+	return false, nil
 }

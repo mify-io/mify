@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"{{goModule}}/internal/{{serviceName}}/generated/core"
-	"{{goModule}}/internal/{{serviceName}}/generated/api/public"
-	"{{goModule}}/internal/{{serviceName}}/generated/api/auth"
+	"{{mifyGeneratedServicePackage}}/core"
+	"{{mifyGeneratedServicePackage}}/api/public"
+	"{{mifyGeneratedServicePackage}}/api/auth"
 {{#routers}}
 {{/routers}}
 )

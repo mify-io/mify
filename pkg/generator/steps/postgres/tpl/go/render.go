@@ -7,10 +7,10 @@ import (
 	"os"
 	"path/filepath"
 
-	sqlc "github.com/sqlc-dev/sqlc/pkg/cli"
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/generator/steps/postgres/tpl/go/config"
 	"github.com/mify-io/mify/pkg/util/render"
+	sqlc "github.com/sqlc-dev/sqlc/pkg/cli"
 )
 
 //go:embed *.tpl
@@ -51,13 +51,17 @@ func Render(ctx *gencontext.GenContext) error {
 	if err != nil {
 		return err
 	}
-	sqlcConfPath := filepath.Join(ctx.GetWorkspace().GetGoPostgresConfigAbsPath(ctx.GetServiceName()), "sqlc.yaml")
+	sqlcConfPath := filepath.Join(
+		ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs(),
+		"postgres",
+		"sqlc.yaml",
+	)
 	err = render.RenderMany(
 		templates,
 		render.NewFile(
 			ctx,
 			sqlcConfPath,
-		).SetModel(sqlcModel),
+		).SetModel(render.NewModel(ctx, sqlcModel)),
 		render.NewFile(
 			ctx,
 			filepath.Join(queriesDir, "queries.sql.example"),

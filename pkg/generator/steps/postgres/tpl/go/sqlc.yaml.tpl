@@ -1,11 +1,11 @@
 # vim: set ft=yaml:
 version: "2"
 sql:
-- schema: "{{ .MigrationsDir }}"
-  queries: "{{ .QueriesDir }}"
+- schema: "{{ .Model.MigrationsDir }}"
+  queries: "{{ .Model.QueriesDir }}"
   engine: "postgresql"
   gen:
     go:
       package: "postgres"
-      out: "{{ .OutDir }}"
+      out: "{{ .Model.OutDir }}"
       sql_package: "pgx/v4"

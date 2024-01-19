@@ -34,7 +34,7 @@ func needGenerateClientsContext(ctx *gencontext.GenContext, clientsDiff clientsD
 func getAbsPathToClientsContext(ctx *gencontext.GenContext) (string, error) {
 	switch ctx.MustGetMifySchema().Language {
 	case mifyconfig.ServiceLanguageGo:
-		generatedDirPath := ctx.GetWorkspace().GetGeneratedAbsPath(ctx.GetServiceName())
+		generatedDirPath := ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs()
 		return path.Join(generatedDirPath, "core", "clients.go"), nil
 	case mifyconfig.ServiceLanguageJs:
 		generatedDirPath := ctx.GetWorkspace().GetJsGeneratedAbsPath(ctx.GetServiceName(), ctx.GetMifySchema().Template)
@@ -80,6 +80,7 @@ func generateClientsContext(ctx *gencontext.GenContext) error {
 func makeGoClientsModel(ctx *gencontext.GenContext) (tpl.GoClientsModel, error) {
 	targetServices := ctx.MustGetMifySchema().OpenAPI.Clients
 	clientsList := make([]tpl.GoClientModel, 0, len(targetServices))
+	mifyGen := ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema())
 	for targetServiceName := range targetServices {
 		targetServiceSchemas := ctx.GetSchemaCtx().MustGetServiceSchemas(targetServiceName)
 		if len(targetServiceSchemas.GetOpenapi()) == 0 {
@@ -95,9 +96,8 @@ func makeGoClientsModel(ctx *gencontext.GenContext) (tpl.GoClientsModel, error) 
 			packageName,
 			fieldName,
 			methodName,
-			fmt.Sprintf("%s/internal/%s/generated/api/clients/%s",
-				ctx.GetWorkspace().GetGoModule(),
-				ctx.GetServiceName(),
+			fmt.Sprintf("%s/api/clients/%s",
+				mifyGen.GetServicePackage(),
 				targetServiceName),
 		))
 	}
@@ -107,7 +107,7 @@ func makeGoClientsModel(ctx *gencontext.GenContext) (tpl.GoClientsModel, error) 
 
 	metricsIncludePath := ""
 	if len(clientsList) != 0 {
-		metricsIncludePath = fmt.Sprintf("%s/internal/pkg/generated/metrics", ctx.GetWorkspace().GetGoModule())
+		metricsIncludePath = fmt.Sprintf("%s/metrics", mifyGen.GetCommonPackage())
 	}
 
 	return tpl.NewGoClientsModel(

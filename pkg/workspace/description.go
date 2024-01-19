@@ -171,18 +171,20 @@ func (c Description) HasService(serviceName string) bool {
 
 // Path to include 'app' package
 func (c Description) GetAppIncludePath(serviceName string) string {
-	return fmt.Sprintf(
-		"%s/internal/%s/generated/app",
-		c.GetGoModule(),
-		serviceName)
+	return fmt.Sprintf("%s/app",
+		newMifyGenerated(c, &mifyconfig.ServiceConfig{
+			ServiceName: serviceName,
+			Language:    mifyconfig.ServiceLanguageGo,
+		}).GetServicePackage())
 }
 
 // Path to include 'core' package
 func (c *Description) GetCoreIncludePath(serviceName string) string {
-	return fmt.Sprintf(
-		"%s/internal/%s/generated/core",
-		c.GetGoModule(),
-		serviceName)
+	return fmt.Sprintf("%s/core",
+		newMifyGenerated(*c, &mifyconfig.ServiceConfig{
+			ServiceName: serviceName,
+			Language:    mifyconfig.ServiceLanguageGo,
+		}).GetServicePackage())
 }
 
 func (c Description) GetSchemasRootRelPath() string {
@@ -300,9 +302,11 @@ func (c Description) GetGoModule() string {
 }
 
 func (c Description) GetGoConfigsImportPath() string {
-	return fmt.Sprintf("%s/%s",
-		c.GetGoModule(),
-		"internal/pkg/generated/configs")
+	return fmt.Sprintf("%s/configs",
+		newMifyGenerated(c, &mifyconfig.ServiceConfig{
+			ServiceName: "",
+			Language:    mifyconfig.ServiceLanguageGo,
+		}).GetCommonPackage())
 }
 
 func (c *Description) GetJsServicesRelPath() string {

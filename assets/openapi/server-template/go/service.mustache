@@ -6,8 +6,8 @@ import (
 
 	{{#imports}}
 	"{{import}}"{{/imports}}
-	"{{goModule}}/internal/{{serviceName}}/generated/core"
-	"{{goModule}}/internal/{{serviceName}}/generated/api"
+	"{{mifyGeneratedServicePackage}}/core"
+	"{{mifyGeneratedServicePackage}}/api"
 )
 
 type {{classname}}Service struct {}
