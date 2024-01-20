@@ -32,12 +32,11 @@ func needGenerateClientsContext(ctx *gencontext.GenContext, clientsDiff clientsD
 }
 
 func getAbsPathToClientsContext(ctx *gencontext.GenContext) (string, error) {
+	generatedDirPath := ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs()
 	switch ctx.MustGetMifySchema().Language {
 	case mifyconfig.ServiceLanguageGo:
-		generatedDirPath := ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs()
 		return path.Join(generatedDirPath, "core", "clients.go"), nil
 	case mifyconfig.ServiceLanguageJs:
-		generatedDirPath := ctx.GetWorkspace().GetJsGeneratedAbsPath(ctx.GetServiceName(), ctx.GetMifySchema().Template)
 		return path.Join(generatedDirPath, "core", "clients.js"), nil
 	}
 

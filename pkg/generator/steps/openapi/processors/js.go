@@ -21,13 +21,7 @@ func newJsProcessor() *jsPostProcessor {
 }
 
 func (p *jsPostProcessor) GetServerGeneratorConfig(ctx *gencontext.GenContext) (GeneratorConfig, error) {
-	basePath := ctx.GetWorkspace().BasePath
-	targetPath, err := ctx.GetWorkspace().GetServiceDirectoryRelPath(
-		ctx.GetServiceName(), ctx.MustGetMifySchema().Language, ctx.MustGetMifySchema().Template)
-	if err != nil {
-		return GeneratorConfig{}, err
-	}
-	generatedPath := filepath.Join(basePath, targetPath, "generated")
+	generatedPath := ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs()
 	return GeneratorConfig{
 		TargetPath:  generatedPath,
 		PackageName: SERVER_PACKAGE_NAME,
@@ -35,13 +29,12 @@ func (p *jsPostProcessor) GetServerGeneratorConfig(ctx *gencontext.GenContext) (
 }
 
 func (p *jsPostProcessor) GetClientGeneratorConfig(ctx *gencontext.GenContext, clientName string) (GeneratorConfig, error) {
-	basePath := ctx.GetWorkspace().BasePath
-	targetPath, err := ctx.GetWorkspace().GetServiceDirectoryRelPath(
-		ctx.GetServiceName(), ctx.MustGetMifySchema().Language, ctx.MustGetMifySchema().Template)
-	if err != nil {
-		return GeneratorConfig{}, err
-	}
-	generatedPath := filepath.Join(basePath, targetPath, "generated", "api", "clients", clientName)
+	generatedPath := filepath.Join(
+		ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs(),
+		"api",
+		"clients",
+		clientName,
+	)
 	packageName := endpoints.SanitizeServiceName(clientName) + "_client"
 	return GeneratorConfig{
 		TargetPath:  generatedPath,
@@ -266,10 +259,19 @@ func (p *jsPostProcessor) constructImportPrefix(depth int) string {
 }
 
 func (p *jsPostProcessor) moveOutFiles(ctx *gencontext.GenContext) error {
+	if !ctx.MustGetMifySchema().Components.Layout.Enabled {
+		ctx.Logger.Infof("skipping layout for js service")
+		return nil
+	}
 	serviceRootPath := ctx.GetWorkspace().GetJsServiceRootAbs(ctx.GetServiceName())
-	generatedPath := ctx.GetWorkspace().GetJsGeneratedAbsPath(ctx.GetServiceName(), "expressjs")
+	generatedPath := ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetServicePath().Abs()
 
-	err := p.moveFileIfNotExists(generatedPath, serviceRootPath, "package.json")
+	err := os.MkdirAll(serviceRootPath, 0755)
+	if err != nil {
+		return err
+	}
+
+	err = p.moveFileIfNotExists(generatedPath, serviceRootPath, "package.json")
 	if err != nil {
 		return err
 	}
