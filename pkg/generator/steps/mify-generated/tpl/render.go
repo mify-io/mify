@@ -3,8 +3,8 @@ package tpl
 import (
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	goservices "github.com/mify-io/mify/pkg/generator/steps/mify-generated/tpl/go-services"
-	// jsservices "github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/js-services"
-	// pyservices "github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/py-services"
+	// jsservices "github.com/mify-io/mify/pkg/generator/steps/layout/tpl/js-services"
+	pyservices "github.com/mify-io/mify/pkg/generator/steps/mify-generated/tpl/py-services"
 )
 
 func RenderGo(ctx *gencontext.GenContext) error {
@@ -24,9 +24,9 @@ func RenderJs(ctx *gencontext.GenContext) error {
 }
 
 func RenderPy(ctx *gencontext.GenContext) error {
-	// if err := pyservices.Render(ctx); err != nil {
-		// return err
-	// }
+	if err := pyservices.Render(ctx); err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -1,5 +1,5 @@
 # vim: set ft=python:
-from {{.ServicePackageName}}.generated.app.mify_app import MifyServiceApp
+from {{.Workspace.MifyGeneratedServicePackage}}.app.mify_app import MifyServiceApp
 
 
 def main():

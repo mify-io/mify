@@ -23,3 +23,11 @@ func getRepository(conf mifyconfig.WorkspaceConfig) string {
 func (h goHelpers) MakeDefaultMifyGeneratedPackage(conf mifyconfig.WorkspaceConfig, generatedPath string) string {
 	return fmt.Sprintf("%s/%s", getRepository(conf), generatedPath)
 }
+
+func (h goHelpers) GetCommonPackage(pkgRoot string) string {
+	return fmt.Sprintf("%s/common", pkgRoot)
+}
+
+func (h goHelpers) GetServicePackage(pkgRoot string, serviceName string) string {
+	return fmt.Sprintf("%s/services/%s", pkgRoot, serviceName)
+}

@@ -11,7 +11,7 @@ import urllib3
 
 from http import client as http_client
 
-from libraries.generated.configs.static import MifyStaticConfig
+from {{mifyGeneratedCommonPackage}}.configs.static import MifyStaticConfig
 
 from {{packageName}}.exceptions import ApiValueError
 
@@ -72,7 +72,7 @@ class Configuration(object):
       received by the server.
 {{#if hasHttpSignatureMethods}}
     :param signing_info: Configuration parameters for the HTTP signature security scheme.
-        Must be an instance of {{{packageName}}}.signing.HttpSigningConfiguration
+        Must be an instance of {{packageName}}.signing.HttpSigningConfiguration
 {{/if}}
     :param server_index: Index to servers configuration.
     :param server_variables: Mapping with string values to replace variables in
@@ -99,7 +99,7 @@ class Configuration(object):
 
     You can programmatically set the cookie:
 
-conf = {{{packageName}}}.Configuration(
+conf = {{packageName}}.Configuration(
     api_key={'cookieAuth': 'abc123'}
     api_key_prefix={'cookieAuth': 'JSESSIONID'}
 )
@@ -119,7 +119,7 @@ conf = {{{packageName}}}.Configuration(
 
     Configure API client with HTTP basic authentication:
 
-conf = {{{packageName}}}.Configuration(
+conf = {{packageName}}.Configuration(
     username='the-user',
     password='the-password',
 )
@@ -138,7 +138,7 @@ conf = {{{packageName}}}.Configuration(
     Configure API client with HTTP signature authentication. Use the 'hs2019' signature scheme,
     sign the HTTP requests with the RSA-SSA-PSS signature algorithm, and set the expiration time
     of the signature to 5 minutes after the signature has been created.
-    Note you can use the constants defined in the {{{packageName}}}.signing module, and you can
+    Note you can use the constants defined in the {{packageName}}.signing module, and you can
     also specify arbitrary HTTP headers to be included in the HTTP signature, except for the
     'Authorization' header, which is used to carry the signature.
 
@@ -147,18 +147,18 @@ conf = {{{packageName}}}.Configuration(
     load balancers may add/modify/remove headers. Include the HTTP headers that you know
     are not going to be modified in transit.
 
-conf = {{{packageName}}}.Configuration(
-    signing_info = {{{packageName}}}.signing.HttpSigningConfiguration(
+conf = {{packageName}}.Configuration(
+    signing_info = {{packageName}}.signing.HttpSigningConfiguration(
         key_id =                 'my-key-id',
         private_key_path =       'rsa.pem',
-        signing_scheme =         {{{packageName}}}.signing.SCHEME_HS2019,
-        signing_algorithm =      {{{packageName}}}.signing.ALGORITHM_RSASSA_PSS,
-        signed_headers =         [{{{packageName}}}.signing.HEADER_REQUEST_TARGET,
-                                    {{{packageName}}}.signing.HEADER_CREATED,
-                                    {{{packageName}}}.signing.HEADER_EXPIRES,
-                                    {{{packageName}}}.signing.HEADER_HOST,
-                                    {{{packageName}}}.signing.HEADER_DATE,
-                                    {{{packageName}}}.signing.HEADER_DIGEST,
+        signing_scheme =         {{packageName}}.signing.SCHEME_HS2019,
+        signing_algorithm =      {{packageName}}.signing.ALGORITHM_RSASSA_PSS,
+        signed_headers =         [{{packageName}}.signing.HEADER_REQUEST_TARGET,
+                                    {{packageName}}.signing.HEADER_CREATED,
+                                    {{packageName}}.signing.HEADER_EXPIRES,
+                                    {{packageName}}.signing.HEADER_HOST,
+                                    {{packageName}}.signing.HEADER_DATE,
+                                    {{packageName}}.signing.HEADER_DIGEST,
                                     'Content-Type',
                                     'User-Agent'
                                     ],

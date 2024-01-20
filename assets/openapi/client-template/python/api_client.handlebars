@@ -24,7 +24,7 @@ import tornado.gen
 {{/if}}
 import frozendict
 
-from libraries.generated.metrics.client_metrics import ClientMetrics
+from {{mifyGeneratedCommonPackage}}.metrics.client_metrics import ClientMetrics
 
 from {{packageName}} import rest
 from {{packageName}}.configuration import Configuration

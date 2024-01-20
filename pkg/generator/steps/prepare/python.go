@@ -32,39 +32,36 @@ func checkCommand(cmd string) error {
 	return nil
 }
 
-func prepareVirtualEnv(ctx *gencontext.GenContext, servicesPath string) error {
+func prepareVirtualEnv(ctx *gencontext.GenContext, requirementsPath string) error {
+	servicesPath := ctx.GetWorkspace().GetPythonServicesAbsPath()
 	if _, err := os.Stat(filepath.Join(servicesPath, virtualEnvDirName, "bin", "activate")); err == nil {
 		return nil
+	}
+	if !ctx.MustGetMifySchema().Components.Layout.Enabled {
+		ctx.Logger.Infof("skipping venv creation without layout enabled")
+		return nil
+	}
+	if _, err := os.Stat(servicesPath); errors.Is(err, fs.ErrNotExist) {
+		err := os.Mkdir(servicesPath, 0755)
+		if err != nil {
+			return fmt.Errorf("failed to create py-services dir in workspace: %w", err)
+		}
 	}
 	w := &zapio.Writer{Log: ctx.Logger.Desugar(), Level: zap.DebugLevel}
 	defer w.Close()
 
-	requirementsPath := filepath.Join(ctx.GetWorkspace().GetPythonServicesAbsPath(), "requirements.txt")
-	if err := render.RenderOrSkipTemplate(requirementsTemplate, struct{}{}, requirementsPath); err != nil {
-		return render.WrapError("requirements.txt", err)
-	}
-
-	pipCmd := exec.Command("python3", "-m", "pip", "install", "--user", "virtualenv")
-	pipCmd.Dir = servicesPath
-	pipCmd.Stderr = w
-	pipCmd.Stdout = w
-
-	err := pipCmd.Run()
-	if err != nil {
-		return fmt.Errorf("failed to prepare virtual env check if pip installed, for ubuntu install `python3-pip`, error: %w", err)
-	}
 
 	venvCmd := exec.Command("python3", "-m", "venv", virtualEnvDirName)
 	venvCmd.Dir = servicesPath
 	venvCmd.Stderr = w
 	venvCmd.Stdout = w
 
-	err = venvCmd.Run()
+	err := venvCmd.Run()
 	if err != nil {
 		return fmt.Errorf("failed to prepare virtual env check if venv package installed, for ubuntu install `python3-venv`, error: %w", err)
 	}
 
-	pipReqCmd := exec.Command(virtualEnvDirName+"/bin/python3", "-m", "pip", "install", "-r", "requirements.txt")
+	pipReqCmd := exec.Command(virtualEnvDirName+"/bin/python3", "-m", "pip", "install", "-r", requirementsPath)
 	pipReqCmd.Dir = servicesPath
 	pipReqCmd.Stderr = w
 	pipReqCmd.Stdout = w
@@ -87,14 +84,14 @@ func preparePython(ctx *gencontext.GenContext) error {
 	if err := checkCommand("python3"); err != nil {
 		return err
 	}
-	servicesDir := ctx.GetWorkspace().GetPythonServicesAbsPath()
-	if _, err := os.Stat(servicesDir); errors.Is(err, fs.ErrNotExist) {
-		err := os.Mkdir(servicesDir, 0755)
-		if err != nil {
-			return fmt.Errorf("failed to create py-services dir in workspace: %w", err)
-		}
+	requirementsPath := filepath.Join(
+		ctx.GetWorkspace().GetMifyGenerated(ctx.MustGetMifySchema()).GetPath().Abs(),
+		"requirements.txt",
+	)
+	if err := render.RenderOrSkipTemplate(requirementsTemplate, struct{}{}, requirementsPath); err != nil {
+		return render.WrapError("requirements.txt", err)
 	}
-	if err := prepareVirtualEnv(ctx, servicesDir); err != nil {
+	if err := prepareVirtualEnv(ctx, requirementsPath); err != nil {
 		return err
 	}
 	return nil

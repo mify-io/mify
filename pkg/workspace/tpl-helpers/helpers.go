@@ -7,19 +7,22 @@ import (
 type WorkspaceTemplateHelpers interface {
 	MakeDefaultMifyGeneratedPath() string
 	MakeDefaultMifyGeneratedPackage(c mifyconfig.WorkspaceConfig, generatedPath string) string
+	GetCommonPackage(pkgRoot string) string
+	GetServicePackage(pkgRoot string, serviceName string) string
+}
+
+var HelpersMap = map[mifyconfig.ServiceLanguage]WorkspaceTemplateHelpers {
+	mifyconfig.ServiceLanguageGo: goHelpers{},
+	mifyconfig.ServiceLanguageJs: jsHelpers{},
+	mifyconfig.ServiceLanguagePython: pythonHelpers{},
 }
 
 func PopulateGeneratorParams(c mifyconfig.WorkspaceConfig) mifyconfig.GeneratorParams {
-	templateHelpers := map[mifyconfig.ServiceLanguage]WorkspaceTemplateHelpers {
-		mifyconfig.ServiceLanguageGo: goHelpers{},
-		mifyconfig.ServiceLanguageJs: jsHelpers{},
-		mifyconfig.ServiceLanguagePython: pythonHelpers{},
-	}
 	params := c.GeneratorParams
 	if params.Template == nil {
 		params.Template = make(map[mifyconfig.ServiceLanguage]mifyconfig.GeneratorTemplateParams)
 	}
-	for lang, helper := range templateHelpers {
+	for lang, helper := range HelpersMap {
 		tplParams := params.Template[lang]
 		if len(tplParams.MifyGeneratedPath) == 0 {
 			tplParams.MifyGeneratedPath = helper.MakeDefaultMifyGeneratedPath()

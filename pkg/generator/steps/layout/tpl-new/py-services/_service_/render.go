@@ -5,7 +5,6 @@ import (
 
 	gencontext "github.com/mify-io/mify/pkg/generator/gen-context"
 	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/py-services/_service_/app"
-	"github.com/mify-io/mify/pkg/generator/steps/layout/tpl-new/py-services/_service_/generated"
 	"github.com/mify-io/mify/pkg/util/render"
 )
 
@@ -25,7 +24,7 @@ func Render(ctx *gencontext.GenContext) error {
 		return render.WrapError("init", err)
 	}
 
-	mainModel := newMainModel(ctx)
+	mainModel := render.NewDefaultModel(ctx)
 	mainPath := ctx.GetWorkspace().GetPythonServiceSubAbsPath(ctx.GetServiceName(), "__main__.py")
 	if err := render.RenderOrSkipTemplate(mainTemplate, mainModel, mainPath); err != nil {
 		return render.WrapError("main", err)
@@ -35,10 +34,6 @@ func Render(ctx *gencontext.GenContext) error {
 	dockerfilePath := ctx.GetWorkspace().GetPythonServiceSubAbsPath(ctx.GetServiceName(), "Dockerfile")
 	if err := render.RenderOrSkipTemplate(dockerfileTemplate, dockerfileModel, dockerfilePath); err != nil {
 		return render.WrapError("Dockerfile", err)
-	}
-
-	if err := generated.Render(ctx); err != nil {
-		return render.WrapError("generated", err)
 	}
 
 	if err := app.Render(ctx); err != nil {
