@@ -115,25 +115,3 @@ services:
 `mify tool migrate` and local config assumes these credentials to connect to database.
 After starting postgres you can run `mify tool migrate <service-name> up` to apply migrations.
 To rollback run `mify tool migrate <service-name> down`.
-
-### Deploying to Mify Cloud
-
-After you created all migrations and tested them locally, when you run `mify
-cloud deploy <service-name>` it will automatically apply all migrations before
-deploying new version of the service.
-
-:::info
-Ping us in Slack when you ready to use Postgres, we'll set it up for you.
-:::
-
-### Connecting to database in Mify Cloud
-
-In mify CLI there is a command for creating ssh session to namespace helper pod:
-```
-mify cloud ns-shell -e <env>
-```
-You'll need to provide public ssh key, which will be used for connecting to the pod.
-Make sure that your ssh is configured to use this key automatically (e.g. in ssh-agent).
-
-After connecting to the pod, check README in your home directory for the instructions
-on how to connect to the database.
