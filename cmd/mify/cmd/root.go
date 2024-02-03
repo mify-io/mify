@@ -77,7 +77,6 @@ func init() {
 	rootCmd.AddCommand(genCmd)
 	rootCmd.AddCommand(runCmd)
 	rootCmd.AddCommand(toolCmd)
-	rootCmd.AddCommand(cloudCmd)
 
 	rootCmd.PersistentPostRun = PersistentPostRun
 }

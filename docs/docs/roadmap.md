@@ -48,16 +48,3 @@ Legend:
 |-----------------------------------|-------------------|
 | Support for cron job service type |⏰                 |
 
-## Mify Cloud
-
-| Features                         | Status |
-|----------------------------------|--------|
-| Cloud services deploy            |✅      |
-| Postgres migrations              |✅      |
-| Static configs                   |✅      |
-| Consul for dynamic configs       |⏰      |
-| ELK logs collection and querying |⏰      |
-| Metrics collection               |⏰      |
-| Multiple regions deploy          |⏰      |
-| Canary rollout                   |⏰      |
-| Quick rollback                   |⏰      |

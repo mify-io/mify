@@ -48,5 +48,5 @@ For dependencies which are bootstrapping for service one time during initializat
 
 Swagger UI is available for every backend service on maintenance port (you can
 get it from the service startup logs). To be able to call API from it, add your
-local and Mify Cloud service url to `schemas/<service-name>/api/api.yaml` to
+local and prod service url to `schemas/<service-name>/api/api.yaml` to
 `servers` field.
