@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/adrg/xdg v0.4.0
 	github.com/briandowns/spinner v1.18.0
-	github.com/docker/docker v24.0.7+incompatible
+	github.com/docker/docker v24.0.9+incompatible
 	github.com/getkin/kin-openapi v0.88.0
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-resty/resty/v2 v2.7.0
