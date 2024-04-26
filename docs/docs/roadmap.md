@@ -6,7 +6,7 @@ sidebar_position: 2
 
 This is our roadmap for supported features. Here you can track what features
 did we already implemented and what we're planning to do next. Feel free to
-reach out in our Slack or Github if you have a particular interest in any
+reach out in our Discord or Github if you have a particular interest in any
 planned feature or have a suggestion for a new one.
 
 Legend:
