@@ -64,11 +64,6 @@ const config = {
             label: 'Docs',
           },
           {
-            href: 'https://mify.io/pricing',
-            label: 'Pricing',
-            position: 'right',
-          },
-          {
             href: 'https://github.com/mify-io/mify',
             label: 'GitHub',
             position: 'right',
@@ -95,8 +90,8 @@ const config = {
             title: 'Community',
             items: [
               {
-                label: 'Slack',
-                href: 'https://join.slack.com/t/mifyio/shared_invite/zt-1llnbiio6-lG45E696QOEVzHb0__Qqxw',
+                label: 'Discord',
+                href: 'https://discord.gg/Z7VPSCCn4g',
               },
               {
                 label: 'Stack Overflow',

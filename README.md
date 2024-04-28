@@ -29,8 +29,8 @@
       Contributing
     </a>
     <span> | </span>
-    <a href="https://join.slack.com/t/mifyio/shared_invite/zt-1llnbiio6-lG45E696QOEVzHb0__Qqxw">
-      Slack Channel
+    <a href="https://discord.gg/Z7VPSCCn4g">
+      Discord Channel
     </a>
   </h3>
 </div>
@@ -92,7 +92,7 @@ Create your first project: https://mify.io/docs
 
 Guide on how to create sample backend and frontend app: https://mify.io/docs/guides/overview
 
-If you have any questions, join our [Slack channel](https://join.slack.com/t/mifyio/shared_invite/zt-1llnbiio6-lG45E696QOEVzHb0__Qqxw)!
+If you have any questions, join our [Discord channel](https://discord.gg/Z7VPSCCn4g)!
 
 ## License
 [Apache 2.0](https://tldrlegal.com/license/apache-license-2.0-(apache-2.0))
