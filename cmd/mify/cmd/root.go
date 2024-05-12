@@ -95,7 +95,7 @@ func PersistentPostRun(cmd *cobra.Command, args []string) {
 
 	appContext.InitStatsCollector(desc.GetStatsQueueFile())
 	appContext.StatsCollector.LogCobraCommandExecuted(cmd)
-	_ = appContext.StatsCollector.MaybeSendStats()
+	//_ = appContext.StatsCollector.MaybeSendStats()
 	// TODO: return logger when it will be possible to write log to file only
 	// err := appContext.StatsCollector.MaybeSendStats()
 	// if err != nil {

@@ -27,6 +27,7 @@ class MifyServiceContext:
 
     def with_extra(self, extra):
         self._extra = extra(self)
+        return self
 
     @property
     def hostname(self):
