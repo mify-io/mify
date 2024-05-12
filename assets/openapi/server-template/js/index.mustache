@@ -1,6 +1,6 @@
-const config = require('./generated/config');
-const logger = require('./generated/logger');
-const ExpressServer = require('./generated/expressServer');
+const config = require('../mify-generated/services/{{serviceName}}/config');
+const logger = require('../mify-generated/services/{{serviceName}}/logger');
+const ExpressServer = require('../mify-generated/services/{{serviceName}}/expressServer');
 
 const launchServer = async () => {
   try {
